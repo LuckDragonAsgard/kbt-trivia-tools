@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KBT Tool Examples</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #fff; padding: 30px; }
+  h1 { text-align: center; color: #ffc107; font-size: 2.5em; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #aaa; margin-bottom: 40px; font-size: 1.1em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 24px; max-width: 1400px; margin: 0 auto; }
+  .card { background: #1a1a2e; border-radius: 16px; padding: 28px; border: 1px solid #2a2a4a; }
+  .card-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .icon { font-size: 2.2em; }
+  .card h2 { color: #ffc107; font-size: 1.3em; }
+  .card .desc { color: #aaa; font-size: 0.85em; }
+  .output-box { background: #0f0f1a; border-radius: 10px; padding: 20px; border: 1px solid #333; }
+  .output-box h3 { color: #ffc107; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .field { margin-bottom: 12px; }
+  .field label { color: #888; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+  .field .value { color: #fff; font-size: 1em; }
+  .code-display { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9em; }
+  .clues { list-style: none; }
+  .clues li { padding: 6px 0; border-bottom: 1px solid #2a2a3a; color: #ddd; font-size: 0.9em; }
+  .clues li:last-child { border-bottom: none; }
+  .clue-num { color: #ffc107; font-weight: bold; margin-right: 8px; }
+  .tag { display: inline-block; background: #ffc107; color: #000; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; margin: 2px; }
+  .answer-reveal { background: #1e3a1e; border: 1px solid #2e5a2e; border-radius: 8px; padding: 12px; margin-top: 12px; }
+  .answer-reveal .ans { color: #4caf50; font-size: 1.2em; font-weight: bold; }
+  .snippet { background: #1a1a2e; border-left: 3px solid #ffc107; padding: 8px 12px; margin: 6px 0; border-radius: 4px; font-size: 0.85em; }
+  .movie-pill { display: inline-block; background: #2a2a4a; color: #aaa; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; margin: 3px; }
+  .actor-match { color: #ffc107; font-size: 1.1em; font-weight: bold; }
+  .suspect { display: flex; gap: 12px; align-items: flex-start; }
+  .suspect-info { flex: 1; }
+  .suspect-name { color: #ffc107; font-size: 1.1em; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>🎯 KBT Tool Examples</h1>
+<p class="subtitle">Sample outputs from all 9 Kow Brainer Trivia tools</p>
+
+<div class="grid">
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🔐</span><div><h2>Crack the Code</h2><div class="desc">Mastermind-style code-breaking game</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Secret Code</label><div class="code-display"><div class="circle" style="background:#e53935;">R</div><div class="circle" style="background:#1e88e5;">B</div><div class="circle" style="background:#fdd835; color:#000;">Y</div><div class="circle" style="background:#43a047;">G</div></div></div>
+      <div class="field"><label>Round 1 Guess</label><div class="code-display"><div class="circle" style="background:#e53935;">R</div><div class="circle" style="background:#fdd835; color:#000;">Y</div><div class="circle" style="background:#fdd835; color:#000;">Y</div><div class="circle" style="background:#43a047;">G</div></div></div>
+      <div class="field"><label>Feedback</label><div>⚫⚫ Black pegs (right colour, right place): <strong>2</strong></div><div>⚪⚪ White pegs (right colour, wrong place): <strong>1</strong></div></div>
+      <div class="field"><label>Topic</label><div class="value">Animals — "I have stripes and live in Africa"</div></div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">ANSWER</label><div class="ans">ZEBRA</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">📅</span><div><h2>Guess the Year</h2><div class="desc">Historical year guessing with clues</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Target Year</label><div class="value" style="font-size:1.8em; color:#ffc107; font-weight:bold;">1969</div></div>
+      <div class="field"><label>Clues (revealed one by one)</label>
+        <ul class="clues">
+          <li><span class="clue-num">1.</span>The Beatles released Abbey Road this year</li>
+          <li><span class="clue-num">2.</span>Apollo 11 landed on the moon</li>
+          <li><span class="clue-num">3.</span>Woodstock music festival took place in August</li>
+          <li><span class="clue-num">4.</span>Richard Nixon became US President</li>
+          <li><span class="clue-num">5.</span>Monty Python's Flying Circus premiered on BBC</li>
+        </ul>
+      </div>
+      <div class="field"><label>Category</label><span class="tag">History</span><span class="tag">Music</span><span class="tag">Space</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🌍</span><div><h2>Carmen Sandiego</h2><div class="desc">Geo-mystery crime trail game</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Crime Scene — Paris, France</label><div class="value">The Mona Lisa has been stolen from the Louvre!</div></div>
+      <div class="field"><label>Witness Clues</label>
+        <ul class="clues">
+          <li><span class="clue-num">1.</span>Suspect headed east, spoke Japanese</li>
+          <li><span class="clue-num">2.</span>Was seen near a bullet train station</li>
+          <li><span class="clue-num">3.</span>Asked about cherry blossom season</li>
+        </ul>
+      </div>
+      <div class="field"><label>Suspect</label><div class="suspect"><div class="suspect-info"><div class="suspect-name">Katana Kimiko</div><div style="color:#aaa; font-size:0.85em;">Known aliases: The Silk Shadow · Last seen: Tokyo · Specialty: Art theft</div></div></div></div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">LOCATION</label><div class="ans">🇯🇵 Tokyo, Japan</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🖼️</span><div><h2>Linked Pics</h2><div class="desc">Find the connection between images</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>4 Images Shown</label>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:6px;">
+          <div style="background:#2a2a4a; border-radius:8px; padding:10px; text-align:center;">🦁 Lion</div>
+          <div style="background:#2a2a4a; border-radius:8px; padding:10px; text-align:center;">♌ Leo (zodiac)</div>
+          <div style="background:#2a2a4a; border-radius:8px; padding:10px; text-align:center;">🦁 Leonardo DiCaprio</div>
+          <div style="background:#2a2a4a; border-radius:8px; padding:10px; text-align:center;">🎸 Leo Sayer</div>
+        </div>
+      </div>
+      <div class="field"><label>Category</label><span class="tag">Names</span></div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">CONNECTION</label><div class="ans">LEO</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🏷️</span><div><h2>Brand Tool</h2><div class="desc">Guess the brand from clues</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Clues Revealed</label>
+        <ul class="clues">
+          <li><span class="clue-num">1.</span>Founded in 1971 in Seattle, Washington</li>
+          <li><span class="clue-num">2.</span>Named after a character in Moby Dick</li>
+          <li><span class="clue-num">3.</span>Their logo features a twin-tailed mermaid</li>
+          <li><span class="clue-num">4.</span>Serves over 30,000 locations worldwide</li>
+          <li><span class="clue-num">5.</span>Famous for their Pumpkin Spice Latte</li>
+        </ul>
+      </div>
+      <div class="field"><label>Industry</label><span class="tag">Coffee</span><span class="tag">Food & Drink</span></div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">BRAND</label><div class="ans">☕ Starbucks</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🧠</span><div><h2>Name the Brain</h2><div class="desc">Guess the famous person from clues</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Clues</label>
+        <ul class="clues">
+          <li><span class="clue-num">1.</span>Born in Ulm, Germany in 1879</li>
+          <li><span class="clue-num">2.</span>Won the Nobel Prize in Physics (1921)</li>
+          <li><span class="clue-num">3.</span>Developed the theory of special relativity</li>
+          <li><span class="clue-num">4.</span>Famous equation: E = mc²</li>
+          <li><span class="clue-num">5.</span>Known for wild hair and playing violin</li>
+        </ul>
+      </div>
+      <div class="field"><label>Category</label><span class="tag">Science</span><span class="tag">Physics</span></div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">PERSON</label><div class="ans">Albert Einstein</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">👤</span><div><h2>Face Morph</h2><div class="desc">Morphs two celebrity faces together</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div style="text-align:center; padding:20px 0;">
+        <div style="font-size:3em;">👨 + 👩 = 🧑</div>
+        <div style="margin-top:16px; color:#aaa;">Face A + Face B = Morphed Image</div>
+        <div style="margin-top:12px; background:#1e2a3a; border-radius:10px; padding:16px;">
+          <div style="color:#4fc3f7;">📸 Upload two photos → AI blends faces together</div>
+          <div style="color:#aaa; font-size:0.85em; margin-top:6px;">Uses face detection to align and merge features · Outputs a blended portrait PNG</div>
+        </div>
+        <div style="margin-top:12px;"><span class="tag">50/50 blend</span><span class="tag">Auto-aligned</span><span class="tag">PNG output</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">👻</span><div><h2>Ghost Actors</h2><div class="desc">Find the actor linking two movies</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Movie A</label><div class="value" style="font-size:1.1em;">🎬 The Dark Knight (2008)</div></div>
+      <div class="field"><label>Movie B</label><div class="value" style="font-size:1.1em;">🎬 Inception (2010)</div></div>
+      <div class="field"><label>Supporting Cast Shown</label>
+        <div><span class="movie-pill">Morgan Freeman</span><span class="movie-pill">Ken Watanabe</span><span class="movie-pill">Gary Oldman</span><span class="movie-pill">Cillian Murphy</span><span class="movie-pill">Tom Hardy</span><span class="movie-pill">Michael Caine</span></div>
+      </div>
+      <div class="answer-reveal"><label style="color:#888; font-size:0.8em;">GHOST ACTOR</label><div class="ans actor-match">🎭 Michael Caine</div><div style="color:#aaa; font-size:0.85em; margin-top:4px;">Alfred in Dark Knight · Miles in Inception</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="icon">🎵</span><div><h2>Soundmash</h2><div class="desc">Identify songs from mixed audio snippets</div></div></div>
+    <div class="output-box">
+      <h3>Example Output</h3>
+      <div class="field"><label>Round Theme</label><span class="tag">80s Hits</span></div>
+      <div class="field"><label>Songs in the Mix</label>
+        <div class="snippet">🎵 Snippet 1 · 0:00–0:15 · Upbeat synth intro...</div>
+        <div class="snippet">🎵 Snippet 2 · 0:15–0:30 · Drum machine kicks in...</div>
+        <div class="snippet">🎵 Snippet 3 · 0:30–0:45 · Iconic guitar riff...</div>
+      </div>
+      <div class="field"><label>Answer Sheet</label>
+        <ul class="clues">
+          <li><span class="clue-num">1.</span>Take On Me — a-ha (1985)</li>
+          <li><span class="clue-num">2.</span>Don't You Want Me — Human League (1981)</li>
+          <li><span class="clue-num">3.</span>Sweet Child O' Mine — Guns N' Roses (1987)</li>
+        </ul>
+      </div>
+      <div class="field"><label>Scoring</label><div class="value">1 pt per song title · 1 pt per artist · Bonus for year</div></div>
+    </div>
+  </div>
+
+</div>
+<p style="text-align:center; color:#555; margin-top:40px; font-size:0.85em;">Kow Brainer Trivia · All 9 Tools · kbt-trial.vercel.app</p>
+</body>
+</html>
