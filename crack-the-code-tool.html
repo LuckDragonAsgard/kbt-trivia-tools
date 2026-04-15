@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crack The Code - KBT Rebus Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.2);
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #fff;
+        }
+
+        .header-subtitle { font-size: 1.1em; opacity: 0.95; font-weight: 700; color: #fff; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #ddd;
+        }
+
+        .panel h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #0066cc;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1.1em;
+        }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #0066cc; }
+
+        textarea { min-height: 80px; resize: vertical; }
+
+        .image-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .image-slot {
+            position: relative;
+            aspect-ratio: 1;
+            background: #fafafa;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .image-slot:hover { border-color: #0066cc; }
+        .image-slot.loaded { border-style: solid; border-color: #0066cc; }
+
+        .image-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slot-placeholder {
+            text-align: center;
+            color: #999;
+            font-size: 0.8em;
+            padding: 4px;
+        }
+
+        .slot-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 20px;
+            height: 20px;
+            background: rgba(231,76,60,0.85);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 0.7em;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            font-family: sans-serif;
+        }
+        .image-slot.loaded .slot-remove { display: flex; }
+
+        input[type="file"] { display: none; }
+
+        .status-bar {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 14px;
+            font-size: 0.9em;
+            color: #999;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .status-bar.ready { color: #2ecc71; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-export { background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: #fff; }
+        .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); }
+        .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .add-slot-btn {
+            background: rgba(0, 102, 204, 0.1);
+            border: 2px solid #0066cc;
+            color: #0066cc;
+            border-radius: 8px;
+            padding: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .add-slot-btn:hover { background: rgba(0, 102, 204, 0.2); }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #ddd;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h2 {
+            margin: 0;
+            font-family: 'Luckiest Guy', cursive;
+            color: #0066cc;
+            font-size: 1.3em;
+            border: none;
+            padding: 0;
+        }
+
+        .preview-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fafafa;
+            cursor: pointer;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #0066cc;
+            color: #fff;
+            border-color: #0066cc;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            padding: 16px;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .canvas-wrapper canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .export-hint {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85em;
+            color: #999;
+            border: 1px solid #ddd;
+            margin-top: 12px;
+        }
+        .export-hint strong { color: #0066cc; }
+
+        .kbt-watermark {
+            position: absolute;
+            bottom: 12px;
+            left: 28px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.4em;
+            color: rgba(200, 200, 200, 0.4);
+            letter-spacing: 2px;
+        }
+
+        #export-canvas {
+            width: 1920px;
+            height: 1080px;
+            background: #fff;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .rebus-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 40px;
+        }
+
+        .rebus-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 12px;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.05);
+            outline: 8px solid #ffffff;
+            filter: drop-shadow(0 12px 28px rgba(0,0,0,0.45));
+        }
+
+        .answer-text {
+            position: absolute;
+            bottom: 60px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 48px;
+            color: #0066cc;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .question-text {
+            position: absolute;
+            top: 80px;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 36px;
+            color: #333;
+            text-align: center;
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 CRACK THE CODE ✨ AI-Powered</h1>
+            <div class="header-subtitle">Upload rebus images — players guess the answer!</div>
+        </header>
+
+        <div class="main-content">
+            <!-- LEFT PANEL -->
+            <div class="panel">
+                <h2>⚙️ Setup</h2>
+
+                <label>Answer (What players guess)</label>
+                <input type="text" id="answer" placeholder="e.g. Sandra Bullock" maxlength="50" />
+                <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Rebus Ideas</button>
+                <div id="aiRebusPanel" style="display:none;margin-top:10px;background:#1a0a2e;border:1px solid #6c3fc5;border-radius:10px;padding:14px;font-size:13px;color:#d4b8ff;line-height:1.7;white-space:pre-wrap;"></div>
+
+                <label>Rebus Images (Click to add)</label>
+                <div class="image-slots" id="image-slots">
+                    <!-- Slots rendered dynamically -->
+                </div>
+
+                <button class="add-slot-btn" onclick="addImageSlot()">+ Add Image</button>
+
+                <div class="status-bar" id="status-bar">Add at least 1 image to export</div>
+
+                <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
+                    <div style="font-family: 'Luckiest Guy', cursive; color: #0066cc; margin-bottom: 8px;">Export Images</div>
+                    <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
+                        🔴 Export A — Question
+                    </button>
+                    <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
+                        🟢 Export B — Reveal
+                    </button>
+                </div>
+
+                <div class="export-hint">
+                    <strong>A</strong> = Rebus images only &nbsp;|&nbsp; <strong>B</strong> = Answer revealed
+                    <br>Files: <strong>CrackTheCodeA.png</strong> &amp; <strong>CrackTheCodeB [answer].png</strong>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: PREVIEW -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>👁️ Preview</h2>
+                    <div class="preview-toggle">
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
+                    </div>
+                </div>
+
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div id="export-canvas">
+                        <div class="rebus-container" id="rebus-container">
+                            <!-- Images rendered dynamically -->
+                        </div>
+                        <div id="answer-reveal" style="display:none;"></div>
+                        <div class="kbt-watermark">KBT</div>
+                    </div>
+                </div>
+
+                <div class="export-hint">
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let images = [];
+        let currentPreview = 'A';
+
+        function addImageSlot() {
+            if (images.length < 6) {
+                images.push(null);
+                renderImageSlots();
+                updateStatus();
+            }
+        }
+
+        function renderImageSlots() {
+            const container = document.getElementById('image-slots');
+            container.innerHTML = images.map((img, i) => `
+                <label class="image-slot ${img ? 'loaded' : ''}">
+                    ${img ? `<img src="${img}" alt="Rebus ${i+1}">` : '<div class="slot-placeholder"><div class="slot-icon">🖼️</div>Click to upload</div>'}
+                    ${img ? `<button class="slot-remove" onclick="removeImage(${i})">✕</button>` : ''}
+                    <input type="file" accept="image/*" onchange="handleImageUpload(event, ${i})">
+                </label>
+            `).join('');
+        }
+
+        function handleImageUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                images[index] = e.target.result;
+                renderImageSlots();
+                updatePreview();
+                updateStatus();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(index) {
+            images.splice(index, 1);
+            renderImageSlots();
+            updatePreview();
+            updateStatus();
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status-bar');
+            const answer = document.getElementById('answer').value.trim();
+            const hasImages = images.length > 0;
+            if (hasImages && answer) {
+                status.classList.add('ready');
+                status.textContent = '✓ Ready to export!';
+                document.getElementById('btn-export-a').disabled = false;
+                document.getElementById('btn-export-b').disabled = false;
+            } else {
+                status.classList.remove('ready');
+                status.textContent = 'Add images and answer to export';
+                document.getElementById('btn-export-a').disabled = true;
+                document.getElementById('btn-export-b').disabled = true;
+            }
+        }
+
+        function setPreview(version) {
+            currentPreview = version;
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const container = document.getElementById('rebus-container');
+            const answerReveal = document.getElementById('answer-reveal');
+            const answer = document.getElementById('answer').value.trim();
+
+            if (currentPreview === 'A') {
+                // Question version - just images
+                container.style.display = 'flex';
+                answerReveal.style.display = 'none';
+                container.innerHTML = images.map((img, i) => `
+                    <img src="${img}" alt="Rebus ${i+1}" class="rebus-image" style="max-width: calc(100% / ${images.length + 1});">
+                `).join('');
+            } else {
+                // Answer version
+                container.style.display = 'none';
+                answerReveal.style.display = 'block';
+                answerReveal.innerHTML = `<div class="answer-text">${answer.toUpperCase()}</div>`;
+            }
+        }
+
+        async function exportImage(version) {
+            const canvas = document.getElementById('export-canvas');
+            const answer = document.getElementById('answer').value.trim();
+
+            // Set preview to correct version
+            if (version === 'A') {
+                document.getElementById('rebus-container').style.display = 'flex';
+                document.getElementById('answer-reveal').style.display = 'none';
+            } else {
+                document.getElementById('rebus-container').style.display = 'none';
+                document.getElementById('answer-reveal').style.display = 'block';
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            html2canvas(canvas, { scale: 1, useCORS: true, logging: false }).then(renderedCanvas => {
+                const link = document.createElement('a');
+                link.download = version === 'A' ? 'CrackTheCodeA.png' : `CrackTheCodeB_${answer.replace(/\s+/g, '_')}.png`;
+                link.href = renderedCanvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function getAIRebus() {
+          const answer = document.getElementById('answer').value.trim();
+          if (!answer) { alert('Enter the answer first!'); return; }
+          const btn = document.getElementById('aiRebusBtnEl');
+          const panel = document.getElementById('aiRebusPanel');
+          btn.disabled = true; btn.textContent = '⏳ Thinking...';
+          panel.style.display = 'none';
+          try {
+            const res = await fetch('/api/ai-text', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tool: 'crack-code', answer })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            panel.textContent = data.result;
+            panel.style.display = 'block';
+          } catch(err) {
+            alert('AI error: ' + err.message);
+          } finally {
+            btn.disabled = false; btn.textContent = '🤖 AI Suggest Rebus Ideas';
+          }
+        }
+
+        document.getElementById('answer').addEventListener('input', updateStatus);
+        renderImageSlots();
+        updatePreview();
+    </script>
+</body>
+</html>

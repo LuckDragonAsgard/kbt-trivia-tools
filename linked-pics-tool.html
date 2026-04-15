@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linked Pics Tool - KBT Multimedia Question Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(71, 181, 208, 0.2);
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-subtitle { font-size: 1.1em; opacity: 0.95; font-weight: 700; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #ddd;
+        }
+
+        .panel h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #e91e63;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1.1em;
+        }
+        input[type="text"]:focus { outline: none; border-color: #e91e63; }
+
+        .image-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .image-slot {
+            position: relative;
+            aspect-ratio: 1;
+            background: #fafafa;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .image-slot:hover { border-color: #e91e63; }
+        .image-slot.loaded { border-style: solid; border-color: #e91e63; }
+
+        .image-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .slot-label {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.3em;
+            color: #e91e63;
+            position: absolute;
+            top: 6px;
+            left: 10px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            z-index: 2;
+        }
+
+        .slot-placeholder {
+            text-align: center;
+            color: #999;
+            font-size: 0.85em;
+            padding: 8px;
+        }
+
+        .slot-placeholder .slot-icon { font-size: 2em; margin-bottom: 4px; }
+
+        .slot-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 22px;
+            height: 22px;
+            background: rgba(231,76,60,0.85);
+            border: none;
+            border-radius: 50%;
+            color: #333;
+            font-size: 0.75em;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            font-family: sans-serif;
+        }
+        .image-slot.loaded .slot-remove { display: flex; }
+
+        input[type="file"] { display: none; }
+
+        .status-bar {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 14px;
+            font-size: 0.9em;
+            color: #999;
+            text-align: center;
+        }
+        .status-bar.ready { color: #2ecc71; }
+        .status-bar.warn { color: #f39c12; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-export-a {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #333;
+        }
+        .btn-export-a:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.4); }
+
+        .btn-export-b {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: #333;
+        }
+        .btn-export-b:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(46,204,113,0.4); }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        /* Preview area */
+        .preview-panel { display: flex; flex-direction: column; gap: 16px; }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #e91e63;
+            font-size: 1.4em;
+        }
+
+        .preview-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 6px 16px;
+            border: 2px solid #0f3460;
+            border-radius: 20px;
+            background: #fafafa;
+            color: #666;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            border-color: #e91e63;
+            background: rgba(71,181,208,0.15);
+            color: #e91e63;
+        }
+
+        /* Canvas wrapper — letterboxed 16:9 */
+        .canvas-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #0f3460;
+            position: relative;
+        }
+
+        /* The actual export canvas — always 1920×1080 internally, scaled via CSS */
+        #export-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 1920px;
+            height: 1080px;
+            transform-origin: top left;
+            background: #e8e8e8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Images grid inside canvas */
+        .canvas-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            flex: 1;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .canvas-grid-cell {
+            overflow: hidden;
+            border-radius: 2px;
+            position: relative;
+            background: #eee;
+            outline: 8px solid #ffffff;
+            filter: drop-shadow(0 10px 28px rgba(0,0,0,0.45));
+        }
+
+        .canvas-grid-cell img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .canvas-grid-cell .cell-letter {
+            position: absolute;
+            top: 12px;
+            left: 16px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3em;
+            color: #333;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        /* Bottom banner — always present */
+        .canvas-banner {
+            height: 120px;
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            border-top: 4px solid #e91e63;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .banner-question {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3.2em;
+            color: #e91e63;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .banner-answer {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            color: #333;
+            text-align: center;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            padding: 0 40px;
+        }
+
+        .banner-label {
+            position: absolute;
+            right: 30px;
+            bottom: 14px;
+            font-size: 1.2em;
+            color: rgba(150, 150, 150, 0.3);
+            font-family: 'Londrina Solid', cursive;
+        }
+
+        /* "CONNECTED" stamp for B preview */
+        .connection-tag {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            color: #333;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1em;
+            padding: 4px 20px;
+            border-radius: 20px;
+            letter-spacing: 2px;
+            text-shadow: none;
+        }
+
+        /* Export hint */
+        .export-hint {
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85em;
+            color: #999;
+            border: 2px solid #ddd;
+        }
+
+        .export-hint strong { color: #e91e63; }
+
+        /* Watermark */
+        .kbt-watermark {
+            position: absolute;
+            bottom: 14px;
+            left: 30px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.4em;
+            color: rgba(71,181,208,0.25);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔗 LINKED PICS</h1>
+            <div class="header-subtitle">Upload 4 images — players spot the hidden connection</div>
+        </header>
+
+        <div class="main-content">
+            <!-- LEFT PANEL -->
+            <div class="panel">
+                <h2>⚙️ Setup</h2>
+
+                <label>Subject / Round Label</label>
+                <input type="text" id="subject" placeholder="e.g. Honolulu, Aussie Icons..." />
+
+                <label>Connection Answer</label>
+                <input type="text" id="connection" placeholder="e.g. All born in 1975" />
+                <button id="aiConnBtn" onclick="suggestConnection()" style="margin-top:8px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Connection</button>
+                <div id="aiConnPanel" style="display:none;margin-top:10px;background:#1c0f00;border:1px solid #f59e0b;border-radius:10px;padding:14px;font-size:13px;color:#fcd34d;line-height:1.7;white-space:pre-wrap;"></div>
+
+                <label>Upload 4 Images</label>
+                <div class="image-slots">
+                    <div class="image-slot" id="slot-0" onclick="triggerUpload(0)">
+                        <span class="slot-label">A</span>
+                        <input type="file" id="file-0" accept="image/*" onchange="loadImage(0, event)" />
+                        <div class="slot-placeholder">
+                            <div class="slot-icon">📷</div>
+                            <div>Click to upload</div>
+                        </div>
+                        <button class="slot-remove" onclick="removeImage(event,0)">✕</button>
+                    </div>
+                    <div class="image-slot" id="slot-1" onclick="triggerUpload(1)">
+                        <span class="slot-label">B</span>
+                        <input type="file" id="file-1" accept="image/*" onchange="loadImage(1, event)" />
+                        <div class="slot-placeholder">
+                            <div class="slot-icon">📷</div>
+                            <div>Click to upload</div>
+                        </div>
+                        <button class="slot-remove" onclick="removeImage(event,1)">✕</button>
+                    </div>
+                    <div class="image-slot" id="slot-2" onclick="triggerUpload(2)">
+                        <span class="slot-label">C</span>
+                        <input type="file" id="file-2" accept="image/*" onchange="loadImage(2, event)" />
+                        <div class="slot-placeholder">
+                            <div class="slot-icon">📷</div>
+                            <div>Click to upload</div>
+                        </div>
+                        <button class="slot-remove" onclick="removeImage(event,2)">✕</button>
+                    </div>
+                    <div class="image-slot" id="slot-3" onclick="triggerUpload(3)">
+                        <span class="slot-label">D</span>
+                        <input type="file" id="file-3" accept="image/*" onchange="loadImage(3, event)" />
+                        <div class="slot-placeholder">
+                            <div class="slot-icon">📷</div>
+                            <div>Click to upload</div>
+                        </div>
+                        <button class="slot-remove" onclick="removeImage(event,3)">✕</button>
+                    </div>
+                </div>
+
+                <div class="status-bar" id="status-bar">Upload all 4 images to export</div>
+
+                <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
+                    <div style="font-family: 'Luckiest Guy', cursive; color: #e91e63; margin-bottom: 8px;">Export Images</div>
+                    <button class="btn btn-export-a" id="btn-export-a" disabled onclick="exportImage('A')">
+                        🔴 Export A — Question
+                    </button>
+                    <button class="btn btn-export-b" id="btn-export-b" disabled onclick="exportImage('B')">
+                        🟢 Export B — Reveal
+                    </button>
+                </div>
+
+                <div class="export-hint" style="margin-top: 12px;">
+                    <strong>A</strong> = question slide (no answer) &nbsp;|&nbsp; <strong>B</strong> = reveal slide (connection shown)
+                    <br>Files: <strong>LinkedPicsA [subject].png</strong> &amp; <strong>LinkedPicsB [subject].png</strong>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: PREVIEW -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>👁️ Preview</h2>
+                    <div class="preview-toggle">
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
+                    </div>
+                </div>
+
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <!-- Scaled canvas lives here -->
+                    <div id="export-canvas">
+                        <div class="canvas-grid" id="canvas-grid">
+                            <div class="canvas-grid-cell" id="cell-0">
+                                <span class="cell-letter">A</span>
+                            </div>
+                            <div class="canvas-grid-cell" id="cell-1">
+                                <span class="cell-letter">B</span>
+                            </div>
+                            <div class="canvas-grid-cell" id="cell-2">
+                                <span class="cell-letter">C</span>
+                            </div>
+                            <div class="canvas-grid-cell" id="cell-3">
+                                <span class="cell-letter">D</span>
+                            </div>
+                        </div>
+                        <div class="canvas-banner" id="canvas-banner">
+                            <div class="banner-question" id="banner-question">WHAT'S THE CONNECTION?</div>
+                            <div class="banner-answer" id="banner-answer" style="display:none;"></div>
+                            <div class="connection-tag" id="connection-tag" style="display:none;">CONNECTION</div>
+                            <div class="kbt-watermark">KBT</div>
+                            <div class="banner-label" id="banner-label"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-hint">
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const images = [null, null, null, null];
+        let currentPreview = 'A';
+
+        function scaleCanvas() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const canvas = document.getElementById('export-canvas');
+            const scale = wrapper.clientWidth / 1920;
+            canvas.style.transform = `scale(${scale})`;
+            wrapper.style.height = (1080 * scale) + 'px';
+        }
+
+        window.addEventListener('resize', scaleCanvas);
+        window.addEventListener('load', scaleCanvas);
+
+        function triggerUpload(idx) {
+            document.getElementById('file-' + idx).click();
+        }
+
+        function loadImage(idx, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                images[idx] = e.target.result;
+                updateSlot(idx);
+                updateCanvas();
+                checkReady();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateSlot(idx) {
+            const slot = document.getElementById('slot-' + idx);
+            const ph = slot.querySelector('.slot-placeholder');
+            let img = slot.querySelector('img.preview-img');
+            if (!img) {
+                img = document.createElement('img');
+                img.className = 'preview-img';
+                slot.insertBefore(img, slot.querySelector('.slot-remove'));
+            }
+            img.src = images[idx];
+            ph.style.display = 'none';
+            slot.classList.add('loaded');
+        }
+
+        function removeImage(e, idx) {
+            e.stopPropagation();
+            images[idx] = null;
+            const slot = document.getElementById('slot-' + idx);
+            const img = slot.querySelector('img.preview-img');
+            if (img) img.remove();
+            slot.querySelector('.slot-placeholder').style.display = 'flex';
+            slot.classList.remove('loaded');
+            document.getElementById('file-' + idx).value = '';
+            updateCanvas();
+            checkReady();
+        }
+
+        function checkReady() {
+            const allLoaded = images.every(i => i !== null);
+            const status = document.getElementById('status-bar');
+            const loaded = images.filter(i => i !== null).length;
+
+            if (allLoaded) {
+                status.textContent = '✓ All 4 images loaded — ready to export!';
+                status.className = 'status-bar ready';
+                document.getElementById('btn-export-a').disabled = false;
+                document.getElementById('btn-export-b').disabled = false;
+            } else {
+                status.textContent = `${loaded}/4 images loaded`;
+                status.className = 'status-bar warn';
+                document.getElementById('btn-export-a').disabled = true;
+                document.getElementById('btn-export-b').disabled = true;
+            }
+        }
+
+        function updateCanvas() {
+            ['A','B','C','D'].forEach((letter, idx) => {
+                const cell = document.getElementById('cell-' + idx);
+                let img = cell.querySelector('img');
+                if (!img) {
+                    img = document.createElement('img');
+                    cell.appendChild(img);
+                }
+                if (images[idx]) {
+                    img.src = images[idx];
+                    img.style.display = 'block';
+                } else {
+                    img.style.display = 'none';
+                }
+            });
+
+            // Update banner label
+            const subject = document.getElementById('subject').value.trim();
+            document.getElementById('banner-label').textContent = subject;
+
+            applyPreview(currentPreview);
+            scaleCanvas();
+        }
+
+        function setPreview(type) {
+            currentPreview = type;
+            document.getElementById('toggle-a').className = 'toggle-btn' + (type === 'A' ? ' active' : '');
+            document.getElementById('toggle-b').className = 'toggle-btn' + (type === 'B' ? ' active' : '');
+            applyPreview(type);
+        }
+
+        function applyPreview(type) {
+            const question = document.getElementById('banner-question');
+            const answer = document.getElementById('banner-answer');
+            const tag = document.getElementById('connection-tag');
+
+            if (type === 'A') {
+                question.style.display = 'block';
+                answer.style.display = 'none';
+                tag.style.display = 'none';
+            } else {
+                const conn = document.getElementById('connection').value.trim() || '???';
+                question.style.display = 'none';
+                answer.textContent = conn;
+                answer.style.display = 'block';
+                tag.style.display = 'block';
+            }
+        }
+
+        // Listen for live input changes
+        document.getElementById('subject').addEventListener('input', updateCanvas);
+        document.getElementById('connection').addEventListener('input', () => {
+            if (currentPreview === 'B') applyPreview('B');
+        });
+
+        async function exportImage(type) {
+            const allLoaded = images.every(i => i !== null);
+            if (!allLoaded) return;
+
+            // Temporarily switch to export state
+            const prevPreview = currentPreview;
+            applyPreview(type);
+
+            const canvas = document.getElementById('export-canvas');
+            const wrapper = document.getElementById('canvas-wrapper');
+
+            // Reset transform for capture
+            canvas.style.transform = 'scale(1)';
+            wrapper.style.height = '1080px';
+            wrapper.style.overflow = 'visible';
+
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                const result = await html2canvas(canvas, {
+                    width: 1920,
+                    height: 1080,
+                    scale: 1,
+                    useCORS: true,
+                    backgroundColor: '#000000',
+                    logging: false
+                });
+
+                const subject = document.getElementById('subject').value.trim() || 'Set';
+                const filename = `LinkedPics${type} ${subject}.png`;
+
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = result.toDataURL('image/png');
+                link.click();
+            } catch(err) {
+                alert('Export failed: ' + err.message);
+            } finally {
+                wrapper.style.overflow = 'hidden';
+                scaleCanvas();
+                applyPreview(prevPreview);
+            }
+        }
+
+        // ─── AI Suggest Connection ────────────────────────────────────────────
+        async function suggestConnection() {
+          const subjectEl = document.getElementById('subject') || document.querySelector('input[id*="subject" i]') || document.querySelector('input[id*="label" i]');
+          const connEl = document.getElementById('connection') || document.getElementById('answer') || document.querySelector('input[id*="connect" i]') || document.querySelector('input[id*="answer" i]');
+          const subjects = subjectEl ? subjectEl.value.trim() : 'the 4 uploaded images';
+          const connection = connEl ? connEl.value.trim() : '';
+          const btn = document.getElementById('aiConnBtn');
+          const panel = document.getElementById('aiConnPanel');
+          btn.disabled = true; btn.textContent = '⏳ Thinking...';
+          try {
+            const res = await fetch('/api/ai-text', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({ tool: 'linked-pics', subjects, connection })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            panel.textContent = data.result;
+            panel.style.display = 'block';
+          } catch(err) { alert('AI error: ' + err.message); }
+          finally { btn.disabled = false; btn.textContent = '🤖 AI Suggest Connection'; }
+        }
+    </script>
+</body>
+</html>

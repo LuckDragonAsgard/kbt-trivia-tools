@@ -1,0 +1,4421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Know Brainer Trivia Player Portal — Teams, scores, badges, leaderboards, and your year in trivia wrapped.">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+    <title>Know Brainer Trivia - KBT</title>
+    <style>
+        @font-face {
+            font-family: "VVDS Fifties";
+            src: url("https://knowbrainertrivia.com.au/fonts/VVDSFifties-SExpBold.woff2") format("woff2");
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --navy: #000000;
+            --purple: #2C94C2;
+            --gold: #E8A317;
+            --white: #ffffff;
+            --light-bg: #ffffff;
+            --dark-text: #020817;
+            --accent-1: #2C94C2;
+            --accent-2: #383737;
+            --success: #00d084;
+            --warning: #ffb700;
+            --danger: #ff3860;
+            --card-bg: #F4F2EE;
+            --text-dark: #383737;
+        }
+
+        html.dark-mode {
+            --white: #020817;
+            --light-bg: #0a0f1e;
+            --dark-text: #ffffff;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Outfit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            color: var(--text-dark);
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--light-bg);
+            transition: background 0.3s ease;
+        }
+
+        .header {
+            background: #000000;
+            color: var(--white);
+            padding: 1rem 1.2rem;
+            text-align: center;
+            box-shadow: none;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        html.dark-mode .header {
+            background: #000000;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.1rem;
+            text-shadow: none;
+            flex: 1;
+            font-family: "VVDS Fifties", sans-serif;
+            color: #ffffff;
+        }
+
+        .logo-emoji {
+            font-size: 2rem;
+            display: inline-block;
+            animation: none;
+            display: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            background: transparent;
+            border: none;
+            color: var(--white);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+        }
+
+        .user-badge {
+            font-size: 0.85rem;
+            background: transparent;
+            color: #ffffff;
+            padding: 0.3rem 0;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 0.2rem;
+            backdrop-filter: none;
+            border: none;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+            background: var(--light-bg);
+            transition: background 0.3s ease;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #ffffff;
+            border-top: 1px solid #e8e5e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: none;
+            z-index: 100;
+            transition: background 0.3s ease;
+        }
+
+        html.dark-mode .bottom-nav {
+            background: #ffffff;
+            border-top-color: #e8e5e0;
+        }
+
+        .nav-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: #999;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            gap: 0.3rem;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+        }
+
+        .nav-item.active {
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+        }
+
+        /* CARDS & GENERAL */
+        .card {
+            background: #F4F2EE;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 0.8rem;
+            box-shadow: none;
+            border: none;
+            backdrop-filter: none;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .card {
+            background: #F4F2EE;
+            border-color: none;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: none;
+        }
+
+        .card-gradient {
+            background: #F4F2EE;
+            border: none;
+        }
+
+        html.dark-mode .card-gradient {
+            background: #F4F2EE;
+            border: none;
+        }
+
+        .badge-card {
+            background: #F4F2EE;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-card::before {
+            display: none;
+        }
+
+        .badge-card:hover {
+            transform: translateY(-2px);
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .badge-card:hover::before {
+            display: none;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .btn-primary {
+            background: #2C94C2;
+            color: var(--white);
+            box-shadow: none;
+            border-radius: 9999px;
+        }
+
+        .btn-primary:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .btn-primary:active {
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--purple);
+            border: 2px solid var(--purple);
+            border-radius: 9999px;
+        }
+
+        html.dark-mode .btn-secondary {
+            background: #020817;
+            color: var(--purple);
+        }
+
+        .btn-secondary:hover {
+            background: var(--purple);
+            color: var(--white);
+        }
+
+        .btn-gold {
+            background: #E8A317;
+            color: #000000;
+            box-shadow: none;
+            border-radius: 9999px;
+        }
+
+        .btn-gold:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .btn-small {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.85rem;
+            border-radius: 9999px;
+        }
+
+        .btn-block {
+            width: 100%;
+            display: block;
+            margin: 0.6rem 0;
+        }
+
+        .input-group {
+            margin: 1rem 0;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        html.dark-mode .input-label {
+            color: var(--white);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #F4F2EE;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode input[type="text"],
+        html.dark-mode input[type="email"],
+        html.dark-mode select {
+            background: #F4F2EE;
+            color: var(--text-dark);
+            border-color: transparent;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            outline: none;
+            border-color: transparent;
+            box-shadow: 0 0 0 3px rgba(44,148,194,0.2);
+        }
+
+        /* LANDING SCREEN */
+        .landing {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #000000;
+            gap: 3rem;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .landing-nav {
+            position: absolute;
+            top: 1rem;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+        }
+        .landing-nav a {
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .landing-nav a:hover { color: #2C94C2; }
+
+        .trial-banner-player {
+            background: rgba(44,148,194,0.1);
+            border-bottom: 1px solid rgba(44,148,194,0.2);
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 11px;
+            color: #718096;
+        }
+        .trial-banner-player a {
+            color: #2C94C2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .trial-banner-player a:hover { text-decoration: underline; }
+
+        .landing-logo {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+
+        .landing-logo .logo-emoji {
+            font-size: 4rem;
+            display: none;
+        }
+
+        .landing-logo .logo {
+            font-size: 4rem;
+            margin-bottom: 0.2rem;
+            font-family: "VVDS Fifties", sans-serif;
+            color: #2C94C2;
+            font-weight: 700;
+        }
+
+        .landing-subtitle {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-family: "VVDS Fifties", sans-serif;
+            font-style: italic;
+        }
+
+        .landing-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .option-btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            width: 100%;
+        }
+
+        .option-btn-code {
+            background: #2C94C2;
+            color: var(--white);
+            box-shadow: none;
+        }
+
+        .option-btn-code:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .option-btn-new {
+            background: transparent;
+            color: #2C94C2;
+            border: 2px solid #2C94C2;
+            box-shadow: none;
+        }
+
+        .option-btn-new:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        /* REGISTRATION FLOW */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+        }
+
+        html.dark-mode .modal-content {
+            background: #020817;
+            color: var(--white);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            font-family: "VVDS Fifties", sans-serif;
+        }
+
+        html.dark-mode .modal-title {
+            color: var(--white);
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .avatar-option {
+            aspect-ratio: 1;
+            border: 3px solid #F4F2EE;
+            border-radius: 16px;
+            background: #F4F2EE;
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .avatar-option {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.05);
+            border-color: var(--purple);
+            background: #F4F2EE;
+        }
+
+        .avatar-option.selected {
+            border-color: #2C94C2;
+            background: #F4F2EE;
+            box-shadow: none;
+            transform: scale(1.1);
+        }
+
+        .code-display {
+            background: #F4F2EE;
+            color: var(--text-dark);
+            padding: 1.5rem;
+            border-radius: 24px;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            border: none;
+        }
+
+        .code-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin: 1rem 0;
+            text-shadow: none;
+        }
+
+        .code-action {
+            margin-top: 1rem;
+        }
+
+        /* TEAM CUSTOMIZATION */
+        .color-grid, .mascot-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .color-option, .mascot-option {
+            aspect-ratio: 1;
+            border: 3px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .color-option {
+            background: var(--gold);
+        }
+
+        .color-option.purple { background: var(--purple); }
+        .color-option.gold { background: var(--gold); }
+        .color-option.red { background: #ff3860; }
+        .color-option.blue { background: #00d4ff; }
+        .color-option.green { background: #00d084; }
+        .color-option.teal { background: #1dd1a1; }
+        .color-option.pink { background: #ff006e; }
+        .color-option.orange { background: #ff9500; }
+
+        .color-option:hover, .mascot-option:hover {
+            transform: scale(1.08);
+        }
+
+        .color-option.selected, .mascot-option.selected {
+            border-color: #383737;
+            box-shadow: none;
+            transform: scale(1.1);
+        }
+
+        .mascot-option {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .mascot-option:hover {
+            background: #F4F2EE;
+            border-color: var(--purple);
+        }
+
+        /* QR CODE */
+        .qr-container {
+            text-align: center;
+            margin: 1.5rem 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: scale(1.05);
+        }
+
+        .qr-canvas {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            display: inline-block;
+            border: 3px solid var(--purple);
+        }
+
+        .qr-label {
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        /* POWER-UPS */
+        .powerup-bar {
+            display: flex;
+            gap: 0.8rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .powerup {
+            flex: 1;
+            min-width: 100px;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+            background: #F4F2EE;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .powerup:hover:not(.used) {
+            transform: translateY(-2px);
+            box-shadow: none;
+        }
+
+        .powerup.used {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: transparent;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .powerup-emoji {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+
+        .powerup-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .powerup-name {
+            color: var(--white);
+        }
+
+        /* SEASON AWARDS */
+        .awards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .award-card {
+            background: #F4F2EE;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            border: none;
+            animation: awardReveal 0.6s ease-out backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes awardReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0);
+            }
+        }
+
+        .award-icon {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            display: inline-block;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        .award-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-family: "VVDS Fifties", sans-serif;
+        }
+
+        html.dark-mode .award-title {
+            color: var(--white);
+        }
+
+        .award-winner {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .award-stat {
+            font-size: 0.95rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        html.dark-mode .award-stat {
+            color: #aaa;
+        }
+
+        .award-comment {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+
+        html.dark-mode .award-comment {
+            color: #999;
+        }
+
+        /* VENUE MAP */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #F4F2EE;
+            border-radius: 24px;
+            margin: 1rem 0;
+            overflow: hidden;
+            border: none;
+        }
+
+        .map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .venue-pin {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .venue-pin:hover circle {
+            r: 18;
+        }
+
+        .venue-pin:hover text {
+            font-weight: 700;
+        }
+
+        .venue-popup {
+            position: absolute;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 50;
+            min-width: 200px;
+            border: none;
+        }
+
+        html.dark-mode .venue-popup {
+            background: #020817;
+            color: var(--white);
+        }
+
+        .venue-name {
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .venue-detail {
+            font-size: 0.9rem;
+            margin: 0.3rem 0;
+            color: #999;
+        }
+
+        html.dark-mode .venue-detail {
+            color: #aaa;
+        }
+
+        /* SETTINGS PANEL */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+            z-index: 150;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        html.dark-mode .settings-panel {
+            background: #020817;
+            color: var(--white);
+        }
+
+        .settings-panel.active {
+            transform: translateX(0);
+        }
+
+        .settings-header {
+            background: #000000;
+            color: var(--white);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-content {
+            padding: 1.5rem;
+        }
+
+        .settings-group {
+            margin-bottom: 2rem;
+        }
+
+        .settings-label {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #ccc;
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--purple);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--white);
+            border-radius: 50%;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: 24px;
+        }
+
+        /* SOCIAL SHARING */
+        .share-btn {
+            background: #2C94C2;
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--navy);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 300;
+            animation: slideInUp 0.3s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* CONFETTI & SPARKLES */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* HOME TAB */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 0.8rem;
+        }
+
+        .stat-box {
+            background: #F4F2EE;
+            padding: 1.5rem;
+            border-radius: 24px;
+            text-align: center;
+            border: none;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        html.dark-mode .stat-label {
+            color: #aaa;
+        }
+
+        /* TEAM CARDS */
+        .team-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 0.8rem;
+            box-shadow: none;
+            border-left: 5px solid var(--purple);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        html.dark-mode .team-card {
+            background: #020817;
+        }
+
+        .team-card.has-color {
+            border-left-color: inherit;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .team-name {
+            color: var(--white);
+        }
+
+        .team-mascot {
+            font-size: 1.5rem;
+        }
+
+        .team-motto {
+            font-size: 0.9rem;
+            color: #999;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        html.dark-mode .team-motto {
+            color: #aaa;
+        }
+
+        /* LIVE QUIZ */
+        .quiz-container {
+            padding: 1rem;
+        }
+
+        .quiz-header {
+            background: #2C94C2;
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .quiz-timer {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .quiz-question {
+            background: #F4F2EE;
+            padding: 1.5rem;
+            border-radius: 24px;
+            margin-bottom: 1rem;
+            border: none;
+        }
+
+        html.dark-mode .quiz-question {
+            background: #F4F2EE;
+            border-color: none;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        html.dark-mode .question-text {
+            color: var(--white);
+        }
+
+        .answer-option {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: #ffffff;
+            border: 1px solid #e8e5e0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-option:hover {
+            background: #ffffff;
+            border-color: #2C94C2;
+        }
+
+        .answer-option.selected {
+            background: #2C94C2;
+            color: var(--white);
+            border-color: #2C94C2;
+        }
+
+        /* LEAGUE */
+        .standings-header, .standings-row {
+            display: grid;
+            grid-template-columns: 2rem 1fr 3rem 3rem 3rem 3rem;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .standings-header {
+            background: #2C94C2;
+            color: var(--white);
+            border-radius: 12px 12px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .standings-row {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e5e0;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .standings-row {
+            background: #ffffff;
+            border-bottom-color: #e8e5e0;
+        }
+
+        .standings-row:hover {
+            background: #ffffff;
+        }
+
+        .rank {
+            text-align: center;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .rank.gold {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        /* BADGES */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .badge-item {
+            aspect-ratio: 1;
+            border: 3px solid #F4F2EE;
+            border-radius: 16px;
+            background: #F4F2EE;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        html.dark-mode .badge-item {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .badge-item:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 6px 20px rgba(232,163,23,0.2);
+        }
+
+        .badge-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .badge-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .badge-name {
+            color: var(--white);
+        }
+
+        .badge-locked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        /* WRAPPED */
+        .wrapped-container {
+            padding: 1rem;
+        }
+
+        .wrapped-card {
+            background: #2C94C2;
+            color: var(--white);
+            border-radius: 24px;
+            padding: 2rem;
+            margin: 1rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wrapped-card.gold-bg {
+            background: #E8A317;
+            color: #000000;
+        }
+
+        .wrapped-card::before {
+            display: none;
+        }
+
+        .wrapped-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .wrapped-stat {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-shadow: none;
+        }
+
+        .wrapped-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .wrapped-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            font-family: "VVDS Fifties", sans-serif;
+        }
+
+        .wrapped-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        .share-btn-wrapped {
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .header-controls {
+                gap: 0.5rem;
+            }
+
+            .color-grid, .mascot-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .awards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .standings-header,
+            .standings-row {
+                grid-template-columns: 1.5rem 1fr 3.5rem;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .standings-header :nth-child(n+4),
+            .standings-row :nth-child(n+4) {
+                display: none;
+            }
+        }
+    </style>
+    <script src="kbt-data.js"></script>
+<script src="kbt-data.js"></script>
+</head>
+<body>
+    <div id="landingScreen" class="landing">
+        <div class="landing-nav">
+            <a href="/">← Home</a>
+            <a href="https://knowbrainertrivia.com.au" target="_blank">View live site ↗</a>
+        </div>
+        <div class="landing-logo">
+            <div class="logo" style="font-size: 4rem; color: #2C94C2; font-family: 'VVDS Fifties', sans-serif; font-weight: 700;">KNOW BRAINER</div>
+            <div class="logo" style="font-size: 1.5rem; color: #ffffff; font-style: italic; font-family: 'VVDS Fifties', sans-serif; font-weight: 700; margin-bottom: 0;">Trivia.</div>
+        </div>
+        <div class="landing-options">
+            <button class="option-btn option-btn-code" onclick="showLoginModal()">
+                <span>🔑</span>
+                <span>I HAVE A CODE</span>
+            </button>
+            <button class="option-btn option-btn-new" onclick="showRegistrationFlow()">
+                <span>✨</span>
+                <span>I'M NEW</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="appContainer" class="app-container" style="display:none;">
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <div class="logo" style="font-size: 1.2rem; color: #ffffff; font-family: 'VVDS Fifties', sans-serif; font-weight: 700; margin-bottom: 0.1rem;">KNOW BRAINER</div>
+                    <div style="font-size: 0.9rem; color: #ffffff; font-family: 'VVDS Fifties', sans-serif; font-style: italic; margin-top: -0.2rem; font-weight: 700;">Trivia.</div>
+                </div>
+                <div class="header-controls">
+                    <button class="header-btn" onclick="toggleTheme()" title="Toggle dark/light mode">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <button class="header-btn" onclick="openSettings()" title="Settings">
+                        ⚙️
+                    </button>
+                    <button class="header-btn" onclick="openAwards()" title="Season Awards" style="display:none;" id="awardsNavBtn">
+                        🏆
+                    </button>
+                </div>
+            </div>
+            <div class="user-badge" id="userBadge"></div>
+        </div>
+        <div class="trial-banner-player">
+            <span>Trial Build</span>
+            <a href="https://knowbrainertrivia.com.au" target="_blank">View live site ↗</a>
+        </div>
+
+        <div class="content-area" id="contentArea"></div>
+
+        <div class="bottom-nav" id="bottomNav">
+            <div class="nav-item active" data-tab="home" onclick="switchTab('home')">
+                <div class="nav-icon">🏠</div>
+                <div>Home</div>
+            </div>
+            <div class="nav-item" data-tab="team" onclick="switchTab('team')">
+                <div class="nav-icon">👥</div>
+                <div>Team</div>
+            </div>
+            <div class="nav-item" data-tab="quiz" onclick="switchTab('quiz')">
+                <div class="nav-icon">🎮</div>
+                <div>Quiz</div>
+            </div>
+            <div class="nav-item" data-tab="league" onclick="switchTab('league')">
+                <div class="nav-icon">🏆</div>
+                <div>League</div>
+            </div>
+            <div class="nav-item" data-tab="badges" onclick="switchTab('badges')">
+                <div class="nav-icon">🎖️</div>
+                <div>Badges</div>
+            </div>
+            <div class="nav-item" data-tab="wrapped" onclick="switchTab('wrapped')">
+                <div class="nav-icon">🎁</div>
+                <div>Wrapped</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Welcome Back! 🔑</div>
+            <div class="input-group">
+                <label class="input-label">Enter Your Team Code</label>
+                <input type="text" id="loginCode" placeholder="e.g., BRAINS24" style="text-transform: uppercase;" onkeydown="if(event.key==='Enter')handleLogin()">
+                <div id="loginError" style="color:#ff3860;font-size:0.85rem;margin-top:0.4rem;display:none;"></div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">Enter Team</button>
+            <button class="btn btn-secondary btn-block" onclick="closeLoginModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- REGISTRATION MODAL -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="regStep1Title">Create Your Team 🌟</div>
+
+            <!-- Step 1: Team Name -->
+            <div id="regStep1" style="display:block;">
+                <div class="input-group">
+                    <label class="input-label">Team Name</label>
+                    <input type="text" id="teamName" placeholder="The Brain Squad">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Your Display Name</label>
+                    <input type="text" id="playerName" placeholder="Your Name">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Choose Your Avatar</label>
+                    <div class="avatar-grid">
+                        <div class="avatar-option" onclick="selectAvatar(this, '🧠')">🧠</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦊')">🦊</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐺')">🐺</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦁')">🦁</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐉')">🐉</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦅')">🦅</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐙')">🐙</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦈')">🦈</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐝')">🐝</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦄')">🦄</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐻')">🐻</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🎯')">🎯</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🔥')">🔥</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '⚡')">⚡</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🌟')">🌟</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '💎')">💎</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="proceedToStep2()">Next: Team Colors</button>
+                <button class="btn btn-secondary btn-block" onclick="closeRegistrationModal()">Cancel</button>
+            </div>
+
+            <!-- Step 2: Team Colors & Mascot -->
+            <div id="regStep2" style="display:none;">
+                <div class="input-group">
+                    <label class="input-label">Team Color</label>
+                    <div class="color-grid">
+                        <div class="color-option purple" onclick="selectTeamColor(this, 'purple')"></div>
+                        <div class="color-option gold" onclick="selectTeamColor(this, 'gold')"></div>
+                        <div class="color-option red" onclick="selectTeamColor(this, 'red')"></div>
+                        <div class="color-option blue" onclick="selectTeamColor(this, 'blue')"></div>
+                        <div class="color-option green" onclick="selectTeamColor(this, 'green')"></div>
+                        <div class="color-option teal" onclick="selectTeamColor(this, 'teal')"></div>
+                        <div class="color-option pink" onclick="selectTeamColor(this, 'pink')"></div>
+                        <div class="color-option orange" onclick="selectTeamColor(this, 'orange')"></div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Team Mascot</label>
+                    <div class="mascot-grid">
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🧠')">🧠</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦊')">🦊</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐺')">🐺</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦁')">🦁</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐉')">🐉</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦅')">🦅</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐙')">🐙</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦈')">🦈</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐝')">🐝</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦄')">🦄</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐻')">🐻</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🎯')">🎯</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🔥')">🔥</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '⚡')">⚡</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🌟')">🌟</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '💎')">💎</div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Team Motto (optional)</label>
+                    <input type="text" id="teamMotto" placeholder="E.g., Know it all or go home!" maxlength="50">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="completeRegistration()">Create Team!</button>
+                <button class="btn btn-secondary btn-block" onclick="backToStep1()">Back</button>
+            </div>
+
+            <!-- Step 3: Team Code -->
+            <div id="regStep3" style="display:none;">
+                <div style="text-align: center; margin: 2rem 0;">
+                    <div style="font-size: 2rem; margin: 1rem 0;">🎉</div>
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">Team Created!</h2>
+                    <p style="color: #666; margin-bottom: 1.5rem;">Share this code with your teammates to join:</p>
+                </div>
+                <div class="code-display">
+                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">YOUR TEAM CODE</div>
+                    <div class="code-value" id="generatedCode">BRAINS24</div>
+                    <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="copyCode()">Copy Code</button>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="closeRegistrationModal()">Enter App</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+            <h2>Settings ⚙️</h2>
+            <button class="header-btn" onclick="closeSettings()" style="background: transparent; color: var(--white);">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-group">
+                <div class="settings-label">
+                    <span>Dark Mode</span>
+                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleTheme()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">
+                    <span>Sound Effects</span>
+                    <div class="toggle-switch" id="soundToggle" onclick="toggleSound()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="input-label">Display Name</label>
+                <input type="text" id="displayNameInput" placeholder="Your name">
+                <button class="btn btn-primary btn-small btn-block" style="margin-top: 0.5rem;" onclick="updateDisplayName()">Save Name</button>
+            </div>
+
+            <div class="settings-group">
+                <label class="input-label">App Version</label>
+                <div style="padding: 0.8rem; background: rgba(44,148,194,0.1); border-radius: 8px; text-align: center;">
+                    KBT v1.0
+                </div>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid rgba(44,148,194,0.2);">
+
+            <div class="settings-group">
+                <button class="btn btn-secondary btn-block" onclick="handleLogout()">Log Out</button>
+                <button class="btn btn-secondary btn-block" style="margin-top: 0.5rem; background: #ff3860; color: white; border-color: #ff3860;" onclick="handleDeleteAccount()">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLSCREEN QR CODE -->
+    <div id="qrFullscreen" class="modal" onclick="closeQRFullscreen()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="text-align: center;">
+                <canvas id="qrFullscreenCanvas" width="300" height="300" style="border-radius: 12px;"></canvas>
+                <div style="margin-top: 1rem; color: var(--navy);">Tap to close</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENUE DETAILS POPUP (for map) -->
+    <div id="venuePopup" class="venue-popup" style="display:none;"></div>
+
+    <script>
+        // App State
+        const appState = {
+            currentUser: null,
+            currentTeam: null,
+            darkMode: localStorage.getItem('darkMode') === 'true',
+            soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
+            currentTab: 'home',
+            captainToggle: false,
+            powerupsUsed: {}
+        };
+
+        const colors = {
+            purple: '#2C94C2',
+            gold: '#E8A317',
+            red: '#ff3860',
+            blue: '#00d4ff',
+            green: '#00d084',
+            teal: '#1dd1a1',
+            pink: '#ff006e',
+            orange: '#ff9500'
+        };
+
+        const venues = [
+            { name: 'The Steam Packet', day: 'Monday', address: '293 Toorak Rd, Hawthorn', lat: 35, lng: 50 },
+            { name: 'Fawkner Bar', day: 'Tuesday', address: '175 Chapel St, Prahran', lat: 55, lng: 45 },
+            { name: 'The Sporting Globe', day: 'Wednesday', address: '177 Bay St, Brighton', lat: 45, lng: 65 },
+            { name: 'Meat & Wine Co', day: 'Thursday', address: '50 Waratah Ave, Rushcutters Bay', lat: 60, lng: 55 },
+            { name: 'Bar Americano', day: 'Saturday', address: '16 Hardware Ln, Melbourne', lat: 50, lng: 40 }
+        ];
+
+        // Mock Data
+        const mockTeams = [
+            { id: 1, name: 'The Know-It-Alls', code: 'BRAINS24', captain: 'Alex', members: 4, score: 4850, color: 'purple', mascot: '🧠', motto: 'Brain power wins!' },
+            { id: 2, name: 'Quiz Queens', code: 'QUEENS22', captain: 'Sarah', members: 5, score: 4720, color: 'pink', mascot: '👑', motto: 'All hail the brain' },
+            { id: 3, name: 'Trivia Titans', code: 'TITANS19', captain: 'Mike', members: 4, score: 4680, color: 'gold', mascot: '🦁', motto: 'Roar to victory!' }
+        ];
+
+        const mockLeagues = [
+            { rank: 1, team: 'The Know-It-Alls', score: 4850, wins: 24, played: 28, accuracy: '89%' },
+            { rank: 2, team: 'Quiz Queens', score: 4720, wins: 22, played: 26, accuracy: '86%' },
+            { rank: 3, team: 'Trivia Titans', score: 4680, wins: 21, played: 25, accuracy: '85%' },
+            { rank: 4, team: 'Brain Busters', score: 4500, wins: 20, played: 24, accuracy: '84%' },
+            { rank: 5, team: 'Quiz Zealots', score: 4320, wins: 18, played: 22, accuracy: '82%' }
+        ];
+
+        const mockBadges = [
+            { id: 1, name: 'On Fire', emoji: '🔥', desc: 'Won 5 in a row', earned: true },
+            { id: 2, name: 'Speed Demon', emoji: '⚡', desc: 'Answered 10 in a row under 5s', earned: true },
+            { id: 3, name: 'Brain Genius', emoji: '🧠', desc: '95%+ accuracy', earned: true },
+            { id: 4, name: 'Team Player', emoji: '🤝', desc: 'Played 50 games', earned: false },
+            { id: 5, name: 'Trophy Collector', emoji: '🏆', desc: 'Won 25 games', earned: false },
+            { id: 6, name: 'Streak Master', emoji: '⭐', desc: 'Won 10 in a row', earned: false },
+            { id: 7, name: 'Speedster', emoji: '🚀', desc: 'Fastest team average', earned: true },
+            { id: 8, name: 'All-Star', emoji: '💫', desc: 'Top 3 in league', earned: true }
+        ];
+
+        const seasonAwards = [
+            { title: 'Season Champion', icon: '🏆', winner: 'The Know-It-Alls', stat: '4850 points', comment: 'Absolutely dominated this season!' },
+            { title: 'MVP', icon: '🌟', winner: 'Alex Johnson', stat: '412 correct answers', comment: 'The brain behind the team' },
+            { title: 'Hottest Streak', icon: '🔥', winner: 'Sarah Chen', stat: '21 game win streak', comment: 'On absolute fire!' },
+            { title: 'Most Dedicated', icon: '📅', winner: 'Mike Torres', stat: '47 games played', comment: 'Never missed a night!' },
+            { title: 'Gambler of the Year', icon: '🎰', winner: 'Emma Wilson', stat: '94% wager accuracy', comment: 'Risk-taker with rewards!' },
+            { title: 'Brain of the Year', icon: '🧠', winner: 'James Lee', stat: '92% avg score', comment: 'Pure intelligence!' },
+            { title: 'Social Butterfly', icon: '🦋', winner: 'Olivia Smith', stat: 'Played with 9 teams', comment: 'The connector!' },
+            { title: 'Most Improved', icon: '📈', winner: 'David Brown', stat: '+850 rating', comment: 'Came out of nowhere!' },
+            { title: 'Pub Crawler', icon: '🍺', winner: 'Sophie Jones', stat: '15 venues visited', comment: 'Knows the trivia circuit!' },
+            { title: 'Captain Fantastic', icon: '👑', winner: 'Alex Johnson', stat: '24-4 record as captain', comment: 'Born to lead!' }
+        ];
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            if (appState.darkMode) {
+                document.documentElement.classList.add('dark-mode');
+                document.getElementById('darkModeToggle').classList.add('active');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+            if (appState.soundEnabled) {
+                document.getElementById('soundToggle').classList.add('active');
+            }
+        });
+
+        // Theme Toggle
+        function toggleTheme() {
+            appState.darkMode = !appState.darkMode;
+            localStorage.setItem('darkMode', appState.darkMode);
+            document.documentElement.classList.toggle('dark-mode');
+            document.getElementById('darkModeToggle').classList.toggle('active');
+            document.getElementById('themeIcon').textContent = appState.darkMode ? '☀️' : '🌙';
+            playSound('chime');
+        }
+
+        // Sound System
+        function toggleSound() {
+            appState.soundEnabled = !appState.soundEnabled;
+            localStorage.setItem('soundEnabled', appState.soundEnabled);
+            document.getElementById('soundToggle').classList.toggle('active');
+            if (appState.soundEnabled) {
+                playSound('chime');
+            }
+        }
+
+        function playSound(type) {
+            if (!appState.soundEnabled) return;
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(type) {
+                case 'chime':
+                    oscillator.frequency.value = 1000;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    break;
+                case 'ding':
+                    oscillator.frequency.value = 1200;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'whoosh':
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+            }
+        }
+
+        // Login/Registration
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+            const input = document.getElementById('loginCode');
+            input.value = '';
+            input.style.borderColor = '';
+            document.getElementById('loginError').style.display = 'none';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function handleLogin() {
+            const code = document.getElementById('loginCode').value.toUpperCase().trim();
+            const errorEl = document.getElementById('loginError');
+            const inputEl = document.getElementById('loginCode');
+            if (!code) {
+                errorEl.textContent = 'Please enter a team code';
+                errorEl.style.display = 'block';
+                inputEl.style.borderColor = '#ff3860';
+                return;
+            }
+            // Check mock/demo teams first
+            const team = mockTeams.find(t => t.code === code);
+            if (team) {
+                errorEl.style.display = 'none';
+                inputEl.style.borderColor = '';
+                appState.currentTeam = { ...team };
+                appState.currentUser = { name: 'Captain', avatar: '🧠' };
+                closeLoginModal();
+                showApp();
+                playSound('chime');
+                return;
+            }
+            // Look up in Supabase trial_registrations
+            if (window.kbtData) {
+                try {
+                    const registrations = await window.kbtData.getRegisteredTeams(null);
+                    const found = registrations.find(function(r) {
+                        const tc = r.team && (r.team.team_code || r.team.team_name || '');
+                        return tc.toUpperCase() === code;
+                    });
+                    if (found) {
+                        errorEl.style.display = 'none';
+                        inputEl.style.borderColor = '';
+                        appState.currentTeam = {
+                            code: found.team.team_code || found.team.team_name,
+                            name: found.display_name || found.team.team_name,
+                            score: 0, members: 1,
+                            captain: found.display_name || 'Captain',
+                            color: found.team_color || 'purple',
+                            mascot: found.team_emoji || '🧠',
+                            motto: ''
+                        };
+                        appState.currentUser = { name: found.display_name || 'Captain', avatar: found.team_emoji || '🧠' };
+                        closeLoginModal();
+                        showApp();
+                        playSound('chime');
+                        return;
+                    }
+                } catch(e) { console.warn('[kbt] team lookup failed:', e.message); }
+            }
+            errorEl.textContent = 'Team code not found';
+            errorEl.style.display = 'block';
+            inputEl.style.borderColor = '#ff3860';
+            inputEl.select();
+        }
+
+        function showRegistrationFlow() {
+            document.getElementById('registrationModal').classList.add('active');
+            document.getElementById('regStep1').style.display = 'block';
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep3').style.display = 'none';
+        }
+
+        function closeRegistrationModal() {
+            document.getElementById('registrationModal').classList.remove('active');
+        }
+
+        let tempTeamData = {};
+        let selectedAvatar = '🧠';
+
+        function selectAvatar(element, emoji) {
+            document.querySelectorAll('#regStep1 .avatar-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedAvatar = emoji;
+        }
+
+        function proceedToStep2() {
+            tempTeamData.name = document.getElementById('teamName').value || 'New Team';
+            tempTeamData.playerName = document.getElementById('playerName').value || 'Player';
+            tempTeamData.avatar = selectedAvatar;
+            document.getElementById('regStep1').style.display = 'none';
+            document.getElementById('regStep2').style.display = 'block';
+        }
+
+        function backToStep1() {
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep1').style.display = 'block';
+        }
+
+        let selectedColor = 'purple';
+        let selectedMascot = '🧠';
+
+        function selectTeamColor(element, color) {
+            document.querySelectorAll('#regStep2 .color-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedColor = color;
+        }
+
+        function selectTeamMascot(element, emoji) {
+            document.querySelectorAll('#regStep2 .mascot-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedMascot = emoji;
+        }
+
+        async async function completeRegistration() {
+            tempTeamData.color = selectedColor;
+            tempTeamData.mascot = selectedMascot;
+            tempTeamData.motto = document.getElementById('teamMotto').value || '';
+            tempTeamData.code = generateTeamCode();
+            tempTeamData.score = 0;
+            tempTeamData.captain = tempTeamData.playerName;
+            tempTeamData.members = 1;
+
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep3').style.display = 'block';
+            document.getElementById('generatedCode').textContent = tempTeamData.name;
+
+            appState.currentTeam = tempTeamData;
+            appState.currentUser = { name: tempTeamData.playerName, avatar: selectedAvatar };
+            playSound('ding');
+
+        if (window.kbtData) {
+            try {
+                await window.kbtData.registerTeam(
+                    window.kbtData.TARGET_EVENT_CODE,
+                    tempTeamData.name,
+                    tempTeamData.playerName,
+                    tempTeamData.color,
+                    tempTeamData.mascot
+                );
+                console.log('[kbt] Team registered in Supabase:', tempTeamData.name);
+            } catch(e) {
+                console.warn('[kbt] Could not write registration to Supabase:', e.message);
+            }
+        }
+
+            // Write registration to Supabase
+            if (window.kbtData) {
+                try {
+                    await window.kbtData.registerTeam(
+                        window.kbtData.TARGET_EVENT_CODE,
+                        tempTeamData.name,
+                        tempTeamData.playerName,
+                        tempTeamData.color,
+                        tempTeamData.mascot
+                    );
+                    console.log('[kbt] Team registered in Supabase:', tempTeamData.name);
+                } catch(e) {
+                    console.warn('[kbt] Could not write registration to Supabase:', e.message);
+                }
+            }
+        }
+
+        function generateTeamCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('generatedCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Team code copied! 📋');
+            });
+        }
+
+        function showApp() {
+            document.getElementById('landingScreen').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            document.getElementById('userBadge').textContent = `Welcome, ${appState.currentUser.name} ${appState.currentUser.avatar}`;
+            renderTab('home');
+        }
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            appState.currentTab = tabName;
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            renderTab(tabName);
+        }
+
+        function renderTab(tabName) {
+            let html = '';
+            switch(tabName) {
+                case 'home':
+                    html = renderHome();
+                    break;
+                case 'team':
+                    html = renderTeam();
+                    break;
+                case 'quiz':
+                    html = renderQuiz();
+                    break;
+                case 'league':
+                    html = renderLeague();
+                    break;
+                case 'badges':
+                    html = renderBadges();
+                    break;
+                case 'wrapped':
+                    html = renderWrapped();
+                    break;
+            }
+            document.getElementById('contentArea').innerHTML = html;
+            if (tabName === 'quiz') {
+                setTimeout(() => {
+                    document.querySelectorAll('.answer-option').forEach(el => {
+                        el.addEventListener('click', function() {
+                            document.querySelectorAll('.answer-option').forEach(e => e.classList.remove('selected'));
+                            this.classList.add('selected');
+                            playSound('ding');
+                        });
+                    });
+                    document.querySelectorAll('.powerup').forEach(el => {
+                        el.addEventListener('click', function() {
+                            if (!this.classList.contains('used')) {
+                                this.classList.add('used');
+                                playSound('whoosh');
+                                createConfetti();
+                            }
+                        });
+                    });
+                }, 100);
+            }
+            if (tabName === 'team') {
+                setTimeout(() => {
+                    const canvas = document.getElementById('qrCanvas');
+                    if (canvas) {
+                        generateQRCode(canvas, appState.currentTeam.code);
+                    }
+                }, 100);
+            }
+        }
+
+        function renderHome() {
+            return `
+                <div class="card" style="margin: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🎯 Quick Stats</h2>
+                    <div class="quick-stats">
+                        <div class="stat-box">
+                            <div class="stat-value">${appState.currentTeam.score}</div>
+                            <div class="stat-label">Team Score</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${appState.currentTeam.members}</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">#1</div>
+                            <div class="stat-label">League Rank</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Badges</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">📅 Upcoming Quizzes</h2>
+                    <div style="padding: 1rem; background: rgba(44,148,194,0.1); border-radius: 10px; margin-bottom: 0.8rem;">
+                        <div style="font-weight: 600; color: var(--navy);">Tonight @ 8:00 PM</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">The Steam Packet - Monday Trivia</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(44,148,194,0.1); border-radius: 10px;">
+                        <div style="font-weight: 600; color: var(--navy);">Tomorrow @ 7:30 PM</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">Fawkner Bar - Tuesday Challenge</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeam() {
+            const team = appState.currentTeam;
+            const colorHex = colors[team.color] || colors.purple;
+            return `
+                <div class="card" style="margin: 1rem; border-left: 5px solid ${colorHex};">
+                    <div class="team-header">
+                        <div>
+                            <div class="team-name">${team.mascot} ${team.name}</div>
+                            <div class="team-motto">"${team.motto || 'Trivia Excellence'}"</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85rem; color: #666;">Team Code</div>
+                            <div style="font-size: 1.3rem; font-weight: 900; font-family: monospace; color: var(--purple);">${team.code}</div>
+                        </div>
+                    </div>
+                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid rgba(44,148,194,0.2);">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="input-label" style="margin-bottom: 0.8rem;">QR Code - Scan to Join Team</label>
+                        <div class="qr-container" onclick="showQRFullscreen()">
+                            <canvas id="qrCanvas" width="200" height="200" style="display: inline-block; border-radius: 12px; border: 3px solid var(--purple);"></canvas>
+                            <div class="qr-label">Tap to enlarge</div>
+                        </div>
+                    </div>
+                    ${appState.currentTeam.captain === appState.currentUser.name ? renderCaptainPanel(team) : ''}
+                    <div style="margin-top: 1.5rem;">
+                        <h3 style="color: var(--navy); margin-bottom: 1rem;">Team Members</h3>
+                        <div style="background: rgba(44,148,194,0.1); padding: 1rem; border-radius: 10px;">
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.3rem;">🧠</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Alex (Captain)</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 2 weeks ago</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.3rem;">🦊</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Jordan</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 1 week ago</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <span style="font-size: 1.3rem;">🐺</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Casey</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 3 days ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCaptainPanel(team) {
+            return `
+                <div style="background: #F4F2EE; border: 1px solid #e8e5e0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                    <h3 style="color: var(--navy); margin-bottom: 1rem; font-family: 'VVDS Fifties', sans-serif;">👑 Captain Controls</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="input-label">Team Color</label>
+                        <div class="color-grid" style="margin: 0.5rem 0;">
+                            <div class="color-option purple" onclick="updateTeamColor('purple')"></div>
+                            <div class="color-option gold" onclick="updateTeamColor('gold')"></div>
+                            <div class="color-option red" onclick="updateTeamColor('red')"></div>
+                            <div class="color-option blue" onclick="updateTeamColor('blue')"></div>
+                            <div class="color-option green" onclick="updateTeamColor('green')"></div>
+                            <div class="color-option teal" onclick="updateTeamColor('teal')"></div>
+                            <div class="color-option pink" onclick="updateTeamColor('pink')"></div>
+                            <div class="color-option orange" onclick="updateTeamColor('orange')"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="input-label">Team Mascot</label>
+                        <div class="mascot-grid" style="margin: 0.5rem 0;">
+                            <div class="mascot-option" onclick="updateTeamMascot('🧠')">🧠</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦊')">🦊</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐺')">🐺</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦁')">🦁</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐉')">🐉</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦅')">🦅</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐙')">🐙</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦈')">🦈</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐝')">🐝</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦄')">🦄</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐻')">🐻</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🎯')">🎯</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🔥')">🔥</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('⚡')">⚡</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🌟')">🌟</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('💎')">💎</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="input-label">Team Motto (max 50 chars)</label>
+                        <input type="text" maxlength="50" value="${team.motto}" onchange="updateTeamMotto(this.value)">
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTeamColor(color) {
+            appState.currentTeam.color = color;
+            showToast(`Team color updated to ${color}! 🎨`);
+            renderTab('team');
+        }
+
+        function updateTeamMascot(mascot) {
+            appState.currentTeam.mascot = mascot;
+            showToast(`Team mascot updated! ${mascot}`);
+            renderTab('team');
+        }
+
+        function updateTeamMotto(motto) {
+            appState.currentTeam.motto = motto;
+            showToast('Team motto updated! ✍️');
+        }
+
+        function renderQuiz() {
+            const powerups = [
+                { emoji: '🔥', name: 'DOUBLE POINTS', desc: 'Double this question' },
+                { emoji: '5️⃣0️⃣', name: '50/50', desc: 'Remove 2 wrong answers' },
+                { emoji: '⏰', name: 'EXTRA TIME', desc: '+30 seconds' }
+            ];
+
+            return `
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <div style="font-size: 0.9rem; opacity: 0.9;">Question 7 of 10</div>
+                        <div class="quiz-timer" id="quizTimer">45s</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">Current Score: 420</div>
+                    </div>
+
+                    <div class="powerup-bar">
+                        ${powerups.map((p, i) => `
+                            <div class="powerup ${appState.powerupsUsed[i] ? 'used' : ''}" onclick="usePowerup(${i})">
+                                <span class="powerup-emoji">${p.emoji}</span>
+                                <div class="powerup-name">${p.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="quiz-question">
+                        <div class="question-text">What is the capital of France?</div>
+                        <div class="answer-option">Paris</div>
+                        <div class="answer-option">London</div>
+                        <div class="answer-option">Berlin</div>
+                        <div class="answer-option">Madrid</div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" style="margin: 1rem;">Submit Answer</button>
+                </div>
+            `;
+        }
+
+        function usePowerup(index) {
+            if (!appState.powerupsUsed[index]) {
+                appState.powerupsUsed[index] = true;
+                playSound('whoosh');
+                createConfetti();
+                showToast('Power-up activated! ⚡');
+                renderTab('quiz');
+            }
+        }
+
+        function renderLeague() {
+            return `
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🏆 League Standings</h2>
+                    <div class="standings-header">
+                        <div style="text-align: center;">Rank</div>
+                        <div>Team</div>
+                        <div style="text-align: center;">Score</div>
+                        <div style="text-align: center;">Wins</div>
+                        <div style="text-align: center;">Games</div>
+                        <div style="text-align: center;">Accuracy</div>
+                    </div>
+                    ${mockLeagues.map(league => `
+                        <div class="standings-row">
+                            <div class="rank ${league.rank <= 3 ? 'gold' : ''}">#${league.rank}</div>
+                            <div>${league.team}</div>
+                            <div style="text-align: center; font-weight: 600; color: var(--purple);">${league.score}</div>
+                            <div style="text-align: center;">${league.wins}</div>
+                            <div style="text-align: center;">${league.played}</div>
+                            <div style="text-align: center;">${league.accuracy}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">📍 Venue Map</h2>
+                    <div class="map-container">
+                        <svg viewBox="0 0 100 100" class="map-svg">
+                            <!-- Melbourne Outline -->
+                            <rect x="10" y="10" width="80" height="80" fill="#e0e7ff" stroke="#999" stroke-width="1"/>
+                            <!-- Venue Pins -->
+                            <g class="venue-pin" onclick="showVenuePopup(0)">
+                                <circle cx="35" cy="50" r="15" fill="#2C94C2" opacity="0.3"/>
+                                <circle cx="35" cy="50" r="6" fill="#2C94C2"/>
+                                <text x="35" y="35" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Steam Packet</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(1)">
+                                <circle cx="55" cy="45" r="15" fill="#ff3860" opacity="0.3"/>
+                                <circle cx="55" cy="45" r="6" fill="#ff3860"/>
+                                <text x="55" y="30" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Fawkner</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(2)">
+                                <circle cx="45" cy="65" r="15" fill="#00d084" opacity="0.3"/>
+                                <circle cx="45" cy="65" r="6" fill="#00d084"/>
+                                <text x="45" y="80" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Sporting</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(3)">
+                                <circle cx="70" cy="55" r="15" fill="#2C94C2" opacity="0.3"/>
+                                <circle cx="70" cy="55" r="6" fill="#2C94C2"/>
+                                <text x="70" y="40" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Meat Wine</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(4)">
+                                <circle cx="50" cy="35" r="15" fill="#E8A317" opacity="0.3"/>
+                                <circle cx="50" cy="35" r="6" fill="#E8A317"/>
+                                <text x="50" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Bar Americano</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showVenuePopup(index) {
+            const venue = venues[index];
+            const popup = document.getElementById('venuePopup');
+            popup.innerHTML = `
+                <div class="venue-name">${venue.name}</div>
+                <div class="venue-detail"><strong>Night:</strong> ${venue.day}</div>
+                <div class="venue-detail"><strong>Address:</strong> ${venue.address}</div>
+                <div class="venue-detail"><strong>Next Quiz:</strong> This ${venue.day}</div>
+                <button class="btn btn-primary btn-small btn-block" style="margin-top: 0.8rem;">Join Quiz</button>
+            `;
+            popup.style.display = 'block';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function renderBadges() {
+            return `
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🎖️ Your Badges</h2>
+                    <div class="badges-grid">
+                        ${mockBadges.map(badge => `
+                            <div class="badge-item ${!badge.earned ? 'badge-locked' : ''}">
+                                <div class="badge-emoji">${badge.emoji}</div>
+                                <div class="badge-name">${badge.name}</div>
+                                ${!badge.earned ? '<div style="font-size: 0.7rem; margin-top: 0.3rem; color: #999;">Locked</div>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWrapped() {
+            return `
+                <div class="wrapped-container">
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div style="font-size: 2rem; margin-bottom: 1rem;">🎁</div>
+                            <h2 class="wrapped-title">KBT Wrapped 2024</h2>
+                            <div class="wrapped-label">Your trivia year in review</div>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Games Played</div>
+                            <div class="wrapped-stat">47</div>
+                            <div class="wrapped-subtitle">You never miss a night!</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Games Played: 47 games - You never miss a night! 🎮')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Correct Answers</div>
+                            <div class="wrapped-stat">412</div>
+                            <div class="wrapped-subtitle">MVP energy</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Correct Answers: 412 - MVP energy! 🌟 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Best Streak</div>
+                            <div class="wrapped-stat">21</div>
+                            <div class="wrapped-subtitle">Games won in a row - on fire! 🔥</div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Best Streak: 21 games won in a row! On fire! 🔥 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Team Score</div>
+                            <div class="wrapped-stat">4,850</div>
+                            <div class="wrapped-subtitle">#1 in the league</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('The Know-It-Alls are #1 in the league with 4,850 points! 🏆 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Your Accuracy</div>
+                            <div class="wrapped-stat">89%</div>
+                            <div class="wrapped-subtitle">Brain of the year material</div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('My accuracy: 89% - Brain of the year material! 🧠 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏆</div>
+                            <h3 class="wrapped-title">Season Champion</h3>
+                            <div class="wrapped-subtitle">The Know-It-Alls dominated 2024!</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1.5rem;" onclick="shareWrapped()">📱 Share</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function shareWrapped() {
+            const text = `🏆 The Know-It-Alls are #1 in the KBT league! 47 games played, 412 correct answers, and 89% accuracy. Season Champion 2024! 🎉 #KnowBrainer`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Wrapped stats copied! Share on socials 📱');
+                playSound('ding');
+                createConfetti();
+            });
+        }
+
+        function shareWrappedStat(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard! 📋');
+                playSound('ding');
+            });
+        }
+
+        function openSettings() {
+            document.getElementById('settingsPanel').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('active');
+        }
+
+        function updateDisplayName() {
+            const newName = document.getElementById('displayNameInput').value;
+            if (newName) {
+                appState.currentUser.name = newName;
+                document.getElementById('userBadge').textContent = `Welcome, ${newName} ${appState.currentUser.avatar}`;
+                showToast('Display name updated! ✨');
+                closeSettings();
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Log out from your team?')) {
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('landingScreen').style.display = 'flex';
+                appState.currentUser = null;
+                appState.currentTeam = null;
+                playSound('chime');
+            }
+        }
+
+        function handleDeleteAccount() {
+            if (confirm('Are you sure? This cannot be undone.')) {
+                if (confirm('Really delete your account and all progress?')) {
+                    document.getElementById('appContainer').style.display = 'none';
+                    document.getElementById('landingScreen').style.display = 'flex';
+                    appState.currentUser = null;
+                    appState.currentTeam = null;
+                    showToast('Account deleted. Goodbye! 👋');
+                }
+            }
+        }
+
+        function openAwards() {
+            appState.currentTab = 'awards';
+            document.getElementById('contentArea').innerHTML = renderAwardsTab();
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        }
+
+        function renderAwardsTab() {
+            let html = '<div style="padding: 1rem;"><h2 style="color: var(--navy); margin-bottom: 1.5rem;">🏆 Season Awards 2024</h2><div class="awards-container">';
+            seasonAwards.forEach((award, index) => {
+                html += `
+                    <div class="award-card" style="animation-delay: ${index * 0.1}s;">
+                        <div class="award-icon">${award.icon}</div>
+                        <div class="award-title">${award.title}</div>
+                        <div class="award-winner">🥇 ${award.winner}</div>
+                        <div clas
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .avatar-option {
+            aspect-ratio: 1;
+            border: 3px solid #F4F2EE;
+            border-radius: 16px;
+            background: #F4F2EE;
+            cursor: pointer;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .avatar-option {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.05);
+            border-color: var(--purple);
+            background: #F4F2EE;
+        }
+
+        .avatar-option.selected {
+            border-color: #2C94C2;
+            background: #F4F2EE;
+            box-shadow: none;
+            transform: scale(1.1);
+        }
+
+        .code-display {
+            background: #F4F2EE;
+            color: var(--text-dark);
+            padding: 1.5rem;
+            border-radius: 24px;
+            text-align: center;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            border: none;
+        }
+
+        .code-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin: 1rem 0;
+            text-shadow: none;
+        }
+
+        .code-action {
+            margin-top: 1rem;
+        }
+
+        /* TEAM CUSTOMIZATION */
+        .color-grid, .mascot-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .color-option, .mascot-option {
+            aspect-ratio: 1;
+            border: 3px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .color-option {
+            background: var(--gold);
+        }
+
+        .color-option.purple { background: var(--purple); }
+        .color-option.gold { background: var(--gold); }
+        .color-option.red { background: #ff3860; }
+        .color-option.blue { background: #00d4ff; }
+        .color-option.green { background: #00d084; }
+        .color-option.teal { background: #1dd1a1; }
+        .color-option.pink { background: #ff006e; }
+        .color-option.orange { background: #ff9500; }
+
+        .color-option:hover, .mascot-option:hover {
+            transform: scale(1.08);
+        }
+
+        .color-option.selected, .mascot-option.selected {
+            border-color: #383737;
+            box-shadow: none;
+            transform: scale(1.1);
+        }
+
+        .mascot-option {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .mascot-option:hover {
+            background: #F4F2EE;
+            border-color: var(--purple);
+        }
+
+        /* QR CODE */
+        .qr-container {
+            text-align: center;
+            margin: 1.5rem 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: scale(1.05);
+        }
+
+        .qr-canvas {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            display: inline-block;
+            border: 3px solid var(--purple);
+        }
+
+        .qr-label {
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+            color: var(--purple);
+            font-weight: 600;
+        }
+
+        /* POWER-UPS */
+        .powerup-bar {
+            display: flex;
+            gap: 0.8rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .powerup {
+            flex: 1;
+            min-width: 100px;
+            padding: 1rem;
+            border-radius: 16px;
+            text-align: center;
+            background: #F4F2EE;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .powerup:hover:not(.used) {
+            transform: translateY(-2px);
+            box-shadow: none;
+        }
+
+        .powerup.used {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: transparent;
+            background: rgba(0,0,0,0.05);
+        }
+
+        .powerup-emoji {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 0.4rem;
+        }
+
+        .powerup-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .powerup-name {
+            color: var(--white);
+        }
+
+        /* SEASON AWARDS */
+        .awards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .award-card {
+            background: #F4F2EE;
+            border-radius: 24px;
+            padding: 1.5rem;
+            text-align: center;
+            border: none;
+            animation: awardReveal 0.6s ease-out backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes awardReveal {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0);
+            }
+        }
+
+        .award-icon {
+            font-size: 3rem;
+            margin-bottom: 0.8rem;
+            display: inline-block;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        .award-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-family: "VVDS Fifties", sans-serif;
+        }
+
+        html.dark-mode .award-title {
+            color: var(--white);
+        }
+
+        .award-winner {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .award-stat {
+            font-size: 0.95rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        html.dark-mode .award-stat {
+            color: #aaa;
+        }
+
+        .award-comment {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+
+        html.dark-mode .award-comment {
+            color: #999;
+        }
+
+        /* VENUE MAP */
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background: #F4F2EE;
+            border-radius: 24px;
+            margin: 1rem 0;
+            overflow: hidden;
+            border: none;
+        }
+
+        .map-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .venue-pin {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .venue-pin:hover circle {
+            r: 18;
+        }
+
+        .venue-pin:hover text {
+            font-weight: 700;
+        }
+
+        .venue-popup {
+            position: absolute;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            z-index: 50;
+            min-width: 200px;
+            border: none;
+        }
+
+        html.dark-mode .venue-popup {
+            background: #020817;
+            color: var(--white);
+        }
+
+        .venue-name {
+            font-weight: 700;
+            color: var(--purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .venue-detail {
+            font-size: 0.9rem;
+            margin: 0.3rem 0;
+            color: #999;
+        }
+
+        html.dark-mode .venue-detail {
+            color: #aaa;
+        }
+
+        /* SETTINGS PANEL */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+            z-index: 150;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        html.dark-mode .settings-panel {
+            background: #020817;
+            color: var(--white);
+        }
+
+        .settings-panel.active {
+            transform: translateX(0);
+        }
+
+        .settings-header {
+            background: #000000;
+            color: var(--white);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-content {
+            padding: 1.5rem;
+        }
+
+        .settings-group {
+            margin-bottom: 2rem;
+        }
+
+        .settings-label {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #ccc;
+            border-radius: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--purple);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: var(--white);
+            border-radius: 50%;
+            transition: left 0.3s ease;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            left: 24px;
+        }
+
+        /* SOCIAL SHARING */
+        .share-btn {
+            background: #2C94C2;
+            color: var(--white);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .share-btn:hover {
+            transform: none;
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--navy);
+            color: var(--white);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 300;
+            animation: slideInUp 0.3s ease;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* CONFETTI & SPARKLES */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        /* HOME TAB */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 0.8rem;
+        }
+
+        .stat-box {
+            background: #F4F2EE;
+            padding: 1.5rem;
+            border-radius: 24px;
+            text-align: center;
+            border: none;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        html.dark-mode .stat-label {
+            color: #aaa;
+        }
+
+        /* TEAM CARDS */
+        .team-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin: 0.8rem;
+            box-shadow: none;
+            border-left: 5px solid var(--purple);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        html.dark-mode .team-card {
+            background: #020817;
+        }
+
+        .team-card.has-color {
+            border-left-color: inherit;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .team-name {
+            color: var(--white);
+        }
+
+        .team-mascot {
+            font-size: 1.5rem;
+        }
+
+        .team-motto {
+            font-size: 0.9rem;
+            color: #999;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        html.dark-mode .team-motto {
+            color: #aaa;
+        }
+
+        /* LIVE QUIZ */
+        .quiz-container {
+            padding: 1rem;
+        }
+
+        .quiz-header {
+            background: #2C94C2;
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 24px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .quiz-timer {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .quiz-question {
+            background: #F4F2EE;
+            padding: 1.5rem;
+            border-radius: 24px;
+            margin-bottom: 1rem;
+            border: none;
+        }
+
+        html.dark-mode .quiz-question {
+            background: #F4F2EE;
+            border-color: none;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        html.dark-mode .question-text {
+            color: var(--white);
+        }
+
+        .answer-option {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: #ffffff;
+            border: 1px solid #e8e5e0;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-option:hover {
+            background: #ffffff;
+            border-color: #2C94C2;
+        }
+
+        .answer-option.selected {
+            background: #2C94C2;
+            color: var(--white);
+            border-color: #2C94C2;
+        }
+
+        /* LEAGUE */
+        .standings-header, .standings-row {
+            display: grid;
+            grid-template-columns: 2rem 1fr 3rem 3rem 3rem 3rem;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .standings-header {
+            background: #2C94C2;
+            color: var(--white);
+            border-radius: 12px 12px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .standings-row {
+            background: #ffffff;
+            border-bottom: 1px solid #e8e5e0;
+            transition: all 0.3s ease;
+        }
+
+        html.dark-mode .standings-row {
+            background: #ffffff;
+            border-bottom-color: #e8e5e0;
+        }
+
+        .standings-row:hover {
+            background: #ffffff;
+        }
+
+        .rank {
+            text-align: center;
+            font-weight: 700;
+            color: var(--purple);
+        }
+
+        .rank.gold {
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        /* BADGES */
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .badge-item {
+            aspect-ratio: 1;
+            border: 3px solid #F4F2EE;
+            border-radius: 16px;
+            background: #F4F2EE;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        html.dark-mode .badge-item {
+            background: #F4F2EE;
+            border-color: #F4F2EE;
+        }
+
+        .badge-item:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 6px 20px rgba(232,163,23,0.2);
+        }
+
+        .badge-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .badge-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        html.dark-mode .badge-name {
+            color: var(--white);
+        }
+
+        .badge-locked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        /* WRAPPED */
+        .wrapped-container {
+            padding: 1rem;
+        }
+
+        .wrapped-card {
+            background: #2C94C2;
+            color: var(--white);
+            border-radius: 24px;
+            padding: 2rem;
+            margin: 1rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .wrapped-card.gold-bg {
+            background: #E8A317;
+            color: #000000;
+        }
+
+        .wrapped-card::before {
+            display: none;
+        }
+
+        .wrapped-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .wrapped-stat {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            text-shadow: none;
+        }
+
+        .wrapped-label {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .wrapped-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            font-family: "VVDS Fifties", sans-serif;
+        }
+
+        .wrapped-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        .share-btn-wrapped {
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .header-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .header-controls {
+                gap: 0.5rem;
+            }
+
+            .color-grid, .mascot-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .awards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .standings-header,
+            .standings-row {
+                grid-template-columns: 1.5rem 1fr 3.5rem;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .standings-header :nth-child(n+4),
+            .standings-row :nth-child(n+4) {
+                display: none;
+            }
+        }
+    </style>
+    <script src="kbt-data.js"></script>
+</head>
+<body>
+    <div id="landingScreen" class="landing">
+        <div class="landing-nav">
+            <a href="/">← Home</a>
+            <a href="https://knowbrainertrivia.com.au" target="_blank">View live site ↗</a>
+        </div>
+        <div class="landing-logo">
+            <div class="logo" style="font-size: 4rem; color: #2C94C2; font-family: 'VVDS Fifties', sans-serif; font-weight: 700;">KNOW BRAINER</div>
+            <div class="logo" style="font-size: 1.5rem; color: #ffffff; font-style: italic; font-family: 'VVDS Fifties', sans-serif; font-weight: 700; margin-bottom: 0;">Trivia.</div>
+        </div>
+        <div class="landing-options">
+            <button class="option-btn option-btn-code" onclick="showLoginModal()">
+                <span>🔑</span>
+                <span>I HAVE A CODE</span>
+            </button>
+            <button class="option-btn option-btn-new" onclick="showRegistrationFlow()">
+                <span>✨</span>
+                <span>I'M NEW</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="appContainer" class="app-container" style="display:none;">
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <div class="logo" style="font-size: 1.2rem; color: #ffffff; font-family: 'VVDS Fifties', sans-serif; font-weight: 700; margin-bottom: 0.1rem;">KNOW BRAINER</div>
+                    <div style="font-size: 0.9rem; color: #ffffff; font-family: 'VVDS Fifties', sans-serif; font-style: italic; margin-top: -0.2rem; font-weight: 700;">Trivia.</div>
+                </div>
+                <div class="header-controls">
+                    <button class="header-btn" onclick="toggleTheme()" title="Toggle dark/light mode">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <button class="header-btn" onclick="openSettings()" title="Settings">
+                        ⚙️
+                    </button>
+                    <button class="header-btn" onclick="openAwards()" title="Season Awards" style="display:none;" id="awardsNavBtn">
+                        🏆
+                    </button>
+                </div>
+            </div>
+            <div class="user-badge" id="userBadge"></div>
+        </div>
+        <div class="trial-banner-player">
+            <span>Trial Build</span>
+            <a href="https://knowbrainertrivia.com.au" target="_blank">View live site ↗</a>
+        </div>
+
+        <div class="content-area" id="contentArea"></div>
+
+        <div class="bottom-nav" id="bottomNav">
+            <div class="nav-item active" data-tab="home" onclick="switchTab('home')">
+                <div class="nav-icon">🏠</div>
+                <div>Home</div>
+            </div>
+            <div class="nav-item" data-tab="team" onclick="switchTab('team')">
+                <div class="nav-icon">👥</div>
+                <div>Team</div>
+            </div>
+            <div class="nav-item" data-tab="quiz" onclick="switchTab('quiz')">
+                <div class="nav-icon">🎮</div>
+                <div>Quiz</div>
+            </div>
+            <div class="nav-item" data-tab="league" onclick="switchTab('league')">
+                <div class="nav-icon">🏆</div>
+                <div>League</div>
+            </div>
+            <div class="nav-item" data-tab="badges" onclick="switchTab('badges')">
+                <div class="nav-icon">🎖️</div>
+                <div>Badges</div>
+            </div>
+            <div class="nav-item" data-tab="wrapped" onclick="switchTab('wrapped')">
+                <div class="nav-icon">🎁</div>
+                <div>Wrapped</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Welcome Back! 🔑</div>
+            <div class="input-group">
+                <label class="input-label">Enter Your Team Code</label>
+                <input type="text" id="loginCode" placeholder="e.g., BRAINS24" style="text-transform: uppercase;" onkeydown="if(event.key==='Enter')handleLogin()">
+                <div id="loginError" style="color:#ff3860;font-size:0.85rem;margin-top:0.4rem;display:none;"></div>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">Enter Team</button>
+            <button class="btn btn-secondary btn-block" onclick="closeLoginModal()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- REGISTRATION MODAL -->
+    <div id="registrationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="regStep1Title">Create Your Team 🌟</div>
+
+            <!-- Step 1: Team Name -->
+            <div id="regStep1" style="display:block;">
+                <div class="input-group">
+                    <label class="input-label">Team Name</label>
+                    <input type="text" id="teamName" placeholder="The Brain Squad">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Your Display Name</label>
+                    <input type="text" id="playerName" placeholder="Your Name">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Choose Your Avatar</label>
+                    <div class="avatar-grid">
+                        <div class="avatar-option" onclick="selectAvatar(this, '🧠')">🧠</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦊')">🦊</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐺')">🐺</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦁')">🦁</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐉')">🐉</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦅')">🦅</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐙')">🐙</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦈')">🦈</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐝')">🐝</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🦄')">🦄</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🐻')">🐻</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🎯')">🎯</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🔥')">🔥</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '⚡')">⚡</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '🌟')">🌟</div>
+                        <div class="avatar-option" onclick="selectAvatar(this, '💎')">💎</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="proceedToStep2()">Next: Team Colors</button>
+                <button class="btn btn-secondary btn-block" onclick="closeRegistrationModal()">Cancel</button>
+            </div>
+
+            <!-- Step 2: Team Colors & Mascot -->
+            <div id="regStep2" style="display:none;">
+                <div class="input-group">
+                    <label class="input-label">Team Color</label>
+                    <div class="color-grid">
+                        <div class="color-option purple" onclick="selectTeamColor(this, 'purple')"></div>
+                        <div class="color-option gold" onclick="selectTeamColor(this, 'gold')"></div>
+                        <div class="color-option red" onclick="selectTeamColor(this, 'red')"></div>
+                        <div class="color-option blue" onclick="selectTeamColor(this, 'blue')"></div>
+                        <div class="color-option green" onclick="selectTeamColor(this, 'green')"></div>
+                        <div class="color-option teal" onclick="selectTeamColor(this, 'teal')"></div>
+                        <div class="color-option pink" onclick="selectTeamColor(this, 'pink')"></div>
+                        <div class="color-option orange" onclick="selectTeamColor(this, 'orange')"></div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Team Mascot</label>
+                    <div class="mascot-grid">
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🧠')">🧠</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦊')">🦊</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐺')">🐺</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦁')">🦁</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐉')">🐉</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦅')">🦅</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐙')">🐙</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦈')">🦈</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐝')">🐝</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🦄')">🦄</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🐻')">🐻</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🎯')">🎯</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🔥')">🔥</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '⚡')">⚡</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '🌟')">🌟</div>
+                        <div class="mascot-option" onclick="selectTeamMascot(this, '💎')">💎</div>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Team Motto (optional)</label>
+                    <input type="text" id="teamMotto" placeholder="E.g., Know it all or go home!" maxlength="50">
+                </div>
+                <button class="btn btn-primary btn-block" onclick="completeRegistration()">Create Team!</button>
+                <button class="btn btn-secondary btn-block" onclick="backToStep1()">Back</button>
+            </div>
+
+            <!-- Step 3: Team Code -->
+            <div id="regStep3" style="display:none;">
+                <div style="text-align: center; margin: 2rem 0;">
+                    <div style="font-size: 2rem; margin: 1rem 0;">🎉</div>
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">Team Created!</h2>
+                    <p style="color: #666; margin-bottom: 1.5rem;">Share this code with your teammates to join:</p>
+                </div>
+                <div class="code-display">
+                    <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem;">YOUR TEAM CODE</div>
+                    <div class="code-value" id="generatedCode">BRAINS24</div>
+                    <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="copyCode()">Copy Code</button>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="closeRegistrationModal()">Enter App</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+            <h2>Settings ⚙️</h2>
+            <button class="header-btn" onclick="closeSettings()" style="background: transparent; color: var(--white);">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-group">
+                <div class="settings-label">
+                    <span>Dark Mode</span>
+                    <div class="toggle-switch" id="darkModeToggle" onclick="toggleTheme()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">
+                    <span>Sound Effects</span>
+                    <div class="toggle-switch" id="soundToggle" onclick="toggleSound()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="input-label">Display Name</label>
+                <input type="text" id="displayNameInput" placeholder="Your name">
+                <button class="btn btn-primary btn-small btn-block" style="margin-top: 0.5rem;" onclick="updateDisplayName()">Save Name</button>
+            </div>
+
+            <div class="settings-group">
+                <label class="input-label">App Version</label>
+                <div style="padding: 0.8rem; background: rgba(44,148,194,0.1); border-radius: 8px; text-align: center;">
+                    KBT v1.0
+                </div>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid rgba(44,148,194,0.2);">
+
+            <div class="settings-group">
+                <button class="btn btn-secondary btn-block" onclick="handleLogout()">Log Out</button>
+                <button class="btn btn-secondary btn-block" style="margin-top: 0.5rem; background: #ff3860; color: white; border-color: #ff3860;" onclick="handleDeleteAccount()">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLSCREEN QR CODE -->
+    <div id="qrFullscreen" class="modal" onclick="closeQRFullscreen()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="text-align: center;">
+                <canvas id="qrFullscreenCanvas" width="300" height="300" style="border-radius: 12px;"></canvas>
+                <div style="margin-top: 1rem; color: var(--navy);">Tap to close</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VENUE DETAILS POPUP (for map) -->
+    <div id="venuePopup" class="venue-popup" style="display:none;"></div>
+
+    <script>
+        // App State
+        const appState = {
+            currentUser: null,
+            currentTeam: null,
+            darkMode: localStorage.getItem('darkMode') === 'true',
+            soundEnabled: localStorage.getItem('soundEnabled') !== 'false',
+            currentTab: 'home',
+            captainToggle: false,
+            powerupsUsed: {}
+        };
+
+        const colors = {
+            purple: '#2C94C2',
+            gold: '#E8A317',
+            red: '#ff3860',
+            blue: '#00d4ff',
+            green: '#00d084',
+            teal: '#1dd1a1',
+            pink: '#ff006e',
+            orange: '#ff9500'
+        };
+
+        const venues = [
+            { name: 'The Steam Packet', day: 'Monday', address: '293 Toorak Rd, Hawthorn', lat: 35, lng: 50 },
+            { name: 'Fawkner Bar', day: 'Tuesday', address: '175 Chapel St, Prahran', lat: 55, lng: 45 },
+            { name: 'The Sporting Globe', day: 'Wednesday', address: '177 Bay St, Brighton', lat: 45, lng: 65 },
+            { name: 'Meat & Wine Co', day: 'Thursday', address: '50 Waratah Ave, Rushcutters Bay', lat: 60, lng: 55 },
+            { name: 'Bar Americano', day: 'Saturday', address: '16 Hardware Ln, Melbourne', lat: 50, lng: 40 }
+        ];
+
+        // Mock Data
+        const mockTeams = [
+            { id: 1, name: 'The Know-It-Alls', code: 'BRAINS24', captain: 'Alex', members: 4, score: 4850, color: 'purple', mascot: '🧠', motto: 'Brain power wins!' },
+            { id: 2, name: 'Quiz Queens', code: 'QUEENS22', captain: 'Sarah', members: 5, score: 4720, color: 'pink', mascot: '👑', motto: 'All hail the brain' },
+            { id: 3, name: 'Trivia Titans', code: 'TITANS19', captain: 'Mike', members: 4, score: 4680, color: 'gold', mascot: '🦁', motto: 'Roar to victory!' }
+        ];
+
+        const mockLeagues = [
+            { rank: 1, team: 'The Know-It-Alls', score: 4850, wins: 24, played: 28, accuracy: '89%' },
+            { rank: 2, team: 'Quiz Queens', score: 4720, wins: 22, played: 26, accuracy: '86%' },
+            { rank: 3, team: 'Trivia Titans', score: 4680, wins: 21, played: 25, accuracy: '85%' },
+            { rank: 4, team: 'Brain Busters', score: 4500, wins: 20, played: 24, accuracy: '84%' },
+            { rank: 5, team: 'Quiz Zealots', score: 4320, wins: 18, played: 22, accuracy: '82%' }
+        ];
+
+        const mockBadges = [
+            { id: 1, name: 'On Fire', emoji: '🔥', desc: 'Won 5 in a row', earned: true },
+            { id: 2, name: 'Speed Demon', emoji: '⚡', desc: 'Answered 10 in a row under 5s', earned: true },
+            { id: 3, name: 'Brain Genius', emoji: '🧠', desc: '95%+ accuracy', earned: true },
+            { id: 4, name: 'Team Player', emoji: '🤝', desc: 'Played 50 games', earned: false },
+            { id: 5, name: 'Trophy Collector', emoji: '🏆', desc: 'Won 25 games', earned: false },
+            { id: 6, name: 'Streak Master', emoji: '⭐', desc: 'Won 10 in a row', earned: false },
+            { id: 7, name: 'Speedster', emoji: '🚀', desc: 'Fastest team average', earned: true },
+            { id: 8, name: 'All-Star', emoji: '💫', desc: 'Top 3 in league', earned: true }
+        ];
+
+        const seasonAwards = [
+            { title: 'Season Champion', icon: '🏆', winner: 'The Know-It-Alls', stat: '4850 points', comment: 'Absolutely dominated this season!' },
+            { title: 'MVP', icon: '🌟', winner: 'Alex Johnson', stat: '412 correct answers', comment: 'The brain behind the team' },
+            { title: 'Hottest Streak', icon: '🔥', winner: 'Sarah Chen', stat: '21 game win streak', comment: 'On absolute fire!' },
+            { title: 'Most Dedicated', icon: '📅', winner: 'Mike Torres', stat: '47 games played', comment: 'Never missed a night!' },
+            { title: 'Gambler of the Year', icon: '🎰', winner: 'Emma Wilson', stat: '94% wager accuracy', comment: 'Risk-taker with rewards!' },
+            { title: 'Brain of the Year', icon: '🧠', winner: 'James Lee', stat: '92% avg score', comment: 'Pure intelligence!' },
+            { title: 'Social Butterfly', icon: '🦋', winner: 'Olivia Smith', stat: 'Played with 9 teams', comment: 'The connector!' },
+            { title: 'Most Improved', icon: '📈', winner: 'David Brown', stat: '+850 rating', comment: 'Came out of nowhere!' },
+            { title: 'Pub Crawler', icon: '🍺', winner: 'Sophie Jones', stat: '15 venues visited', comment: 'Knows the trivia circuit!' },
+            { title: 'Captain Fantastic', icon: '👑', winner: 'Alex Johnson', stat: '24-4 record as captain', comment: 'Born to lead!' }
+        ];
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            if (appState.darkMode) {
+                document.documentElement.classList.add('dark-mode');
+                document.getElementById('darkModeToggle').classList.add('active');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+            if (appState.soundEnabled) {
+                document.getElementById('soundToggle').classList.add('active');
+            }
+        });
+
+        // Theme Toggle
+        function toggleTheme() {
+            appState.darkMode = !appState.darkMode;
+            localStorage.setItem('darkMode', appState.darkMode);
+            document.documentElement.classList.toggle('dark-mode');
+            document.getElementById('darkModeToggle').classList.toggle('active');
+            document.getElementById('themeIcon').textContent = appState.darkMode ? '☀️' : '🌙';
+            playSound('chime');
+        }
+
+        // Sound System
+        function toggleSound() {
+            appState.soundEnabled = !appState.soundEnabled;
+            localStorage.setItem('soundEnabled', appState.soundEnabled);
+            document.getElementById('soundToggle').classList.toggle('active');
+            if (appState.soundEnabled) {
+                playSound('chime');
+            }
+        }
+
+        function playSound(type) {
+            if (!appState.soundEnabled) return;
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            switch(type) {
+                case 'chime':
+                    oscillator.frequency.value = 1000;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    break;
+                case 'ding':
+                    oscillator.frequency.value = 1200;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'whoosh':
+                    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+            }
+        }
+
+        // Login/Registration
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
+            const input = document.getElementById('loginCode');
+            input.value = '';
+            input.style.borderColor = '';
+            document.getElementById('loginError').style.display = 'none';
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function handleLogin() {
+            const code = document.getElementById('loginCode').value.toUpperCase().trim();
+            const errorEl = document.getElementById('loginError');
+            const inputEl = document.getElementById('loginCode');
+            if (!code) {
+                errorEl.textContent = 'Please enter a team code';
+                errorEl.style.display = 'block';
+                inputEl.style.borderColor = '#ff3860';
+                return;
+            }
+            // Check mock/demo teams first
+            const team = mockTeams.find(t => t.code === code);
+            if (team) {
+                errorEl.style.display = 'none';
+                inputEl.style.borderColor = '';
+                appState.currentTeam = { ...team };
+                appState.currentUser = { name: 'Captain', avatar: '🧠' };
+                closeLoginModal();
+                showApp();
+                playSound('chime');
+                return;
+            }
+            // Look up in Supabase trial_registrations
+            if (window.kbtData) {
+                try {
+                    const registrations = await window.kbtData.getRegisteredTeams(null);
+                    const found = registrations.find(function(r) {
+                        const tc = r.team && (r.team.team_code || r.team.team_name || '');
+                        return tc.toUpperCase() === code;
+                    });
+                    if (found) {
+                        errorEl.style.display = 'none';
+                        inputEl.style.borderColor = '';
+                        appState.currentTeam = {
+                            code: found.team.team_code || found.team.team_name,
+                            name: found.display_name || found.team.team_name,
+                            score: 0, members: 1,
+                            captain: found.display_name || 'Captain',
+                            color: found.team_color || 'purple',
+                            mascot: found.team_emoji || '🧠',
+                            motto: ''
+                        };
+                        appState.currentUser = { name: found.display_name || 'Captain', avatar: found.team_emoji || '🧠' };
+                        closeLoginModal();
+                        showApp();
+                        playSound('chime');
+                        return;
+                    }
+                } catch(e) { console.warn('[kbt] team lookup failed:', e.message); }
+            }
+            errorEl.textContent = 'Team code not found';
+            errorEl.style.display = 'block';
+            inputEl.style.borderColor = '#ff3860';
+            inputEl.select();
+        }
+
+        function showRegistrationFlow() {
+            document.getElementById('registrationModal').classList.add('active');
+            document.getElementById('regStep1').style.display = 'block';
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep3').style.display = 'none';
+        }
+
+        function closeRegistrationModal() {
+            document.getElementById('registrationModal').classList.remove('active');
+        }
+
+        let tempTeamData = {};
+        let selectedAvatar = '🧠';
+
+        function selectAvatar(element, emoji) {
+            document.querySelectorAll('#regStep1 .avatar-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedAvatar = emoji;
+        }
+
+        function proceedToStep2() {
+            tempTeamData.name = document.getElementById('teamName').value || 'New Team';
+            tempTeamData.playerName = document.getElementById('playerName').value || 'Player';
+            tempTeamData.avatar = selectedAvatar;
+            document.getElementById('regStep1').style.display = 'none';
+            document.getElementById('regStep2').style.display = 'block';
+        }
+
+        function backToStep1() {
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep1').style.display = 'block';
+        }
+
+        let selectedColor = 'purple';
+        let selectedMascot = '🧠';
+
+        function selectTeamColor(element, color) {
+            document.querySelectorAll('#regStep2 .color-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedColor = color;
+        }
+
+        function selectTeamMascot(element, emoji) {
+            document.querySelectorAll('#regStep2 .mascot-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedMascot = emoji;
+        }
+
+        async function completeRegistration() {
+            tempTeamData.color = selectedColor;
+            tempTeamData.mascot = selectedMascot;
+            tempTeamData.motto = document.getElementById('teamMotto').value || '';
+            tempTeamData.code = generateTeamCode();
+            tempTeamData.score = 0;
+            tempTeamData.captain = tempTeamData.playerName;
+            tempTeamData.members = 1;
+
+            document.getElementById('regStep2').style.display = 'none';
+            document.getElementById('regStep3').style.display = 'block';
+            document.getElementById('generatedCode').textContent = tempTeamData.name;
+
+            appState.currentTeam = tempTeamData;
+            appState.currentUser = { name: tempTeamData.playerName, avatar: selectedAvatar };
+            playSound('ding');
+
+            // Write registration to Supabase
+            if (window.kbtData) {
+                try {
+                    await window.kbtData.registerTeam(
+                        window.kbtData.TARGET_EVENT_CODE,
+                        tempTeamData.name,
+                        tempTeamData.playerName,
+                        tempTeamData.color,
+                        tempTeamData.mascot
+                    );
+                    console.log('[kbt] Team registered in Supabase:', tempTeamData.name);
+                } catch(e) {
+                    console.warn('[kbt] Could not write registration to Supabase:', e.message);
+                }
+            }
+        }
+
+        function generateTeamCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        function copyCode() {
+            const code = document.getElementById('generatedCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Team code copied! 📋');
+            });
+        }
+
+        function showApp() {
+            document.getElementById('landingScreen').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            document.getElementById('userBadge').textContent = `Welcome, ${appState.currentUser.name} ${appState.currentUser.avatar}`;
+            renderTab('home');
+        }
+
+        // Tab Navigation
+        function switchTab(tabName) {
+            appState.currentTab = tabName;
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            renderTab(tabName);
+        }
+
+        function renderTab(tabName) {
+            let html = '';
+            switch(tabName) {
+                case 'home':
+                    html = renderHome();
+                    break;
+                case 'team':
+                    html = renderTeam();
+                    break;
+                case 'quiz':
+                    html = renderQuiz();
+                    break;
+                case 'league':
+                    html = renderLeague();
+                    break;
+                case 'badges':
+                    html = renderBadges();
+                    break;
+                case 'wrapped':
+                    html = renderWrapped();
+                    break;
+            }
+            document.getElementById('contentArea').innerHTML = html;
+            if (tabName === 'quiz') {
+                setTimeout(() => {
+                    document.querySelectorAll('.answer-option').forEach(el => {
+                        el.addEventListener('click', function() {
+                            document.querySelectorAll('.answer-option').forEach(e => e.classList.remove('selected'));
+                            this.classList.add('selected');
+                            playSound('ding');
+                        });
+                    });
+                    document.querySelectorAll('.powerup').forEach(el => {
+                        el.addEventListener('click', function() {
+                            if (!this.classList.contains('used')) {
+                                this.classList.add('used');
+                                playSound('whoosh');
+                                createConfetti();
+                            }
+                        });
+                    });
+                }, 100);
+            }
+            if (tabName === 'team') {
+                setTimeout(() => {
+                    const canvas = document.getElementById('qrCanvas');
+                    if (canvas) {
+                        generateQRCode(canvas, appState.currentTeam.code);
+                    }
+                }, 100);
+            }
+        }
+
+        function renderHome() {
+            return `
+                <div class="card" style="margin: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🎯 Quick Stats</h2>
+                    <div class="quick-stats">
+                        <div class="stat-box">
+                            <div class="stat-value">${appState.currentTeam.score}</div>
+                            <div class="stat-label">Team Score</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${appState.currentTeam.members}</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">#1</div>
+                            <div class="stat-label">League Rank</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Badges</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">📅 Upcoming Quizzes</h2>
+                    <div style="padding: 1rem; background: rgba(44,148,194,0.1); border-radius: 10px; margin-bottom: 0.8rem;">
+                        <div style="font-weight: 600; color: var(--navy);">Tonight @ 8:00 PM</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">The Steam Packet - Monday Trivia</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(44,148,194,0.1); border-radius: 10px;">
+                        <div style="font-weight: 600; color: var(--navy);">Tomorrow @ 7:30 PM</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.3rem;">Fawkner Bar - Tuesday Challenge</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTeam() {
+            const team = appState.currentTeam;
+            const colorHex = colors[team.color] || colors.purple;
+            return `
+                <div class="card" style="margin: 1rem; border-left: 5px solid ${colorHex};">
+                    <div class="team-header">
+                        <div>
+                            <div class="team-name">${team.mascot} ${team.name}</div>
+                            <div class="team-motto">"${team.motto || 'Trivia Excellence'}"</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85rem; color: #666;">Team Code</div>
+                            <div style="font-size: 1.3rem; font-weight: 900; font-family: monospace; color: var(--purple);">${team.code}</div>
+                        </div>
+                    </div>
+                    <hr style="margin: 1rem 0; border: none; border-top: 1px solid rgba(44,148,194,0.2);">
+                    <div style="margin-bottom: 1.5rem;">
+                        <label class="input-label" style="margin-bottom: 0.8rem;">QR Code - Scan to Join Team</label>
+                        <div class="qr-container" onclick="showQRFullscreen()">
+                            <canvas id="qrCanvas" width="200" height="200" style="display: inline-block; border-radius: 12px; border: 3px solid var(--purple);"></canvas>
+                            <div class="qr-label">Tap to enlarge</div>
+                        </div>
+                    </div>
+                    ${appState.currentTeam.captain === appState.currentUser.name ? renderCaptainPanel(team) : ''}
+                    <div style="margin-top: 1.5rem;">
+                        <h3 style="color: var(--navy); margin-bottom: 1rem;">Team Members</h3>
+                        <div style="background: rgba(44,148,194,0.1); padding: 1rem; border-radius: 10px;">
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.3rem;">🧠</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Alex (Captain)</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 2 weeks ago</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.3rem;">🦊</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Jordan</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 1 week ago</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <span style="font-size: 1.3rem;">🐺</span>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--navy);">Casey</div>
+                                    <div style="font-size: 0.85rem; color: #666;">Joined 3 days ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCaptainPanel(team) {
+            return `
+                <div style="background: #F4F2EE; border: 1px solid #e8e5e0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                    <h3 style="color: var(--navy); margin-bottom: 1rem; font-family: 'VVDS Fifties', sans-serif;">👑 Captain Controls</h3>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="input-label">Team Color</label>
+                        <div class="color-grid" style="margin: 0.5rem 0;">
+                            <div class="color-option purple" onclick="updateTeamColor('purple')"></div>
+                            <div class="color-option gold" onclick="updateTeamColor('gold')"></div>
+                            <div class="color-option red" onclick="updateTeamColor('red')"></div>
+                            <div class="color-option blue" onclick="updateTeamColor('blue')"></div>
+                            <div class="color-option green" onclick="updateTeamColor('green')"></div>
+                            <div class="color-option teal" onclick="updateTeamColor('teal')"></div>
+                            <div class="color-option pink" onclick="updateTeamColor('pink')"></div>
+                            <div class="color-option orange" onclick="updateTeamColor('orange')"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label class="input-label">Team Mascot</label>
+                        <div class="mascot-grid" style="margin: 0.5rem 0;">
+                            <div class="mascot-option" onclick="updateTeamMascot('🧠')">🧠</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦊')">🦊</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐺')">🐺</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦁')">🦁</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐉')">🐉</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦅')">🦅</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐙')">🐙</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦈')">🦈</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐝')">🐝</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🦄')">🦄</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🐻')">🐻</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🎯')">🎯</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🔥')">🔥</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('⚡')">⚡</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('🌟')">🌟</div>
+                            <div class="mascot-option" onclick="updateTeamMascot('💎')">💎</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="input-label">Team Motto (max 50 chars)</label>
+                        <input type="text" maxlength="50" value="${team.motto}" onchange="updateTeamMotto(this.value)">
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTeamColor(color) {
+            appState.currentTeam.color = color;
+            showToast(`Team color updated to ${color}! 🎨`);
+            renderTab('team');
+        }
+
+        function updateTeamMascot(mascot) {
+            appState.currentTeam.mascot = mascot;
+            showToast(`Team mascot updated! ${mascot}`);
+            renderTab('team');
+        }
+
+        function updateTeamMotto(motto) {
+            appState.currentTeam.motto = motto;
+            showToast('Team motto updated! ✍️');
+        }
+
+        function renderQuiz() {
+            const powerups = [
+                { emoji: '🔥', name: 'DOUBLE POINTS', desc: 'Double this question' },
+                { emoji: '5️⃣0️⃣', name: '50/50', desc: 'Remove 2 wrong answers' },
+                { emoji: '⏰', name: 'EXTRA TIME', desc: '+30 seconds' }
+            ];
+
+            return `
+                <div class="quiz-container">
+                    <div class="quiz-header">
+                        <div style="font-size: 0.9rem; opacity: 0.9;">Question 7 of 10</div>
+                        <div class="quiz-timer" id="quizTimer">45s</div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">Current Score: 420</div>
+                    </div>
+
+                    <div class="powerup-bar">
+                        ${powerups.map((p, i) => `
+                            <div class="powerup ${appState.powerupsUsed[i] ? 'used' : ''}" onclick="usePowerup(${i})">
+                                <span class="powerup-emoji">${p.emoji}</span>
+                                <div class="powerup-name">${p.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="quiz-question">
+                        <div class="question-text">What is the capital of France?</div>
+                        <div class="answer-option">Paris</div>
+                        <div class="answer-option">London</div>
+                        <div class="answer-option">Berlin</div>
+                        <div class="answer-option">Madrid</div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" style="margin: 1rem;">Submit Answer</button>
+                </div>
+            `;
+        }
+
+        function usePowerup(index) {
+            if (!appState.powerupsUsed[index]) {
+                appState.powerupsUsed[index] = true;
+                playSound('whoosh');
+                createConfetti();
+                showToast('Power-up activated! ⚡');
+                renderTab('quiz');
+            }
+        }
+
+        function renderLeague() {
+            return `
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🏆 League Standings</h2>
+                    <div class="standings-header">
+                        <div style="text-align: center;">Rank</div>
+                        <div>Team</div>
+                        <div style="text-align: center;">Score</div>
+                        <div style="text-align: center;">Wins</div>
+                        <div style="text-align: center;">Games</div>
+                        <div style="text-align: center;">Accuracy</div>
+                    </div>
+                    ${mockLeagues.map(league => `
+                        <div class="standings-row">
+                            <div class="rank ${league.rank <= 3 ? 'gold' : ''}">#${league.rank}</div>
+                            <div>${league.team}</div>
+                            <div style="text-align: center; font-weight: 600; color: var(--purple);">${league.score}</div>
+                            <div style="text-align: center;">${league.wins}</div>
+                            <div style="text-align: center;">${league.played}</div>
+                            <div style="text-align: center;">${league.accuracy}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">📍 Venue Map</h2>
+                    <div class="map-container">
+                        <svg viewBox="0 0 100 100" class="map-svg">
+                            <!-- Melbourne Outline -->
+                            <rect x="10" y="10" width="80" height="80" fill="#e0e7ff" stroke="#999" stroke-width="1"/>
+                            <!-- Venue Pins -->
+                            <g class="venue-pin" onclick="showVenuePopup(0)">
+                                <circle cx="35" cy="50" r="15" fill="#2C94C2" opacity="0.3"/>
+                                <circle cx="35" cy="50" r="6" fill="#2C94C2"/>
+                                <text x="35" y="35" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Steam Packet</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(1)">
+                                <circle cx="55" cy="45" r="15" fill="#ff3860" opacity="0.3"/>
+                                <circle cx="55" cy="45" r="6" fill="#ff3860"/>
+                                <text x="55" y="30" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Fawkner</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(2)">
+                                <circle cx="45" cy="65" r="15" fill="#00d084" opacity="0.3"/>
+                                <circle cx="45" cy="65" r="6" fill="#00d084"/>
+                                <text x="45" y="80" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Sporting</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(3)">
+                                <circle cx="70" cy="55" r="15" fill="#2C94C2" opacity="0.3"/>
+                                <circle cx="70" cy="55" r="6" fill="#2C94C2"/>
+                                <text x="70" y="40" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Meat Wine</text>
+                            </g>
+                            <g class="venue-pin" onclick="showVenuePopup(4)">
+                                <circle cx="50" cy="35" r="15" fill="#E8A317" opacity="0.3"/>
+                                <circle cx="50" cy="35" r="6" fill="#E8A317"/>
+                                <text x="50" y="20" text-anchor="middle" font-size="8" font-weight="bold" fill="#333">Bar Americano</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showVenuePopup(index) {
+            const venue = venues[index];
+            const popup = document.getElementById('venuePopup');
+            popup.innerHTML = `
+                <div class="venue-name">${venue.name}</div>
+                <div class="venue-detail"><strong>Night:</strong> ${venue.day}</div>
+                <div class="venue-detail"><strong>Address:</strong> ${venue.address}</div>
+                <div class="venue-detail"><strong>Next Quiz:</strong> This ${venue.day}</div>
+                <button class="btn btn-primary btn-small btn-block" style="margin-top: 0.8rem;">Join Quiz</button>
+            `;
+            popup.style.display = 'block';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function renderBadges() {
+            return `
+                <div style="padding: 1rem;">
+                    <h2 style="color: var(--navy); margin-bottom: 1rem;">🎖️ Your Badges</h2>
+                    <div class="badges-grid">
+                        ${mockBadges.map(badge => `
+                            <div class="badge-item ${!badge.earned ? 'badge-locked' : ''}">
+                                <div class="badge-emoji">${badge.emoji}</div>
+                                <div class="badge-name">${badge.name}</div>
+                                ${!badge.earned ? '<div style="font-size: 0.7rem; margin-top: 0.3rem; color: #999;">Locked</div>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWrapped() {
+            return `
+                <div class="wrapped-container">
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div style="font-size: 2rem; margin-bottom: 1rem;">🎁</div>
+                            <h2 class="wrapped-title">KBT Wrapped 2024</h2>
+                            <div class="wrapped-label">Your trivia year in review</div>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Games Played</div>
+                            <div class="wrapped-stat">47</div>
+                            <div class="wrapped-subtitle">You never miss a night!</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Games Played: 47 games - You never miss a night! 🎮')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Correct Answers</div>
+                            <div class="wrapped-stat">412</div>
+                            <div class="wrapped-subtitle">MVP energy</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Correct Answers: 412 - MVP energy! 🌟 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Best Streak</div>
+                            <div class="wrapped-stat">21</div>
+                            <div class="wrapped-subtitle">Games won in a row - on fire! 🔥</div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('Best Streak: 21 games won in a row! On fire! 🔥 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Team Score</div>
+                            <div class="wrapped-stat">4,850</div>
+                            <div class="wrapped-subtitle">#1 in the league</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('The Know-It-Alls are #1 in the league with 4,850 points! 🏆 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card gold-bg">
+                        <div class="wrapped-content">
+                            <div class="wrapped-label">Your Accuracy</div>
+                            <div class="wrapped-stat">89%</div>
+                            <div class="wrapped-subtitle">Brain of the year material</div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 1rem;" onclick="shareWrappedStat('My accuracy: 89% - Brain of the year material! 🧠 #KnowBrainer')">📱 Share</button>
+                        </div>
+                    </div>
+
+                    <div class="wrapped-card">
+                        <div class="wrapped-content">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏆</div>
+                            <h3 class="wrapped-title">Season Champion</h3>
+                            <div class="wrapped-subtitle">The Know-It-Alls dominated 2024!</div>
+                            <button class="btn btn-gold btn-small" style="margin-top: 1.5rem;" onclick="shareWrapped()">📱 Share</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function shareWrapped() {
+            const text = `🏆 The Know-It-Alls are #1 in the KBT league! 47 games played, 412 correct answers, and 89% accuracy. Season Champion 2024! 🎉 #KnowBrainer`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Wrapped stats copied! Share on socials 📱');
+                playSound('ding');
+                createConfetti();
+            });
+        }
+
+        function shareWrappedStat(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied to clipboard! 📋');
+                playSound('ding');
+            });
+        }
+
+        function openSettings() {
+            document.getElementById('settingsPanel').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsPanel').classList.remove('active');
+        }
+
+        function updateDisplayName() {
+            const newName = document.getElementById('displayNameInput').value;
+            if (newName) {
+                appState.currentUser.name = newName;
+                document.getElementById('userBadge').textContent = `Welcome, ${newName} ${appState.currentUser.avatar}`;
+                showToast('Display name updated! ✨');
+                closeSettings();
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Log out from your team?')) {
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('landingScreen').style.display = 'flex';
+                appState.currentUser = null;
+                appState.currentTeam = null;
+                playSound('chime');
+            }
+        }
+
+        function handleDeleteAccount() {
+            if (confirm('Are you sure? This cannot be undone.')) {
+                if (confirm('Really delete your account and all progress?')) {
+                    document.getElementById('appContainer').style.display = 'none';
+                    document.getElementById('landingScreen').style.display = 'flex';
+                    appState.currentUser = null;
+                    appState.currentTeam = null;
+                    showToast('Account deleted. Goodbye! 👋');
+                }
+            }
+        }
+
+        function openAwards() {
+            appState.currentTab = 'awards';
+            document.getElementById('contentArea').innerHTML = renderAwardsTab();
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        }
+
+        function renderAwardsTab() {
+            let html = '<div style="padding: 1rem;"><h2 style="color: var(--navy); margin-bottom: 1.5rem;">🏆 Season Awards 2024</h2><div class="awards-container">';
+            seasonAwards.forEach((award, index) => {
+                html += `
+                    <div class="award-card" style="animation-delay: ${index * 0.1}s;">
+                        <div class="award-icon">${award.icon}</div>
+                        <div class="award-title">${award.title}</div>
+                        <div class="award-winner">🥇 ${award.winner}</div>
+                        <div class="award-stat">${award.stat}</div>
+                        <div class="award-comment">${award.comment}</div>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+            return html;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.textContent = ['🎉', '🎊', '⭐', '✨', '🌟'][Math.floor(Math.random() * 5)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.fontSize = (Math.random() * 1 + 0.5) + 'rem';
+                confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOutDown 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showQRFullscreen() {
+            document.getElementById('qrFullscreen').classList.add('active');
+            generateQRCode(document.getElementById('qrFullscreenCanvas'), appState.currentTeam.code);
+        }
+
+        function closeQRFullscreen() {
+            document.getElementById('qrFullscreen').classList.remove('active');
+        }
+
+        function generateQRCode(canvas, text) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const moduleCount = 25;
+            const moduleSize = size / moduleCount;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            // Simple QR pattern
+            ctx.fillStyle = '#020817';
+            for (let i = 0; i < moduleCount; i++) {
+                for (let j = 0; j < moduleCount; j++) {
+                    if ((i < 7 && j < 7) ||
+                        (i < 7 && j >= moduleCount - 7) ||
+                        (i >= moduleCount - 7 && j < 7) ||
+                        (Math.random() > 0.5)) {
+                        ctx.fillRect(i * moduleSize, j * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

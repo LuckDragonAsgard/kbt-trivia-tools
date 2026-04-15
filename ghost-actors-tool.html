@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Actors Tool - KBT Multimedia Question Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(71, 181, 208, 0.2);
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-weight: 700;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+        }
+
+        .section-title {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            color: #00bcd4;
+        }
+
+        .drop-zone {
+            border: 3px dashed rgba(71, 181, 208, 0.5);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(71, 181, 208, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .drop-zone:hover {
+            border-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .drop-zone.drag-over {
+            border-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.25);
+        }
+
+        .drop-zone-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .drop-zone-text {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .drop-zone-hint {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+            color: #00bcd4;
+        }
+
+        input[type="text"] {
+            background-color: #fafafa;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            color: #333;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00bcd4;
+            box-shadow: 0 0 10px rgba(71, 181, 208, 0.3);
+        }
+
+        /* Canvas Section */
+        .canvas-section {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+        }
+
+        .canvas-wrapper {
+            background-color: #fafafa;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: crosshair;
+        }
+
+        .canvas-hint {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-top: 10px;
+            padding: 12px;
+            background-color: rgba(71, 181, 208, 0.1);
+            border-left: 3px solid #00bcd4;
+            border-radius: 4px;
+        }
+
+        .canvas-tools {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tool-button {
+            padding: 12px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            background-color: #fafafa;
+            color: #333;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .tool-button:hover {
+            border-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.1);
+        }
+
+        .tool-button.active {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            border-color: #00bcd4;
+        }
+
+        .color-picker-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            color: #333;
+            box-shadow: 0 4px 12px rgba(71, 181, 208, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(71, 181, 208, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #fafafa;
+            color: #333;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.1);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Status */
+        .status-section {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 40px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            display: none;
+        }
+
+        .status-section.active {
+            display: block;
+        }
+
+        .status-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .status-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background-color: rgba(71, 181, 208, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid rgba(71, 181, 208, 0.3);
+        }
+
+        .status-step.complete {
+            border-left-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.15);
+        }
+
+        .status-step.active {
+            border-left-color: #00bcd4;
+            background-color: rgba(71, 181, 208, 0.25);
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(71, 181, 208, 0.2);
+            border-top-color: #00bcd4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        /* Results */
+        .results-section {
+            background-color: #16213e;
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .result-item {
+            background-color: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+        }
+
+        .result-title {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #00bcd4;
+        }
+
+        .result-canvas {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #f5f5f5;
+            display: block;
+        }
+
+        .download-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .download-hint {
+            font-size: 0.85em;
+            opacity: 0.7;
+            text-align: center;
+        }
+
+        /* Info Box */
+        .info-box {
+            background-color: rgba(71, 181, 208, 0.1);
+            border-left: 4px solid #00bcd4;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .info-box strong {
+            color: #00bcd4;
+        }
+
+        /* Keyboard Hint */
+        .keyboard-hint {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 8px;
+            padding: 8px;
+            background-color: rgba(71, 181, 208, 0.05);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ghost Actors</h1>
+            <p style="color:#00bcd4;font-size:13px;margin:4px 0 0;font-weight:600;">✨ Powered by fal.ai Flux AI</p>
+            <p class="header-subtitle">Create haunting movie moments by digitally removing actors from scenes</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2 class="section-title">1. Upload Scene</h2>
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">🎬</div>
+                    <div class="drop-zone-text">Drop your image here or click to upload</div>
+                    <div class="drop-zone-hint">PNG, JPG, GIF (any size)</div>
+                </div>
+                <input type="file" id="imageInput" accept="image/*">
+
+                <h2 class="section-title" style="margin-top: 30px;">2. Actor Info</h2>
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="actorName">Actor Name</label>
+                        <input type="text" id="actorName" placeholder="e.g., Tom Hanks" disabled>
+                    </div>
+                    <div class="control-group">
+                        <label for="titleName">Movie/Show Title</label>
+                        <input type="text" id="titleName" placeholder="e.g., Forrest Gump" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Section -->
+            <div class="canvas-section">
+                <h2 class="section-title">3. Remove Actor</h2>
+                <div class="info-box">
+                    <strong>Selection Tool:</strong> Draw a rectangle around the actor's face or body. The tool will intelligently fill the area with surrounding pixels.
+                </div>
+
+                <div class="canvas-wrapper">
+                    <canvas id="drawCanvas"></canvas>
+                </div>
+                <div class="canvas-hint">
+                    <strong>Click and drag</strong> to select the area containing the actor. Press <strong>Enter</strong> to apply inpainting, or <strong>Ctrl+Z</strong> to undo.
+                </div>
+
+                <div class="canvas-tools">
+                    <button class="tool-button active" id="rectangleMode" title="Rectangle selection">📦 Rectangle</button>
+                    <button class="tool-button" id="clearSelection" title="Clear selection">🗑️ Clear</button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" id="undoBtn" disabled>↶ Undo</button>
+                    <button class="btn-primary" id="processBtn" disabled>✨ Process</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status-section" id="statusSection">
+            <h2 class="section-title">Processing...</h2>
+            <div class="status-steps">
+                <div class="status-step" id="step1">
+                    <div class="spinner"></div>
+                    <div><span>Preparing image...</span></div>
+                </div>
+                <div class="status-step" id="step2">
+                    <div class="spinner" style="opacity: 0.5;"></div>
+                    <div><span>AI removing actor...</span></div>
+                </div>
+                <div class="status-step" id="step3">
+                    <div class="spinner" style="opacity: 0.5;"></div>
+                    <div><span>Creating question slides...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <h2 class="section-title">✨ Results</h2>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-title">GhostA - Question</div>
+                    <canvas id="ghostACanvas" class="result-canvas"></canvas>
+                    <button class="btn-primary download-btn" id="downloadGhostA">⬇️ Download GhostA</button>
+                    <div class="download-hint">Shows the scene with the actor removed</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-title">GhostB - Answer</div>
+                    <canvas id="ghostBCanvas" class="result-canvas"></canvas>
+                    <button class="btn-primary download-btn" id="downloadGhostB">⬇️ Download GhostB</button>
+                    <div class="download-hint">Shows the original with actor circled</div>
+                </div>
+            </div>
+            <button class="btn-secondary" id="resetBtn" style="width: 100%;">↻ Start Over</button>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        const state = {
+            originalImage: null,
+            originalCanvas: null,
+            workingImage: null,
+            selectionRect: null,
+            isDrawing: false,
+            startX: 0,
+            startY: 0,
+            undoStack: [],
+            mode: 'rectangle',
+            actorName: '',
+            titleName: '',
+            ghostACanvas: null,
+            ghostBCanvas: null
+        };
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('imageInput');
+        const drawCanvas = document.getElementById('drawCanvas');
+        const ctx = drawCanvas.getContext('2d', { willReadFrequently: true });
+        const actorNameInput = document.getElementById('actorName');
+        const titleNameInput = document.getElementById('titleName');
+        const processBtn = document.getElementById('processBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const clearBtn = document.getElementById('clearSelection');
+        const rectangleBtn = document.getElementById('rectangleMode');
+        const statusSection = document.getElementById('statusSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const resetBtn = document.getElementById('resetBtn');
+        const ghostACanvas = document.getElementById('ghostACanvas');
+        const ghostBCanvas = document.getElementById('ghostBCanvas');
+        const downloadGhostA = document.getElementById('downloadGhostA');
+        const downloadGhostB = document.getElementById('downloadGhostB');
+
+        // Drag and drop handlers
+        dropZone.addEventListener('click', () => imageInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                loadImage(files[0]);
+            }
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                loadImage(e.target.files[0]);
+            }
+        });
+
+        // Load image
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.originalImage = img;
+                    state.originalCanvas = createCanvasFromImage(img);
+                    state.workingImage = createCanvasFromImage(img);
+
+                    // Set canvas size
+                    drawCanvas.width = img.width;
+                    drawCanvas.height = img.height;
+
+                    redrawCanvas();
+                    actorNameInput.disabled = false;
+                    titleNameInput.disabled = false;
+                    dropZone.classList.add('drag-over');
+
+                    setTimeout(() => dropZone.classList.remove('drag-over'), 500);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function createCanvasFromImage(img) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const c = canvas.getContext('2d');
+            c.drawImage(img, 0, 0);
+            return canvas;
+        }
+
+        // Canvas drawing
+        drawCanvas.addEventListener('mousedown', (e) => {
+            if (!state.originalImage) return;
+            const rect = drawCanvas.getBoundingClientRect();
+            const scaleX = drawCanvas.width / rect.width;
+            const scaleY = drawCanvas.height / rect.height;
+
+            state.startX = (e.clientX - rect.left) * scaleX;
+            state.startY = (e.clientY - rect.top) * scaleY;
+            state.isDrawing = true;
+        });
+
+        drawCanvas.addEventListener('mousemove', (e) => {
+            if (!state.isDrawing || !state.originalImage) return;
+
+            const rect = drawCanvas.getBoundingClientRect();
+            const scaleX = drawCanvas.width / rect.width;
+            const scaleY = drawCanvas.height / rect.height;
+
+            const currentX = (e.clientX - rect.left) * scaleX;
+            const currentY = (e.clientY - rect.top) * scaleY;
+
+            state.selectionRect = {
+                x: Math.min(state.startX, currentX),
+                y: Math.min(state.startY, currentY),
+                w: Math.abs(currentX - state.startX),
+                h: Math.abs(currentY - state.startY)
+            };
+
+            redrawCanvas();
+        });
+
+        drawCanvas.addEventListener('mouseup', () => {
+            state.isDrawing = false;
+            if (state.selectionRect && state.selectionRect.w > 10 && state.selectionRect.h > 10) {
+                processBtn.disabled = false;
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !processBtn.disabled) {
+                processBtn.click();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                undoBtn.click();
+            }
+        });
+
+        // Clear selection
+        clearBtn.addEventListener('click', () => {
+            state.selectionRect = null;
+            processBtn.disabled = true;
+            redrawCanvas();
+        });
+
+        // Undo
+        undoBtn.addEventListener('click', () => {
+            if (state.undoStack.length > 0) {
+                state.workingImage = state.undoStack.pop();
+                undoBtn.disabled = state.undoStack.length === 0;
+                processBtn.disabled = false;
+                state.selectionRect = null;
+                redrawCanvas();
+            }
+        });
+
+        // Redraw canvas
+        function redrawCanvas() {
+            if (!state.workingImage) return;
+
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            ctx.drawImage(state.workingImage, 0, 0);
+
+            // Draw selection rectangle
+            if (state.selectionRect) {
+                const rect = state.selectionRect;
+                ctx.strokeStyle = '#00bcd4';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 4]);
+                ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                ctx.setLineDash([]);
+
+                // Semi-transparent overlay
+                ctx.fillStyle = 'rgba(71, 181, 208, 0.1)';
+                ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+            }
+        }
+
+        // Inpainting algorithm (FALLBACK - using real AI API when available)
+        function inpaintRegion(canvas, rect) {
+            const c = canvas.getContext('2d');
+            const imageData = c.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Expand selection by feathering
+            const margin = 8;
+            const x = Math.max(0, Math.floor(rect.x) - margin);
+            const y = Math.max(0, Math.floor(rect.y) - margin);
+            const w = Math.min(width - x, Math.ceil(rect.w) + margin * 2);
+            const h = Math.min(height - y, Math.ceil(rect.h) + margin * 2);
+
+            // Create mask
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = width;
+            maskCanvas.height = height;
+            const maskCtx = maskCanvas.getContext('2d');
+            maskCtx.fillStyle = 'white';
+            maskCtx.fillRect(x, y, w, h);
+            const maskData = maskCtx.getImageData(0, 0, width, height).data;
+
+            // Sample boundary pixels for context
+            const boundaryPixels = [];
+            const sampleRadius = 20;
+
+            for (let i = 0; i < width * height; i++) {
+                const pixelX = i % width;
+                const pixelY = Math.floor(i / width);
+
+                if (maskData[i * 4] > 128) {
+                    // Inside mask
+                    let hasNeighbor = false;
+                    for (let dx = -sampleRadius; dx <= sampleRadius; dx++) {
+                        for (let dy = -sampleRadius; dy <= sampleRadius; dy++) {
+                            const nx = pixelX + dx;
+                            const ny = pixelY + dy;
+                            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                const nIdx = (ny * width + nx) * 4;
+                                if (maskData[nIdx] < 128) {
+                                    hasNeighbor = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (hasNeighbor) break;
+                    }
+
+                    if (hasNeighbor) {
+                        boundaryPixels.push({
+                            idx: i,
+                            x: pixelX,
+                            y: pixelY,
+                            r: data[i * 4],
+                            g: data[i * 4 + 1],
+                            b: data[i * 4 + 2],
+                            a: data[i * 4 + 3]
+                        });
+                    }
+                }
+            }
+
+            // Iterative filling
+            const passes = 80;
+            for (let pass = 0; pass < passes; pass++) {
+                const tempData = new Uint8ClampedArray(data);
+
+                for (let i = 0; i < width * height; i++) {
+                    if (maskData[i * 4] > 128) {
+                        const pixelX = i % width;
+                        const pixelY = Math.floor(i / width);
+
+                        let r = 0, g = 0, b = 0, a = 0, count = 0;
+
+                        // Sample neighbors
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const nx = pixelX + dx;
+                                const ny = pixelY + dy;
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const nIdx = (ny * width + nx) * 4;
+                                    if (maskData[nIdx] < 128) {
+                                        r += tempData[nIdx];
+                                        g += tempData[nIdx + 1];
+                                        b += tempData[nIdx + 2];
+                                        a += tempData[nIdx + 3];
+                                        count++;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (count > 0) {
+                            data[i * 4] = Math.round(r / count);
+                            data[i * 4 + 1] = Math.round(g / count);
+                            data[i * 4 + 2] = Math.round(b / count);
+                            data[i * 4 + 3] = Math.round(a / count);
+                        }
+                    }
+                }
+            }
+
+            c.putImageData(imageData, 0, 0);
+            applyGaussianBlur(canvas, x, y, w, h);
+        }
+
+        // Simple Gaussian blur (FALLBACK - for basic removal)
+        function applyGaussianBlur(canvas, x, y, w, h) {
+            const c = canvas.getContext('2d');
+            const imageData = c.getImageData(x, y, w, h);
+            const data = imageData.data;
+            const width = w;
+            const height = h;
+            const kernel = [1, 2, 1, 2, 4, 2, 1, 2, 1];
+            const sigma = 16;
+
+            for (let i = 0; i < 2; i++) {
+                const temp = new Uint8ClampedArray(data);
+
+                for (let py = 1; py < height - 1; py++) {
+                    for (let px = 1; px < width - 1; px++) {
+                        let r = 0, g = 0, b = 0, a = 0, sum = 0;
+
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const idx = ((py + ky) * width + (px + kx)) * 4;
+                                const weight = kernel[(ky + 1) * 3 + (kx + 1)];
+                                r += temp[idx] * weight;
+                                g += temp[idx + 1] * weight;
+                                b += temp[idx + 2] * weight;
+                                a += temp[idx + 3] * weight;
+                                sum += weight;
+                            }
+                        }
+
+                        const idx = (py * width + px) * 4;
+                        data[idx] = Math.round(r / sum);
+                        data[idx + 1] = Math.round(g / sum);
+                        data[idx + 2] = Math.round(b / sum);
+                        data[idx + 3] = Math.round(a / sum);
+                    }
+                }
+            }
+
+            c.putImageData(imageData, x, y);
+        }
+
+        // Process button with AI inpainting
+        processBtn.addEventListener('click', async () => {
+            if (!state.selectionRect || !state.workingImage) return;
+
+            state.undoStack.push(createCanvasFromImage(state.workingImage));
+            undoBtn.disabled = false;
+            statusSection.classList.add('active');
+            document.getElementById('step1').classList.add('complete');
+            document.getElementById('step2').classList.add('active');
+            document.getElementById('step2').querySelector('span').textContent = 'AI removing actor...';
+
+            try {
+                // Convert canvas to base64 JPEG
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = state.workingImage.width;
+                tempCanvas.height = state.workingImage.height;
+                tempCanvas.getContext('2d').drawImage(state.workingImage, 0, 0);
+                const base64 = tempCanvas.toDataURL('image/jpeg', 0.92);
+
+                // Call the AI inpainting API
+                const res = await fetch('/api/fal-inpaint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: base64,
+                        actorName: state.actorName || 'the person',
+                        movieTitle: state.titleName || ''
+                    })
+                });
+
+                if (!res.ok) throw new Error('API error: ' + res.status);
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                // Load the result image back into workingImage canvas
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = () => {
+                        const c = document.createElement('canvas');
+                        c.width = img.width;
+                        c.height = img.height;
+                        c.getContext('2d').drawImage(img, 0, 0);
+                        state.workingImage = c;
+                        resolve();
+                    };
+                    img.onerror = reject;
+                    img.src = data.url;
+                });
+
+            } catch (err) {
+                console.warn('AI inpaint failed, using fallback:', err);
+                inpaintRegion(state.workingImage, state.selectionRect);
+                // Show warning toast
+                const toast = document.createElement('div');
+                toast.textContent = '⚠️ AI unavailable — used basic removal instead';
+                toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:999';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
+
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step2').classList.add('complete');
+            document.getElementById('step3').classList.add('active');
+            await new Promise(r => setTimeout(r, 300));
+
+            // Create GhostA (removed) and GhostB (answer)
+            createResults();
+
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step3').classList.add('complete');
+            await new Promise(r => setTimeout(r, 300));
+
+            statusSection.classList.remove('active');
+            resultsSection.classList.add('active');
+
+            state.selectionRect = null;
+            processBtn.disabled = true;
+            redrawCanvas();
+        });
+
+        // Create result canvases
+        function createResults() {
+            const targetWidth = 1920;
+            const targetHeight = 1080;
+
+            // GhostA - Inpainted image
+            state.ghostACanvas = resizeCanvasTo(state.workingImage, targetWidth, targetHeight);
+            ghostACanvas.width = targetWidth;
+            ghostACanvas.height = targetHeight;
+            const aCtx = ghostACanvas.getContext('2d');
+            aCtx.drawImage(state.ghostACanvas, 0, 0);
+
+            // GhostB - Original with circle
+            const originalResized = resizeCanvasTo(state.originalCanvas, targetWidth, targetHeight);
+            state.ghostBCanvas = document.createElement('canvas');
+            state.ghostBCanvas.width = targetWidth;
+            state.ghostBCanvas.height = targetHeight;
+            const bCtx = state.ghostBCanvas.getContext('2d');
+            bCtx.drawImage(originalResized, 0, 0);
+
+            // Draw circle around selection
+            if (state.selectionRect) {
+                const rect = state.selectionRect;
+                const scaleX = targetWidth / state.workingImage.width;
+                const scaleY = targetHeight / state.workingImage.height;
+
+                const cx = (rect.x + rect.w / 2) * scaleX;
+                const cy = (rect.y + rect.h / 2) * scaleY;
+                const rw = rect.w * scaleX / 2;
+                const rh = rect.h * scaleY / 2;
+
+                // Draw bright ellipse
+                bCtx.strokeStyle = '#FF6B6B';
+                bCtx.lineWidth = 6;
+                bCtx.globalAlpha = 0.9;
+                bCtx.beginPath();
+                bCtx.ellipse(cx, cy, rw + 20, rh + 20, 0, 0, Math.PI * 2);
+                bCtx.stroke();
+                bCtx.globalAlpha = 1;
+
+                // Add question mark
+                bCtx.fillStyle = '#FF6B6B';
+                bCtx.font = 'bold 120px Arial';
+                bCtx.textAlign = 'center';
+                bCtx.textBaseline = 'middle';
+                bCtx.globalAlpha = 0.8;
+                bCtx.fillText('?', cx, cy);
+                bCtx.globalAlpha = 1;
+
+                // Add actor name if provided
+                if (state.actorName) {
+                    bCtx.fillStyle = '#00bcd4';
+                    bCtx.font = 'bold 48px Arial';
+                    bCtx.fillText(state.actorName, cx, cy + 100);
+                }
+            }
+
+            ghostBCanvas.width = targetWidth;
+            ghostBCanvas.height = targetHeight;
+            const bCtx2 = ghostBCanvas.getContext('2d');
+            bCtx2.drawImage(state.ghostBCanvas, 0, 0);
+        }
+
+        // Resize canvas to target dimensions
+        function resizeCanvasTo(sourceCanvas, targetWidth, targetHeight) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Maintain aspect ratio with letter/pillarboxing
+            const srcRatio = sourceCanvas.width / sourceCanvas.height;
+            const targetRatio = targetWidth / targetHeight;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (srcRatio > targetRatio) {
+                drawWidth = targetWidth;
+                drawHeight = targetWidth / srcRatio;
+                drawX = 0;
+                drawY = (targetHeight - drawHeight) / 2;
+            } else {
+                drawWidth = targetHeight * srcRatio;
+                drawHeight = targetHeight;
+                drawX = (targetWidth - drawWidth) / 2;
+                drawY = 0;
+            }
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            ctx.drawImage(sourceCanvas, drawX, drawY, drawWidth, drawHeight);
+
+            return canvas;
+        }
+
+        // Download handlers
+        downloadGhostA.addEventListener('click', () => {
+            downloadCanvas(state.ghostACanvas, `GhostA_${state.actorName || 'Question'}.png`);
+        });
+
+        downloadGhostB.addEventListener('click', () => {
+            downloadCanvas(state.ghostBCanvas, `GhostB_${state.actorName || 'Answer'}.png`);
+        });
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = filename;
+            link.click();
+        }
+
+        // Update state with actor/title info
+        actorNameInput.addEventListener('change', (e) => {
+            state.actorName = e.target.value;
+        });
+
+        titleNameInput.addEventListener('change', (e) => {
+            state.titleName = e.target.value;
+        });
+
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>

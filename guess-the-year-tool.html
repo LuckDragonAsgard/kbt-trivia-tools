@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess The Year Tool - KBT Multimedia Question Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.2);
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #fff;
+        }
+
+        .header-subtitle { font-size: 1.1em; opacity: 0.95; font-weight: 700; color: #fff; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #ddd;
+        }
+
+        .panel h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #e91e63;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1.1em;
+        }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #e91e63; }
+
+        textarea { min-height: 120px; resize: vertical; }
+
+        .hint-text {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .status-bar {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 14px;
+            font-size: 0.9em;
+            color: #999;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .status-bar.ready { color: #2ecc71; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-export { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); color: #fff; }
+        .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3); }
+        .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            border: 2px solid #ddd;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h2 {
+            margin: 0;
+            font-family: 'Luckiest Guy', cursive;
+            color: #e91e63;
+            font-size: 1.3em;
+            border: none;
+            padding: 0;
+        }
+
+        .preview-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fafafa;
+            cursor: pointer;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #e91e63;
+            color: #fff;
+            border-color: #e91e63;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            padding: 16px;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .canvas-wrapper canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .export-hint {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.85em;
+            color: #999;
+            border: 1px solid #ddd;
+            margin-top: 12px;
+        }
+        .export-hint strong { color: #e91e63; }
+
+        #export-canvas {
+            width: 1920px;
+            height: 1080px;
+            background: #1a1a2e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #export-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #e91e63, #ff5722, #e91e63);
+        }
+
+        .canvas-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 140px 120px;
+            position: relative;
+        }
+
+        .question-header {
+            font-family: 'Londrina Solid', cursive;
+            font-size: 52px;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 50px;
+            max-width: 90%;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            letter-spacing: 1px;
+        }
+
+        .events-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 78%;
+            text-align: left;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 40px 50px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .event-item {
+            font-family: 'Londrina Solid', cursive;
+            font-size: 30px;
+            color: #f0f0f0;
+            padding-left: 52px;
+            position: relative;
+            line-height: 1.4;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        }
+
+        .event-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            font-size: 38px;
+            color: #e91e63;
+        }
+
+        .year-display {
+            position: absolute;
+            bottom: 80px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 72px;
+            color: #e91e63;
+            text-align: center;
+            text-shadow: 0 4px 16px rgba(233,30,99,0.5);
+        }
+
+        .kbt-watermark {
+            position: absolute;
+            bottom: 20px;
+            left: 28px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.4em;
+            color: rgba(200, 200, 200, 0.4);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📅 GUESS THE YEAR ✨ AI-Powered</h1>
+            <div class="header-subtitle">Add events from a specific year — players guess when it was</div>
+        </header>
+
+        <div class="main-content">
+            <!-- LEFT PANEL -->
+            <div class="panel">
+                <h2>⚙️ Setup</h2>
+
+                <label>The Year (Answer)</label>
+                <input type="text" id="year" placeholder="e.g. 2011" maxlength="4" />
+                <button id="aiEventsBtn" onclick="generateEvents()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Events for this Year</button>
+                <div id="aiEventsStatus" style="display:none;font-size:12px;color:#9a6fd8;margin-top:6px;text-align:center;">⏳ Generating events...</div>
+
+                <label>Events that occurred this year</label>
+                <textarea id="events" placeholder="Enter each event on a new line:&#10;The movie 'Harry Potter and the Deathly Hallows: Part 2' comes out&#10;The song 'Paradise' by Coldplay is released&#10;Barack Obama visits Australia"></textarea>
+                <div class="hint-text">One event per line. Use line breaks to separate.</div>
+
+                <div class="status-bar" id="status-bar">Add year and events to export</div>
+
+                <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
+                    <div style="font-family: 'Luckiest Guy', cursive; color: #e91e63; margin-bottom: 8px;">Export Images</div>
+                    <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
+                        🔴 Export A — Question
+                    </button>
+                    <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
+                        🟢 Export B — Reveal
+                    </button>
+                </div>
+
+                <div class="export-hint">
+                    <strong>A</strong> = "What year?" (no answer) &nbsp;|&nbsp; <strong>B</strong> = year revealed
+                    <br>Files: <strong>GuessYearA.png</strong> &amp; <strong>GuessYearB [year].png</strong>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: PREVIEW -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <h2>👁️ Preview</h2>
+                    <div class="preview-toggle">
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
+                    </div>
+                </div>
+
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <div id="export-canvas">
+                        <div class="canvas-content" id="canvas-content">
+                            <!-- Rendered dynamically -->
+                        </div>
+                        <div class="kbt-watermark">KBT</div>
+                    </div>
+                </div>
+
+                <div class="export-hint">
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPreview = 'A';
+
+        function parseEvents() {
+            const text = document.getElementById('events').value.trim();
+            if (!text) return [];
+            return text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status-bar');
+            const year = document.getElementById('year').value.trim();
+            const events = parseEvents();
+            if (year && events.length > 0) {
+                status.classList.add('ready');
+                status.textContent = '✓ Ready to export!';
+                document.getElementById('btn-export-a').disabled = false;
+                document.getElementById('btn-export-b').disabled = false;
+            } else {
+                status.classList.remove('ready');
+                status.textContent = 'Add year and events to export';
+                document.getElementById('btn-export-a').disabled = true;
+                document.getElementById('btn-export-b').disabled = true;
+            }
+        }
+
+        function setPreview(version) {
+            currentPreview = version;
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const year = document.getElementById('year').value.trim();
+            const events = parseEvents();
+            const canvas = document.getElementById('canvas-content');
+
+            if (currentPreview === 'A') {
+                // Question version
+                canvas.innerHTML = `
+                    <div class="question-header">In what year did all of these events occur?</div>
+                    <div class="events-list">
+                        ${events.map(event => `<div class="event-item">${event}</div>`).join('')}
+                    </div>
+                `;
+            } else {
+                // Answer version
+                canvas.innerHTML = `
+                    <div class="question-header">In what year did all of these events occur?</div>
+                    <div class="events-list">
+                        ${events.map(event => `<div class="event-item">${event}</div>`).join('')}
+                    </div>
+                    <div class="year-display">${year}</div>
+                `;
+            }
+        }
+
+        async function exportImage(version) {
+            const canvas = document.getElementById('export-canvas');
+            const year = document.getElementById('year').value.trim();
+
+            // Set preview to correct version
+            if (version === 'A') {
+                currentPreview = 'A';
+            } else {
+                currentPreview = 'B';
+            }
+            updatePreview();
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            html2canvas(canvas, { scale: 1, useCORS: true, logging: false }).then(renderedCanvas => {
+                const link = document.createElement('a');
+                link.download = version === 'A' ? 'GuessYearA.png' : `GuessYearB_${year}.png`;
+                link.href = renderedCanvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        async function generateEvents() {
+          const year = document.getElementById('year').value.trim();
+          if (!year) { alert('Enter a year first!'); return; }
+          const btn = document.getElementById('aiEventsBtn');
+          const status = document.getElementById('aiEventsStatus');
+          btn.disabled = true; btn.textContent = '⏳ Generating...';
+          status.style.display = 'block';
+          try {
+            const res = await fetch('/api/ai-text', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tool: 'guess-year', year })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            document.getElementById('events').value = data.result;
+            updateStatus(); updatePreview();
+          } catch(err) {
+            alert('AI error: ' + err.message);
+          } finally {
+            btn.disabled = false; btn.textContent = '🤖 AI Generate Events for this Year';
+            status.style.display = 'none';
+          }
+        }
+
+        document.getElementById('year').addEventListener('input', updateStatus);
+        document.getElementById('events').addEventListener('input', updateStatus);
+        updatePreview();
+    </script>
+</body>
+</html>

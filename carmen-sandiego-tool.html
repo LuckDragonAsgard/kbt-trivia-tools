@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carmen Sandiego Tool - KBT Multimedia Question Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&family=Chelsea+Market&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        header {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(71, 181, 208, 0.2);
+        }
+
+        h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 2.8em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header-subtitle { font-size: 1.1em; opacity: 0.95; font-weight: 700; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #ddd;
+        }
+
+        .panel h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #ffc107;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 6px;
+            margin-top: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: #fafafa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1.1em;
+        }
+
+        input[type="text"]:focus { outline: none; border-color: #ffc107; }
+
+        .pin-status {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .pin-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .pin-item.placed { border-color: #e74c3c; }
+        .pin-item.correct { border-color: #2ecc71; }
+        .pin-item.active { border-color: #ffc107; background: #1a4a7a; }
+
+        .pin-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Chelsea Market', cursive;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .pin-dot.red { background: #e74c3c; }
+        .pin-dot.green { background: #2ecc71; }
+
+        .pin-label { font-size: 1em; flex: 1; }
+        .pin-coords { font-size: 0.75em; color: #999; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-place {
+            background: linear-gradient(135deg, #ffc107, #3a95ad);
+            color: #333;
+        }
+        .btn-place:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(71,181,208,0.4); }
+        .btn-place:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .btn-clear {
+            background: #e74c3c;
+            color: #333;
+            font-size: 0.95em;
+        }
+        .btn-clear:hover { background: #c0392b; }
+
+        .btn-export-a {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #333;
+            font-size: 1em;
+        }
+        .btn-export-a:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.4); }
+
+        .btn-export-b {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: #333;
+            font-size: 1em;
+        }
+        .btn-export-b:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(46,204,113,0.4); }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+        .answer-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .answer-btn {
+            padding: 10px;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            background: #fafafa;
+            color: #333;
+            font-family: 'Chelsea Market', cursive;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .answer-btn:hover { border-color: #ffc107; }
+        .answer-btn.selected { border-color: #2ecc71; background: #1a4a3a; color: #2ecc71; }
+        .answer-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* Map area */
+        .map-panel { display: flex; flex-direction: column; gap: 16px; }
+
+        #map-container {
+            background: #fafafa;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            overflow: hidden;
+            position: relative;
+            height: 500px;
+        }
+
+        #map { width: 100%; height: 100%; }
+
+        .map-hint {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.95em;
+            color: #666;
+            text-align: center;
+            border: 1px solid #1a4a7a;
+        }
+
+        .map-hint span { color: #ffc107; font-weight: 700; }
+
+        /* Preview output */
+        .preview-section {
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            border-radius: 12px;
+            padding: 24px;
+            border: 2px solid #ddd;
+        }
+
+        .preview-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            color: #ffc107;
+            font-size: 1.4em;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        .export-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .export-card {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #1a4a7a;
+        }
+
+        .export-card h3 { font-size: 1em; color: #666; margin-bottom: 10px; }
+
+        /* The renderable map output */
+        #output-wrapper {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 1920px;
+            height: 1080px;
+            background:
+                linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px),
+                #fff;
+            background-size: 40px 40px;
+            overflow: hidden;
+        }
+
+        #output-map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #output-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .status-bar {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9em;
+            color: #999;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .status-bar.ready { color: #2ecc71; }
+        .status-bar.warning { color: #f39c12; }
+
+        /* Custom pin icons via CSS */
+        .leaflet-pin-label {
+            font-family: 'Chelsea Market', cursive !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+            color: #fff !important;
+            text-shadow: 1px 1px 2px #000 !important;
+            background: none !important;
+            border: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+            .export-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🌍 Carmen Sandiego Tool</h1>
+        <p class="header-subtitle">KBT Multimedia Question Builder — Geography Map Questions</p>
+    </header>
+
+    <div class="main-content">
+        <!-- Left panel: controls -->
+        <div class="panel">
+            <h2>⚙️ Setup</h2>
+
+            <label>Location Name (for file naming)</label>
+            <input type="text" id="location-name" placeholder="e.g. Honolulu" />
+            <button id="aiCluesBtn" onclick="generateClues()" style="margin-top:8px;background:linear-gradient(135deg,#0d7a3e,#22c55e);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Location Clues</button>
+            <div id="aiCluesPanel" style="display:none;margin-top:10px;background:#0a1f10;border:1px solid #22c55e;border-radius:10px;padding:14px;font-size:13px;color:#86efac;line-height:1.7;white-space:pre-wrap;"></div>
+
+            <label style="margin-top:18px;">Step 1 — Place Pins (click map after selecting)</label>
+            <div class="pin-status" id="pin-status">
+                <div class="pin-item active" id="pin-item-A">
+                    <div class="pin-dot red">A</div>
+                    <span class="pin-label">Pin A</span>
+                    <span class="pin-coords" id="coords-A">Not placed</span>
+                </div>
+                <div class="pin-item" id="pin-item-B">
+                    <div class="pin-dot red">B</div>
+                    <span class="pin-label">Pin B</span>
+                    <span class="pin-coords" id="coords-B">Not placed</span>
+                </div>
+                <div class="pin-item" id="pin-item-C">
+                    <div class="pin-dot red">C</div>
+                    <span class="pin-label">Pin C</span>
+                    <span class="pin-coords" id="coords-C">Not placed</span>
+                </div>
+                <div class="pin-item" id="pin-item-D">
+                    <div class="pin-dot red">D</div>
+                    <span class="pin-label">Pin D</span>
+                    <span class="pin-coords" id="coords-D">Not placed</span>
+                </div>
+            </div>
+
+            <button class="btn btn-clear" onclick="clearAllPins()" style="margin-top:12px;">🗑 Clear All Pins</button>
+
+            <label style="margin-top:18px;">Step 2 — Select Correct Answer</label>
+            <div class="answer-select">
+                <button class="answer-btn" id="ans-A" onclick="setAnswer('A')" disabled>A</button>
+                <button class="answer-btn" id="ans-B" onclick="setAnswer('B')" disabled>B</button>
+                <button class="answer-btn" id="ans-C" onclick="setAnswer('C')" disabled>C</button>
+                <button class="answer-btn" id="ans-D" onclick="setAnswer('D')" disabled>D</button>
+            </div>
+
+            <div class="status-bar" id="status-bar">Place all 4 pins to continue</div>
+
+            <label style="margin-top:18px;">Step 3 — Export Images</label>
+            <button class="btn btn-export-a" id="btn-export-a" onclick="exportImage('A')" disabled>
+                📥 Export CarmenA (Question)
+            </button>
+            <button class="btn btn-export-b" id="btn-export-b" onclick="exportImage('B')" disabled>
+                📥 Export CarmenB (Answer Reveal)
+            </button>
+        </div>
+
+        <!-- Right panel: map -->
+        <div class="map-panel">
+            <div id="map-container">
+                <div id="map"></div>
+            </div>
+            <div class="map-hint" id="map-hint">
+                <span>Selecting Pin A</span> — Navigate the map then click to place the pin
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-section">
+        <h2>📋 How It Works</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; font-size:0.95em; color:#a0b4c8;">
+            <div style="background:#0f3460; border-radius:8px; padding:14px;">
+                <div style="color:#ffc107; font-size:1.1em; margin-bottom:6px;">🗺 CarmenA — Question</div>
+                All 4 pins show as <strong style="color:#e74c3c;">red</strong>. Audience picks which one is the correct location.
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px;">
+                <div style="color:#ffc107; font-size:1.1em; margin-bottom:6px;">✅ CarmenB — Reveal</div>
+                Correct pin turns <strong style="color:#2ecc71;">green</strong>. Wrong pins stay red. Shows the answer.
+            </div>
+            <div style="background:#0f3460; border-radius:8px; padding:14px;">
+                <div style="color:#ffc107; font-size:1.1em; margin-bottom:6px;">📁 File Naming</div>
+                Files saved as <strong>CarmenA [Location].png</strong> and <strong>CarmenB [Location].png</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ─── State ───────────────────────────────────────────────────────────────
+    const PINS = ['A', 'B', 'C', 'D'];
+    let activePinIndex = 0;
+    let pinData = { A: null, B: null, C: null, D: null };
+    let markers = { A: null, B: null, C: null, D: null };
+    let correctAnswer = null;
+    let map;
+
+    // ─── Map init ────────────────────────────────────────────────────────────
+    function initMap() {
+        map = L.map('map', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: true
+        });
+
+        // Satellite tiles with no labels (Esri World Imagery)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 18
+        }).addTo(map);
+
+        map.on('click', onMapClick);
+    }
+
+    // ─── Pin placement ───────────────────────────────────────────────────────
+    function onMapClick(e) {
+        if (activePinIndex >= 4) return;
+        const letter = PINS[activePinIndex];
+        placePinAt(letter, e.latlng.lat, e.latlng.lng);
+        activePinIndex++;
+        updateUI();
+    }
+
+    function placePinAt(letter, lat, lng) {
+        // Remove existing marker if any
+        if (markers[letter]) {
+            map.removeLayer(markers[letter]);
+        }
+
+        pinData[letter] = { lat, lng };
+
+        const icon = createPinIcon(letter, '#e74c3c');
+        const marker = L.marker([lat, lng], { icon, draggable: true }).addTo(map);
+
+        marker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            pinData[letter] = { lat: pos.lat, lng: pos.lng };
+            updateCoordsDisplay(letter, pos.lat, pos.lng);
+        });
+
+        markers[letter] = marker;
+        updateCoordsDisplay(letter, lat, lng);
+    }
+
+    function createPinIcon(letter, color, size = 36) {
+        const svg = `
+            <svg width="${size + 10}" height="${size + 16}" viewBox="0 0 46 52" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="23" cy="23" r="20" fill="${color}" stroke="#fff" stroke-width="3"/>
+                <polygon points="23,52 13,34 33,34" fill="${color}"/>
+                <text x="23" y="29" text-anchor="middle" font-family="Chelsea Market, sans-serif"
+                      font-size="20" font-weight="bold" fill="#fff"
+                      style="paint-order:stroke; stroke:#000; stroke-width:1px;">${letter}</text>
+            </svg>`;
+
+        return L.divIcon({
+            html: svg,
+            className: '',
+            iconSize: [size + 10, size + 16],
+            iconAnchor: [(size + 10) / 2, size + 16]
+        });
+    }
+
+    function createGreenPinIcon(letter, size = 36) {
+        return createPinIcon(letter, '#2ecc71', size);
+    }
+
+    // ─── UI updates ──────────────────────────────────────────────────────────
+    function updateUI() {
+        const allPlaced = PINS.every(p => pinData[p] !== null);
+
+        // Highlight active pin row
+        PINS.forEach((p, i) => {
+            const el = document.getElementById(`pin-item-${p}`);
+            el.classList.remove('active');
+            if (pinData[p]) el.classList.add('placed');
+            if (i === activePinIndex && !allPlaced) el.classList.add('active');
+        });
+
+        // Hint text
+        const hint = document.getElementById('map-hint');
+        if (activePinIndex < 4) {
+            hint.innerHTML = `<span>Selecting Pin ${PINS[activePinIndex]}</span> — Navigate the map then click to place the pin. Drag pins to adjust.`;
+        } else {
+            hint.innerHTML = `<span>All 4 pins placed!</span> — Drag any pin to adjust position, then select the correct answer below.`;
+        }
+
+        // Answer buttons
+        PINS.forEach(p => {
+            const btn = document.getElementById(`ans-${p}`);
+            btn.disabled = !allPlaced;
+        });
+
+        // Status bar
+        const statusBar = document.getElementById('status-bar');
+        if (!allPlaced) {
+            const remaining = PINS.filter(p => !pinData[p]).join(', ');
+            statusBar.textContent = `Still need to place: ${remaining}`;
+            statusBar.className = 'status-bar warning';
+        } else if (!correctAnswer) {
+            statusBar.textContent = 'Now select the correct answer pin above';
+            statusBar.className = 'status-bar warning';
+        } else {
+            statusBar.textContent = `Ready! Answer is Pin ${correctAnswer}. Export when happy with pin positions.`;
+            statusBar.className = 'status-bar ready';
+        }
+
+        // Export buttons
+        const ready = allPlaced && correctAnswer;
+        document.getElementById('btn-export-a').disabled = !ready;
+        document.getElementById('btn-export-b').disabled = !ready;
+    }
+
+    function updateCoordsDisplay(letter, lat, lng) {
+        document.getElementById(`coords-${letter}`).textContent =
+            `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    }
+
+    function setAnswer(letter) {
+        correctAnswer = letter;
+        PINS.forEach(p => {
+            const btn = document.getElementById(`ans-${p}`);
+            btn.classList.toggle('selected', p === letter);
+        });
+
+        // Update pin item styles
+        PINS.forEach(p => {
+            const item = document.getElementById(`pin-item-${p}`);
+            item.classList.remove('correct');
+            if (p === letter) item.classList.add('correct');
+        });
+
+        updateUI();
+    }
+
+    function clearAllPins() {
+        PINS.forEach(p => {
+            if (markers[p]) { map.removeLayer(markers[p]); markers[p] = null; }
+            pinData[p] = null;
+            document.getElementById(`coords-${p}`).textContent = 'Not placed';
+            document.getElementById(`pin-item-${p}`).classList.remove('placed', 'correct', 'active');
+        });
+        correctAnswer = null;
+        activePinIndex = 0;
+        document.getElementById('pin-item-A').classList.add('active');
+        PINS.forEach(p => {
+            document.getElementById(`ans-${p}`).classList.remove('selected');
+        });
+        updateUI();
+    }
+
+    // ─── Export ──────────────────────────────────────────────────────────────
+    async function exportImage(type) {
+        const locationName = document.getElementById('location-name').value.trim() || 'Location';
+        const filename = `Carmen${type} ${locationName}.png`;
+
+        // Create offscreen export map
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `position:fixed;left:-9999px;top:0;width:1920px;height:1080px;z-index:-1;`;
+        document.body.appendChild(wrapper);
+
+        const mapDiv = document.createElement('div');
+        mapDiv.style.cssText = 'width:1920px;height:1080px;';
+        wrapper.appendChild(mapDiv);
+
+        const exportMap = L.map(mapDiv, {
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            zoomControl: false,
+            attributionControl: false
+        });
+
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 18
+        }).addTo(exportMap);
+
+        // Wait for tiles
+        await new Promise(r => setTimeout(r, 2500));
+
+        // Add pins
+        PINS.forEach(p => {
+            if (!pinData[p]) return;
+            let icon;
+            if (type === 'B' && p === correctAnswer) {
+                icon = createPinIcon(p, '#2ecc71', 48);
+            } else {
+                icon = createPinIcon(p, '#e74c3c', 48);
+            }
+            L.marker([pinData[p].lat, pinData[p].lng], { icon }).addTo(exportMap);
+        });
+
+        await new Promise(r => setTimeout(r, 500));
+
+        // Capture
+        try {
+            const canvas = await html2canvas(mapDiv, {
+                width: 1920,
+                height: 1080,
+                scale: 1,
+                useCORS: true,
+                allowTaint: true,
+                logging: false
+            });
+
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+
+        } catch(e) {
+            console.error('Export error:', e);
+            alert('Export failed. Try using the browser Print/Screenshot method as a fallback.');
+        }
+
+        // Cleanup
+        exportMap.remove();
+        wrapper.remove();
+    }
+
+    // ─── Boot ────────────────────────────────────────────────────────────────
+    initMap();
+    updateUI();
+
+    // ─── AI Generate Clues ────────────────────────────────────────────────────
+    async function generateClues() {
+      const locationInput = document.getElementById('location-name') || document.querySelector('input[placeholder*="location" i]') || document.querySelector('input[id*="location" i]');
+      const location = locationInput ? locationInput.value.trim() : '';
+      if (!location) { alert('Enter a location name first!'); return; }
+      const btn = document.getElementById('aiCluesBtn');
+      const panel = document.getElementById('aiCluesPanel');
+      btn.disabled = true; btn.textContent = '⏳ Generating clues...';
+      try {
+        const res = await fetch('/api/ai-text', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ tool: 'carmen', location })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        panel.textContent = data.result;
+        panel.style.display = 'block';
+      } catch(err) { alert('AI error: ' + err.message); }
+      finally { btn.disabled = false; btn.textContent = '🤖 AI Generate Location Clues'; }
+    }
+</script>
+</body>
+</html>

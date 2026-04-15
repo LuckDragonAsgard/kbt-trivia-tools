@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KBT — Name The Brain Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Londrina+Solid:wght@400;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Londrina Solid', sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(71, 181, 208, 0.3);
+  }
+
+  .header h1 {
+    color: #fff;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 2.2em;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+  }
+
+  .header p {
+    color: #fff;
+    font-size: 1.1em;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+
+  .container {
+    max-width: 900px;
+    width: 100%;
+    padding: 30px 20px;
+  }
+
+  .drop-zone {
+    border: 3px dashed rgba(71, 181, 208, 0.5);
+    border-radius: 16px;
+    padding: 60px 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: rgba(71, 181, 208, 0.05);
+    margin-bottom: 20px;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: #27ae60;
+    background: rgba(71, 181, 208, 0.15);
+  }
+
+  .drop-zone.has-image {
+    padding: 20px;
+  }
+
+  .drop-zone h2 {
+    color:
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1.5em;
+    color: #27ae60;
+    margin-bottom: 10px;
+  }
+
+  .drop-zone p { opacity: 0.7; font-size: 1.1em; }
+
+  #preview {
+    max-width: 100%;
+    max-height: 350px;
+    border-radius: 12px;
+    display: none;
+    margin: 10px auto;
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 14px 20px;
+    font-family: 'Londrina Solid', sans-serif;
+    font-size: 1.3em;
+    border: 2px solid rgba(71, 181, 208, 0.3);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    color: #333;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+  }
+
+  .name-input:focus { border-color: #27ae60; }
+  .name-input::placeholder { color: rgba(150, 150, 150, 0.5); }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1.4em;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: linear-gradient(135deg, #27ae60, #3a95ad);
+    color: #333;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(71, 181, 208, 0.3);
+  }
+
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(71, 181, 208, 0.4); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .status {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    display: none;
+    font-size: 1.1em;
+  }
+
+  .status.show { display: block; }
+
+  .status .step {
+    padding: 6px 0;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+
+  .status .step.active { opacity: 1; color: #27ae60; }
+  .status .step.done { opacity: 1; color: #4ade80; }
+  .status .step.done::before { content: '✓ '; }
+  .status .step.active::before { content: ''; }
+  .status .step.error { opacity: 1; color: #f87171; }
+  .status .step.error::before { content: '✗ '; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(71, 181, 208, 0.3);
+    border-top-color: #27ae60;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  .status .step.active .spinner { display: inline-block; }
+  .step-timer { font-size: 0.85em; opacity: 0.7; margin-left: 8px; }
+
+  .results {
+    display: none;
+    margin-top: 30px;
+  }
+
+  .results.show { display: block; }
+
+  .results h2 {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1.5em;
+    color: #27ae60;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .result-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .result-pair { grid-template-columns: 1fr; }
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .result-card h3 {
+    font-family: 'Luckiest Guy', cursive;
+    color: #27ae60;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+  }
+
+  .result-card canvas {
+    width: 100%;
+    border-radius: 8px;
+    background: repeating-conic-gradient(#222 0% 25%, #2a2a2a 0% 50%) 50% / 20px 20px;
+  }
+
+  .download-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 20px;
+    background: rgba(71, 181, 208, 0.2);
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    color: #27ae60;
+    text-decoration: none;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .download-btn:hover { background: rgba(71, 181, 208, 0.3); }
+
+  .loading-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    margin-top: 12px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .loading-bar.show { display: block; }
+
+  .loading-bar .fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #4ade80);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s;
+  }
+
+  .first-load-warning {
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.95em;
+    color: #fbbf24;
+    text-align: center;
+    display: none;
+  }
+
+  .first-load-warning.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧠 Name The Brain</h1>
+  <p>Drag in a celebrity photo → Get BrainA + BrainB PNGs</p>
+</div>
+
+<div class="container">
+  <div class="first-load-warning" id="firstLoadWarn">
+    ⚡ First run downloads the AI model (~40MB). After that it's cached and instant.
+  </div>
+
+  <div class="drop-zone" id="dropZone">
+    <h2>Drop Photo Here</h2>
+    <p>or click to browse — JPG, PNG, WebP</p>
+    <img id="preview" alt="Preview">
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+  </div>
+
+  <input type="text" class="name-input" id="nameInput" placeholder="Celebrity name (e.g. Taylor Swift)" maxlength="100">
+
+  <button id="aiHintBtn" onclick="generateCelebHints()" style="margin-top:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Hints for Host</button>
+  <div id="aiHintPanel" style="display:none;margin-top:10px;background:#0f0a1e;border:1px solid #7c3aed;border-radius:10px;padding:14px;font-size:13px;color:#c4b5fd;line-height:1.8;white-space:pre-wrap;"></div>
+
+  <button class="btn" id="generateBtn" disabled>Generate Brain Images</button>
+
+  <div class="loading-bar" id="loadingBar"><div class="fill" id="loadingFill"></div></div>
+
+  <div class="status" id="status">
+    <div class="step" id="step1"><span class="spinner" style="display:none"></span>Loading AI model...</div>
+    <div class="step" id="step2"><span class="spinner" style="display:none"></span>Removing background (first time ~1-2 min)...</div>
+    <div class="step" id="step3"><span class="spinner" style="display:none"></span>Detecting face...</div>
+    <div class="step" id="step4"><span class="spinner" style="display:none"></span>Creating BrainB (answer)...</div>
+    <div class="step" id="step5"><span class="spinner" style="display:none"></span>Creating BrainA (hair only)...</div>
+    <div class="step" id="step6"><span class="spinner" style="display:none"></span>Applying outline + shadow...</div>
+  </div>
+
+  <div class="results" id="results">
+    <h2>Results</h2>
+    <div class="result-pair">
+      <div class="result-card">
+        <h3>BrainA — Question (Hair)</h3>
+        <canvas id="canvasA" width="1920" height="1080"></canvas>
+        <a class="download-btn" id="dlA">Download BrainA</a>
+      </div>
+      <div class="result-card">
+        <h3>BrainB — Answer (Head)</h3>
+        <canvas id="canvasB" width="1920" height="1080"></canvas>
+        <a class="download-btn" id="dlB">Download BrainB</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- face-api.js for face/eye detection -->
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<script type="module">
+import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
+
+// ── State ──
+let uploadedFile = null;
+let modelLoaded = false;
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const preview = document.getElementById('preview');
+const nameInput = document.getElementById('nameInput');
+const generateBtn = document.getElementById('generateBtn');
+const status = document.getElementById('status');
+const results = document.getElementById('results');
+const loadingBar = document.getElementById('loadingBar');
+const loadingFill = document.getElementById('loadingFill');
+const firstLoadWarn = document.getElementById('firstLoadWarn');
+
+// ── File Handling ──
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+let previewUrl = null;
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) return alert('Please drop an image file');
+  uploadedFile = file;
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = URL.createObjectURL(file);
+  preview.src = previewUrl;
+  preview.style.display = 'block';
+  dropZone.classList.add('has-image');
+  dropZone.querySelector('h2').textContent = file.name;
+  dropZone.querySelector('p').textContent = `${(file.size / 1024).toFixed(0)}KB — click or drop to replace`;
+  checkReady();
+}
+
+nameInput.addEventListener('input', checkReady);
+function checkReady() {
+  generateBtn.disabled = !(uploadedFile && nameInput.value.trim());
+}
+
+// ── Load face-api models ──
+let modelLoadPromise = null;
+function loadFaceModels() {
+  if (!modelLoadPromise) {
+    modelLoadPromise = (async () => {
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/model/';
+      await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+      modelLoaded = true;
+    })();
+  }
+  return modelLoadPromise;
+}
+
+// Start loading face models immediately
+loadFaceModels().catch(e => console.warn('Face model load:', e));
+
+// ── Steps UI ──
+let stepTimers = {};
+function setStep(n, state) {
+  const el = document.getElementById('step' + n);
+  el.className = 'step ' + state;
+  const spinner = el.querySelector('.spinner');
+  if (spinner) spinner.style.display = state === 'active' ? 'inline-block' : 'none';
+  // Start/stop timer
+  if (state === 'active') {
+    const start = Date.now();
+    stepTimers[n] = setInterval(() => {
+      let existing = el.querySelector('.step-timer');
+      if (!existing) { existing = document.createElement('span'); existing.className = 'step-timer'; el.appendChild(existing); }
+      const sec = Math.round((Date.now() - start) / 1000);
+      existing.textContent = sec < 60 ? `${sec}s` : `${Math.floor(sec/60)}m ${sec%60}s`;
+    }, 1000);
+  } else if (stepTimers[n]) {
+    clearInterval(stepTimers[n]);
+    delete stepTimers[n];
+  }
+}
+function setProgress(pct) {
+  loadingFill.style.width = pct + '%';
+}
+
+// ── Timeout helper ──
+function withTimeout(promise, ms, msg) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(msg)), ms))
+  ]);
+}
+
+// ── Main Pipeline ──
+generateBtn.addEventListener('click', async () => {
+  if (!uploadedFile || !nameInput.value.trim()) return;
+
+  const name = nameInput.value.trim();
+  generateBtn.disabled = true;
+  status.className = 'status show';
+  results.className = 'results';
+  loadingBar.className = 'loading-bar show';
+  firstLoadWarn.className = 'first-load-warning show';
+
+  // Reset steps
+  for (let i = 1; i <= 6; i++) setStep(i, '');
+  setProgress(0);
+
+  try {
+    // Step 1: Load image
+    setStep(1, 'active');
+    setProgress(5);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    const imgUrl = URL.createObjectURL(uploadedFile);
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imgUrl;
+    });
+    URL.revokeObjectURL(imgUrl);
+
+    setProgress(10);
+
+    // Step 2: Remove background
+    setStep(1, 'done');
+    setStep(2, 'active');
+
+    let blob;
+    try {
+      blob = await withTimeout(
+        removeBackground(uploadedFile, { output: { format: 'image/png' } }),
+        180000,
+        'Background removal timed out after 3 minutes — try a smaller image or check your connection'
+      );
+    } catch (bgErr) {
+      if (window.location.protocol === 'file:') {
+        throw new Error('Background removal blocked — open via a web server instead of double-clicking the HTML file');
+      }
+      throw bgErr;
+    }
+
+    firstLoadWarn.className = 'first-load-warning';
+    setProgress(50);
+
+    const noBgImg = new Image();
+    const noBgUrl = URL.createObjectURL(blob);
+    await new Promise((resolve, reject) => {
+      noBgImg.onload = resolve;
+      noBgImg.onerror = reject;
+      noBgImg.src = noBgUrl;
+    });
+    URL.revokeObjectURL(noBgUrl);
+
+    setStep(2, 'done');
+    setProgress(55);
+
+    // Step 3: Face detection
+    setStep(3, 'active');
+
+    if (!modelLoaded) await withTimeout(loadFaceModels(), 60000, 'Face model download timed out — check your connection');
+
+    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks();
+    if (!detection) throw new Error('No face detected — try a clearer photo');
+
+    const box = detection.detection.box;
+    const landmarks = detection.landmarks;
+
+    // Get eye positions from landmarks
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    const leftEyeCenter = avgPoint(leftEye);
+    const rightEyeCenter = avgPoint(rightEye);
+    const leftEyeTop = Math.min(...leftEye.map(p => p.y));
+    const rightEyeTop = Math.min(...rightEye.map(p => p.y));
+
+    setStep(3, 'done');
+    setProgress(65);
+
+    // Step 4: Create BrainB
+    setStep(4, 'active');
+
+    // Work canvas at original image size
+    const W = img.naturalWidth;
+    const H = img.naturalHeight;
+
+    // Draw no-bg image to get pixel data
+    const workCanvas = document.createElement('canvas');
+    workCanvas.width = W;
+    workCanvas.height = H;
+    const workCtx = workCanvas.getContext('2d');
+    workCtx.drawImage(noBgImg, 0, 0, W, H);
+    let noBgData = workCtx.getImageData(0, 0, W, H);
+
+    // Harden alpha
+    hardenAlpha(noBgData, 180);
+    workCtx.putImageData(noBgData, 0, 0);
+
+    // Crop to head
+    const fx = box.x, fy = box.y, fw = box.width, fh = box.height;
+    const cropTop = 0;
+    const cropBottom = Math.min(H, fy + fh + fh * 0.20);
+    const cropLeft = Math.max(0, fx - fw * 0.35);
+    const cropRight = Math.min(W, fx + fw + fw * 0.35);
+    const cw = Math.round(cropRight - cropLeft);
+    const ch = Math.round(cropBottom - cropTop);
+
+    const headCanvas = document.createElement('canvas');
+    headCanvas.width = cw;
+    headCanvas.height = ch;
+    const headCtx = headCanvas.getContext('2d');
+    headCtx.drawImage(workCanvas, cropLeft, cropTop, cw, ch, 0, 0, cw, ch);
+
+    // Apply outline + shadow → fit to 1920x1080
+    const brainB = applyEffectsAndFit(headCanvas, 0.95);
+
+    // Draw to output
+    const canvasB = document.getElementById('canvasB');
+    canvasB.getContext('2d').drawImage(brainB, 0, 0);
+
+    setStep(4, 'done');
+    setProgress(80);
+
+    // Step 5: Create BrainA (hair only)
+    setStep(5, 'active');
+
+    // Build spline cut line
+    const cutY = buildSplineCut(leftEyeCenter, rightEyeCenter, leftEyeTop, rightEyeTop, leftEye, rightEye, fx, fy, fw, fh, W, H);
+
+    // Apply hair mask to no-bg image
+    const hairCanvas = document.createElement('canvas');
+    hairCanvas.width = W;
+    hairCanvas.height = H;
+    const hairCtx = hairCanvas.getContext('2d');
+    hairCtx.drawImage(workCanvas, 0, 0);
+    const hairData = hairCtx.getImageData(0, 0, W, H);
+
+    // Zero out alpha below spline
+    for (let x = 0; x < W; x++) {
+      const cutRow = Math.round(cutY[x]);
+      for (let y = cutRow; y < H; y++) {
+        hairData.data[(y * W + x) * 4 + 3] = 0;
+      }
+    }
+    hairCtx.putImageData(hairData, 0, 0);
+
+    // Apply outline + shadow → fit to canvas
+    const brainA = applyEffectsAndFit(hairCanvas, 0.85);
+
+    const canvasA = document.getElementById('canvasA');
+    canvasA.getContext('2d').drawImage(brainA, 0, 0);
+
+    setStep(5, 'done');
+    setProgress(95);
+
+    // Step 6: Done
+    setStep(6, 'active');
+
+    // Setup download links
+    const safeName = name.replace(/[^A-Za-z0-9]/g, '');
+    setupDownload('dlA', canvasA, `BrainA_${safeName}.png`);
+    setupDownload('dlB', canvasB, `BrainB_${safeName}.png`);
+
+    setStep(6, 'done');
+    setProgress(100);
+    results.className = 'results show';
+
+  } catch (err) {
+    console.error(err);
+    // Find current active step and mark error
+    for (let i = 1; i <= 6; i++) {
+      const el = document.getElementById('step' + i);
+      if (el.classList.contains('active')) {
+        el.className = 'step error';
+        el.textContent += ' — ' + err.message;
+        break;
+      }
+    }
+  }
+
+  generateBtn.disabled = false;
+});
+
+// ── Helpers ──
+
+function avgPoint(points) {
+  const x = points.reduce((s, p) => s + p.x, 0) / points.length;
+  const y = points.reduce((s, p) => s + p.y, 0) / points.length;
+  return { x, y };
+}
+
+function hardenAlpha(imageData, threshold) {
+  const d = imageData.data;
+  for (let i = 3; i < d.length; i += 4) {
+    d[i] = d[i] >= threshold ? 255 : 0;
+  }
+}
+
+function buildSplineCut(leftCenter, rightCenter, leftTop, rightTop, leftEyePts, rightEyePts, fx, fy, fw, fh, imgW, imgH) {
+  const leftEyeW = Math.max(...leftEyePts.map(p => p.x)) - Math.min(...leftEyePts.map(p => p.x));
+  const rightEyeW = Math.max(...rightEyePts.map(p => p.x)) - Math.min(...rightEyePts.map(p => p.x));
+  const eyeH = Math.max(
+    Math.max(...leftEyePts.map(p => p.y)) - Math.min(...leftEyePts.map(p => p.y)),
+    Math.max(...rightEyePts.map(p => p.y)) - Math.min(...rightEyePts.map(p => p.y))
+  );
+
+  const leftCutY = leftTop + eyeH * 0.15;
+  const rightCutY = rightTop + eyeH * 0.15;
+  const brow_rise = eyeH * 0.40;
+  const bridgeX = (leftCenter.x + rightCenter.x) / 2;
+  const baseY = (leftCutY + rightCutY) / 2;
+  const bridgeY = baseY + brow_rise * 0.4;
+
+  let cx = [
+    0,
+    fx,
+    leftCenter.x - leftEyeW * 0.5,
+    leftCenter.x,
+    leftCenter.x + leftEyeW * 0.5,
+    bridgeX,
+    rightCenter.x - rightEyeW * 0.5,
+    rightCenter.x,
+    rightCenter.x + rightEyeW * 0.5,
+    fx + fw,
+    imgW - 1
+  ];
+
+  let cy = [
+    baseY + 15,
+    baseY + 5,
+    baseY,
+    leftCutY - brow_rise,
+    baseY,
+    bridgeY,
+    baseY,
+    rightCutY - brow_rise,
+    baseY,
+    baseY + 5,
+    baseY + 15
+  ];
+
+  // Ensure strictly increasing x
+  for (let i = 1; i < cx.length; i++) {
+    if (cx[i] <= cx[i - 1]) cx[i] = cx[i - 1] + 3;
+  }
+  cx[cx.length - 1] = Math.max(cx[cx.length - 1], imgW - 1);
+
+  // Simple cubic interpolation for each x
+  const result = new Float32Array(imgW);
+  for (let x = 0; x < imgW; x++) {
+    // Find segment
+    let seg = 0;
+    for (let i = 0; i < cx.length - 1; i++) {
+      if (x >= cx[i] && x <= cx[i + 1]) { seg = i; break; }
+      if (i === cx.length - 2) seg = i;
+    }
+
+    const t = (cx[seg + 1] - cx[seg]) === 0 ? 0 : (x - cx[seg]) / (cx[seg + 1] - cx[seg]);
+    // Smoothstep for natural curves
+    const s = t * t * (3 - 2 * t);
+    result[x] = cy[seg] * (1 - s) + cy[seg + 1] * s;
+    result[x] = Math.max(0, Math.min(imgH - 1, result[x]));
+  }
+
+  return result;
+}
+
+function applyEffectsAndFit(srcCanvas, heightPct) {
+  // Crop to content bounds
+  const srcCtx = srcCanvas.getContext('2d');
+  const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+  const bounds = getAlphaBounds(srcData);
+
+  if (!bounds) {
+    // No content — return empty canvas
+    const c = document.createElement('canvas');
+    c.width = 1920; c.height = 1080;
+    return c;
+  }
+
+  const contentW = bounds.right - bounds.left + 1;
+  const contentH = bounds.bottom - bounds.top + 1;
+
+  // Extract content
+  const contentCanvas = document.createElement('canvas');
+  contentCanvas.width = contentW;
+  contentCanvas.height = contentH;
+  const contentCtx = contentCanvas.getContext('2d');
+  contentCtx.drawImage(srcCanvas, bounds.left, bounds.top, contentW, contentH, 0, 0, contentW, contentH);
+
+  // Add white outline (dilate alpha, draw white behind)
+  const OUTLINE = 9;
+  const outlinedW = contentW + OUTLINE * 2;
+  const outlinedH = contentH + OUTLINE * 2;
+
+  const outlineCanvas = document.createElement('canvas');
+  outlineCanvas.width = outlinedW;
+  outlineCanvas.height = outlinedH;
+  const outlineCtx = outlineCanvas.getContext('2d');
+
+  // Draw expanded white silhouette
+  // Use multiple offset draws to simulate dilation
+  outlineCtx.globalCompositeOperation = 'source-over';
+  for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {
+    for (let r = 1; r <= OUTLINE; r++) {
+      const ox = Math.round(Math.cos(angle) * r);
+      const oy = Math.round(Math.sin(angle) * r);
+      outlineCtx.drawImage(contentCanvas, OUTLINE + ox, OUTLINE + oy);
+    }
+  }
+
+  // Turn the expanded area white
+  outlineCtx.globalCompositeOperation = 'source-in';
+  outlineCtx.fillStyle = '#ffffff';
+  outlineCtx.fillRect(0, 0, outlinedW, outlinedH);
+
+  // Draw original on top
+  outlineCtx.globalCompositeOperation = 'source-over';
+  outlineCtx.drawImage(contentCanvas, OUTLINE, OUTLINE);
+
+  // Add drop shadow
+  const SHADOW_OX = 14, SHADOW_OY = 16, SHADOW_BLUR = 20, SHADOW_OPACITY = 0.43;
+  const pad = SHADOW_BLUR * 2 + Math.max(SHADOW_OX, SHADOW_OY);
+  const shadowW = outlinedW + pad * 2;
+  const shadowH = outlinedH + pad * 2;
+
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = shadowW;
+  shadowCanvas.height = shadowH;
+  const shadowCtx = shadowCanvas.getContext('2d');
+
+  // Draw shadow
+  shadowCtx.filter = `blur(${SHADOW_BLUR}px)`;
+  shadowCtx.globalAlpha = SHADOW_OPACITY;
+  shadowCtx.drawImage(outlineCanvas, pad + SHADOW_OX, pad + SHADOW_OY);
+  shadowCtx.filter = 'none';
+
+  // Turn shadow black
+  shadowCtx.globalCompositeOperation = 'source-in';
+  shadowCtx.fillStyle = '#000000';
+  shadowCtx.fillRect(0, 0, shadowW, shadowH);
+
+  // Draw outlined subject on top
+  shadowCtx.globalCompositeOperation = 'source-over';
+  shadowCtx.globalAlpha = 1.0;
+  shadowCtx.drawImage(outlineCanvas, pad, pad);
+
+  // Fit to 1920x1080 canvas with safe zones
+  const CANVAS_W = 1920, CANVAS_H = 1080;
+  const SAFE_TOP = 80, SAFE_BOTTOM = 80;
+  const SAFE_ZONE_H = CANVAS_H - SAFE_TOP - SAFE_BOTTOM;
+  const MAX_W = Math.round(CANVAS_W * 0.9);
+
+  const targetH = Math.round(SAFE_ZONE_H * heightPct);
+  const targetW = MAX_W;
+
+  // Get content bounds of shadow canvas
+  const sBounds = getAlphaBounds(shadowCtx.getImageData(0, 0, shadowW, shadowH));
+  if (!sBounds) {
+    const c = document.createElement('canvas');
+    c.width = CANVAS_W; c.height = CANVAS_H;
+    return c;
+  }
+
+  const sContentW = sBounds.right - sBounds.left + 1;
+  const sContentH = sBounds.bottom - sBounds.top + 1;
+
+  const scale = Math.min(targetW / sContentW, targetH / sContentH, 2.0);
+  const finalW = Math.round(sContentW * scale);
+  const finalH = Math.round(sContentH * scale);
+
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = CANVAS_W;
+  finalCanvas.height = CANVAS_H;
+  const finalCtx = finalCanvas.getContext('2d');
+
+  const x = Math.round((CANVAS_W - finalW) / 2);
+  const y = Math.round(SAFE_TOP + (SAFE_ZONE_H - finalH) / 2);
+
+  finalCtx.drawImage(shadowCanvas,
+    sBounds.left, sBounds.top, sContentW, sContentH,
+    x, y, finalW, finalH
+  );
+
+  return finalCanvas;
+}
+
+function getAlphaBounds(imageData) {
+  const w = imageData.width, h = imageData.height, d = imageData.data;
+  let top = h, bottom = 0, left = w, right = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 10) {
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (x < left) left = x;
+        if (x > right) right = x;
+      }
+    }
+  }
+  if (top > bottom) return null;
+  return { top, bottom, left, right };
+}
+
+function setupDownload(btnId, canvas, filename) {
+  const btn = document.getElementById(btnId);
+  btn.onclick = (e) => {
+    e.preventDefault();
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
+}
+
+async function generateCelebHints() {
+  const nameInput = document.getElementById('nameInput');
+  const celebrity = nameInput ? nameInput.value.trim() : '';
+  if (!celebrity) { alert('Enter the celebrity name first!'); return; }
+  const btn = document.getElementById('aiHintBtn');
+  const panel = document.getElementById('aiHintPanel');
+  btn.disabled = true; btn.textContent = '⏳ Writing hints...';
+  try {
+    const res = await fetch('/api/ai-text', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ tool: 'brain-hint', celebrity })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    panel.textContent = '🎤 Host hints (read progressively):\n\n' + data.result;
+    panel.style.display = 'block';
+  } catch(err) { alert('AI error: ' + err.message); }
+  finally { btn.disabled = false; btn.textContent = '🤖 AI Generate Hints for Host'; }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "cleanUrls": true,
+  "functions": {
+    "api/fal-morph.js": { "maxDuration": 60 },
+    "api/fal-rembg.js": { "maxDuration": 30 },
+    "api/fal-inpaint.js": { "maxDuration": 60 },
+    "api/ai-text.js": { "maxDuration": 30 }
+  }
+}

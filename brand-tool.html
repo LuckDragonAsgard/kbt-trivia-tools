@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Tool - KBT Question Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Londrina+Solid:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(71, 181, 208, 0.2);
+        }
+
+       .header h1 {
+    color: #fff;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+       .header p {
+    color: #fff;
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: #252541;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+        }
+
+        .upload-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #0066cc;
+        }
+
+        .drop-zone {
+            border: 3px dashed rgba(71, 181, 208, 0.5);
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(71, 181, 208, 0.05);
+        }
+
+        .drop-zone:hover {
+            border-color: rgba(71, 181, 208, 0.8);
+            background-color: rgba(71, 181, 208, 0.1);
+            transform: scale(1.02);
+        }
+
+        .drop-zone.dragover {
+            border-color: #0066cc;
+            background-color: rgba(71, 181, 208, 0.2);
+            transform: scale(1.05);
+        }
+
+        .drop-zone-text {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #0066cc;
+        }
+
+        .drop-zone-subtext {
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Brand Name Input */
+        .input-group {
+            margin-top: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #0066cc;
+            font-size: 0.95em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #f5f5f5;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            border-radius: 6px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 8px rgba(71, 181, 208, 0.3);
+        }
+
+        /* Editor Section */
+        .editor-section {
+            background: #252541;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+        }
+
+        .editor-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #0066cc;
+        }
+
+        #editCanvas {
+            width: 100%;
+            max-height: 400px;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            cursor: crosshair;
+            display: none;
+        }
+
+        .editor-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-label {
+            font-weight: 700;
+            color: #0066cc;
+            font-size: 0.9em;
+        }
+
+        .control-input {
+            padding: 8px 12px;
+            background-color: #f5f5f5;
+            border: 2px solid rgba(71, 181, 208, 0.3);
+            border-radius: 6px;
+            color: #333;
+            font-family: 'Londrina Solid', cursive;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-input:hover {
+            border-color: #0066cc;
+        }
+
+        /* Buttons */
+        button {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(71, 181, 208, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(71, 181, 208, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: #252541;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+            margin-bottom: 40px;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-section h2 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            color: #0066cc;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .result-item {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(71, 181, 208, 0.2);
+        }
+
+        .result-item h3 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #0066cc;
+        }
+
+        .result-canvas {
+            width: 100%;
+            border: 1px solid rgba(71, 181, 208, 0.3);
+            border-radius: 6px;
+            background-color: #0d0d1a;
+            margin-bottom: 15px;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            results-grid {
+                grid-template-columns: 1fr;
+            }
+
+           .header h1 {
+    color: #fff;
+                font-size: 2.2em;
+            }
+        }
+
+        /* Status Message */
+        .status-message {
+            padding: 15px 20px;
+            background-color: rgba(71, 181, 208, 0.1);
+            border-left: 4px solid #0066cc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.95em;
+        }
+
+        .status-message.active {
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: rgba(255, 100, 100, 0.1);
+            border-left-color: #ff6464;
+            color: #ff9999;
+        }
+
+        .status-message.success {
+            background-color: rgba(100, 200, 100, 0.1);
+            border-left-color: #64c864;
+            color: #99ff99;
+        }
+
+        /* Mask Preview Info */
+        .mask-info {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: rgba(71, 181, 208, 0.05);
+            border: 1px solid rgba(71, 181, 208, 0.2);
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .no-image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            background: linear-gradient(135deg, rgba(71, 181, 208, 0.05), rgba(71, 181, 208, 0.02));
+            border-radius: 8px;
+            color: #666;
+            text-align: center;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .placeholder-icon {
+            font-size: 3em;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 BRAND TOOL</h1>
+            <p>Upload a logo → Mask the name → Get Question + Answer PNGs</p>
+        </header>
+
+        <div class="status-message" id="statusMessage"></div>
+
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2>Step 1: Upload Logo</h2>
+
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-text">📁 Drop Logo Here</div>
+                    <div class="drop-zone-subtext">or click to browse</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+
+                <div class="input-group">
+                    <label for="brandNameInput">Brand Name</label>
+                    <input
+                        type="text"
+                        id="brandNameInput"
+                        placeholder="e.g., Apple, Nike, Coca-Cola"
+                    >
+                </div>
+                <button id="aiBrandBtn" onclick="generateBrandTrivia()" style="margin-top:8px;background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Trivia Question</button>
+                <div id="aiBrandPanel" style="display:none;margin-top:10px;background:#0a0f1e;border:1px solid #3b82f6;border-radius:10px;padding:14px;font-size:13px;color:#93c5fd;line-height:1.7;white-space:pre-wrap;"></div>
+
+                <div class="button-group">
+                    <button id="clearBtn" disabled>Clear All</button>
+                </div>
+            </div>
+
+            <!-- Editor Section -->
+            <div class="editor-section">
+                <h2>Step 2: Mask the Name</h2>
+
+                <div id="editorContainer">
+                    <div class="no-image-placeholder">
+                        <div class="placeholder-icon">🖼️</div>
+                        <div>Upload a logo to start editing</div>
+                    </div>
+                    <canvas id="editCanvas"></canvas>
+                </div>
+
+                <div class="editor-controls">
+                    <label class="control-label">
+                        Blur Strength:
+                        <input
+                            type="range"
+                            id="blurStrength"
+                            min="5"
+                            max="30"
+                            value="15"
+                            class="control-input"
+                            disabled
+                            style="width: 120px;"
+                        >
+                    </label>
+                </div>
+
+                <div class="mask-info" id="maskInfo" style="display: none;">
+                    Click and drag on the canvas to draw a rectangle over the brand name.<br>
+                    Drag the mask to move it, or drag edges/corners to resize.
+                </div>
+
+                <div class="button-group">
+                    <button id="generateBtn" disabled>Generate PNGs</button>
+                    <button id="resetMaskBtn" disabled style="background: linear-gradient(135deg, #a0522d 0%, #8b4513 100%);">Reset Mask</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <h2>Your Question + Answer</h2>
+
+            <div class="results-grid">
+                <div class="result-item">
+                    <h3>📋 BrandA (Question)</h3>
+                    <img id="questionCanvas" class="result-canvas" alt="Question - Name hidden">
+                    <button id="downloadQuestionBtn" class="download-btn">⬇️ Download BrandA.png</button>
+                </div>
+
+                <div class="result-item">
+                    <h3>✅ BrandB (Answer)</h3>
+                    <img id="answerCanvas" class="result-canvas" alt="Answer - Full logo">
+                    <button id="downloadAnswerBtn" class="download-btn">⬇️ Download BrandB.png</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            image: null,
+            imageName: '',
+            mask: null, // { x, y, width, height }
+            draggedEdge: null,
+            draggingMask: false,
+            lastMousePos: { x: 0, y: 0 }
+        };
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const brandNameInput = document.getElementById('brandNameInput');
+        const editCanvas = document.getElementById('editCanvas');
+        const editorContainer = document.getElementById('editorContainer');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resetMaskBtn = document.getElementById('resetMaskBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultsSection = document.getElementById('resultsSection');
+        const blurStrengthInput = document.getElementById('blurStrength');
+        const maskInfo = document.getElementById('maskInfo');
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message active ${type}`;
+            setTimeout(() => {
+                statusMessage.classList.remove('active');
+            }, 4000);
+        }
+
+        // Load image
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    state.image = img;
+                    state.imageName = file.name.split('.')[0];
+                    state.mask = null;
+                    resetEditorCanvas();
+                    updateUI();
+                    showStatus('Logo loaded successfully!', 'success');
+                    maskInfo.style.display = 'block';
+                };
+                img.onerror = () => {
+                    showStatus('Failed to load image. Please try another file.', 'error');
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = () => {
+                showStatus('Failed to read file.', 'error');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Reset editor canvas
+        function resetEditorCanvas() {
+            if (!state.image) return;
+
+            const containerWidth = editorContainer.clientWidth;
+            const containerHeight = 400;
+
+            editCanvas.width = containerWidth;
+            editCanvas.height = containerHeight;
+
+            const ctx = editCanvas.getContext('2d');
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, editCanvas.width, editCanvas.height);
+
+            // Draw image centered and scaled
+            const imgAspect = state.image.width / state.image.height;
+            const canvasAspect = editCanvas.width / editCanvas.height;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspect > canvasAspect) {
+                drawWidth = editCanvas.width * 0.9;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                drawHeight = editCanvas.height * 0.85;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            drawX = (editCanvas.width - drawWidth) / 2;
+            drawY = (editCanvas.height - drawHeight) / 2;
+
+            ctx.drawImage(state.image, drawX, drawY, drawWidth, drawHeight);
+
+            // Initialize default mask (rough center area, covering typical text location)
+            state.mask = {
+                x: drawX,
+                y: drawY + drawHeight * 0.05,
+                width: drawWidth,
+                height: drawHeight * 0.25
+            };
+
+            redrawCanvas();
+        }
+
+        // Redraw canvas with mask overlay
+        function redrawCanvas() {
+            if (!state.image) return;
+
+            const ctx = editCanvas.getContext('2d');
+            const containerWidth = editorContainer.clientWidth;
+            const containerHeight = 400;
+
+            editCanvas.width = containerWidth;
+            editCanvas.height = containerHeight;
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, editCanvas.width, editCanvas.height);
+
+            // Redraw image
+            const imgAspect = state.image.width / state.image.height;
+            const canvasAspect = editCanvas.width / editCanvas.height;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspect > canvasAspect) {
+                drawWidth = editCanvas.width * 0.9;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                drawHeight = editCanvas.height * 0.85;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            drawX = (editCanvas.width - drawWidth) / 2;
+            drawY = (editCanvas.height - drawHeight) / 2;
+
+            ctx.drawImage(state.image, drawX, drawY, drawWidth, drawHeight);
+
+            // Draw mask rectangle with semi-transparent overlay
+            if (state.mask) {
+                ctx.fillStyle = 'rgba(255, 100, 100, 0.3)';
+                ctx.fillRect(state.mask.x, state.mask.y, state.mask.width, state.mask.height);
+
+                ctx.strokeStyle = '#ff6464';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(state.mask.x, state.mask.y, state.mask.width, state.mask.height);
+
+                // Draw resize handles
+                const handleSize = 8;
+                ctx.fillStyle = '#0066cc';
+                const handles = [
+                    { x: state.mask.x - handleSize / 2, y: state.mask.y - handleSize / 2 },
+                    { x: state.mask.x + state.mask.width - handleSize / 2, y: state.mask.y - handleSize / 2 },
+                    { x: state.mask.x - handleSize / 2, y: state.mask.y + state.mask.height - handleSize / 2 },
+                    { x: state.mask.x + state.mask.width - handleSize / 2, y: state.mask.y + state.mask.height - handleSize / 2 }
+                ];
+                handles.forEach(h => {
+                    ctx.fillRect(h.x, h.y, handleSize, handleSize);
+                });
+            }
+        }
+
+        // Check if point is near edge/corner
+        function getEdgeAtPoint(x, y) {
+            if (!state.mask) return null;
+
+            const threshold = 10;
+            const edges = [];
+
+            if (Math.abs(x - state.mask.x) < threshold) edges.push('left');
+            if (Math.abs(x - (state.mask.x + state.mask.width)) < threshold) edges.push('right');
+            if (Math.abs(y - state.mask.y) < threshold) edges.push('top');
+            if (Math.abs(y - (state.mask.y + state.mask.height)) < threshold) edges.push('bottom');
+
+            return edges.length > 0 ? edges : null;
+        }
+
+        // Canvas mouse events
+        editCanvas.addEventListener('mousedown', (e) => {
+            if (!state.mask) return;
+
+            const rect = editCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            state.lastMousePos = { x, y };
+
+            const edge = getEdgeAtPoint(x, y);
+            if (edge) {
+                state.draggedEdge = edge;
+                editCanvas.style.cursor = edge.includes('left') || edge.includes('right') ? 'ew-resize' : 'ns-resize';
+            } else if (
+                x > state.mask.x && x < state.mask.x + state.mask.width &&
+                y > state.mask.y && y < state.mask.y + state.mask.height
+            ) {
+                state.draggingMask = true;
+                editCanvas.style.cursor = 'move';
+            }
+        });
+
+        editCanvas.addEventListener('mousemove', (e) => {
+            if (!state.mask) return;
+
+            const rect = editCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const dx = x - state.lastMousePos.x;
+            const dy = y - state.lastMousePos.y;
+
+            if (state.draggedEdge) {
+                if (state.draggedEdge.includes('left')) state.mask.x += dx;
+                if (state.draggedEdge.includes('right')) state.mask.width += dx;
+                if (state.draggedEdge.includes('top')) state.mask.y += dy;
+                if (state.draggedEdge.includes('bottom')) state.mask.height += dy;
+
+                // Prevent negative dimensions
+                if (state.mask.width < 20) state.mask.width = 20;
+                if (state.mask.height < 20) state.mask.height = 20;
+
+                redrawCanvas();
+            } else if (state.draggingMask) {
+                state.mask.x += dx;
+                state.mask.y += dy;
+                redrawCanvas();
+            } else {
+                const edge = getEdgeAtPoint(x, y);
+                if (edge) {
+                    editCanvas.style.cursor = edge.includes('left') || edge.includes('right') ? 'ew-resize' : 'ns-resize';
+                } else if (
+                    x > state.mask.x && x < state.mask.x + state.mask.width &&
+                    y > state.mask.y && y < state.mask.y + state.mask.height
+                ) {
+                    editCanvas.style.cursor = 'move';
+                } else {
+                    editCanvas.style.cursor = 'crosshair';
+                }
+            }
+
+            state.lastMousePos = { x, y };
+        });
+
+        editCanvas.addEventListener('mouseup', () => {
+            state.draggedEdge = null;
+            state.draggingMask = false;
+            editCanvas.style.cursor = 'crosshair';
+        });
+
+        editCanvas.addEventListener('mouseleave', () => {
+            state.draggedEdge = null;
+            state.draggingMask = false;
+            editCanvas.style.cursor = 'crosshair';
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    loadImage(file);
+                } else {
+                    showStatus('Please drop an image file.', 'error');
+                }
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                loadImage(e.target.files[0]);
+            }
+        });
+
+        // Generate PNGs
+        function renderLogoToCanvas(targetCanvas, width, height, includeMask = false, brandName = '') {
+            if (!state.image) return null;
+
+            targetCanvas.width = width;
+            targetCanvas.height = height;
+            const ctx = targetCanvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, width, height);
+
+            // Calculate image dimensions and position
+            const imgAspect = state.image.width / state.image.height;
+            const canvasAspect = width / height;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (imgAspect > canvasAspect) {
+                drawWidth = width * 0.85;
+                drawHeight = drawWidth / imgAspect;
+            } else {
+                drawHeight = height * 0.7;
+                drawWidth = drawHeight * imgAspect;
+            }
+
+            drawX = (width - drawWidth) / 2;
+            drawY = (height - drawHeight) / 2 + 40; // Offset for title
+
+            // Draw title for question PNG
+            if (includeMask) {
+                ctx.fillStyle = '#0066cc';
+                ctx.font = 'bold 48px Luckiest Guy, cursive';
+                ctx.textAlign = 'center';
+                ctx.fillText('NAME THE BRAND', width / 2, 80);
+            }
+
+            // Draw image
+            ctx.drawImage(state.image, drawX, drawY, drawWidth, drawHeight);
+
+            // Apply mask if needed
+            if (includeMask && state.mask) {
+                // Scale mask to new canvas dimensions
+                const scaleX = drawWidth / editCanvas.width;
+                const scaleY = drawHeight / editCanvas.height;
+
+                const maskX = drawX + state.mask.x * scaleX;
+                const maskY = drawY + state.mask.y * scaleY;
+                const maskWidth = state.mask.width * scaleX;
+                const maskHeight = state.mask.height * scaleY;
+
+                // Get image data for blur
+                const imageData = ctx.getImageData(maskX, maskY, maskWidth, maskHeight);
+                const data = imageData.data;
+                const blurAmount = parseInt(blurStrengthInput.value);
+
+                // Apply pixelation/blur effect
+                const pixelSize = Math.max(1, Math.floor(blurAmount / 5));
+                for (let i = 0; i < maskWidth; i += pixelSize) {
+                    for (let j = 0; j < maskHeight; j += pixelSize) {
+                        let r = 0, g = 0, b = 0, a = 0, count = 0;
+
+                        for (let pi = 0; pi < pixelSize && i + pi < maskWidth; pi++) {
+                            for (let pj = 0; pj < pixelSize && j + pj < maskHeight; pj++) {
+                                const idx = ((j + pj) * maskWidth + (i + pi)) * 4;
+                                r += data[idx];
+                                g += data[idx + 1];
+                                b += data[idx + 2];
+                                a += data[idx + 3];
+                                count++;
+                            }
+                        }
+
+                        const avgR = Math.floor(r / count);
+                        const avgG = Math.floor(g / count);
+                        const avgB = Math.floor(b / count);
+                        const avgA = Math.floor(a / count);
+
+                        for (let pi = 0; pi < pixelSize && i + pi < maskWidth; pi++) {
+                            for (let pj = 0; pj < pixelSize && j + pj < maskHeight; pj++) {
+                                const idx = ((j + pj) * maskWidth + (i + pi)) * 4;
+                                data[idx] = avgR;
+                                data[idx + 1] = avgG;
+                                data[idx + 2] = avgB;
+                                data[idx + 3] = avgA;
+                            }
+                        }
+                    }
+                }
+
+                ctx.putImageData(imageData, maskX, maskY);
+            }
+
+            return targetCanvas.toDataURL('image/png');
+        }
+
+        generateBtn.addEventListener('click', () => {
+            if (!state.image || !brandNameInput.value.trim()) {
+                showStatus('Please upload a logo and enter the brand name.', 'error');
+                return;
+            }
+
+            const questionCanvas = document.createElement('canvas');
+            const answerCanvas = document.createElement('canvas');
+
+            try {
+                const questionData = renderLogoToCanvas(questionCanvas, 1920, 1080, true, brandNameInput.value);
+                const answerData = renderLogoToCanvas(answerCanvas, 1920, 1080, false, brandNameInput.value);
+
+                if (questionData && answerData) {
+                    document.getElementById('questionCanvas').src = questionData;
+                    document.getElementById('answerCanvas').src = answerData;
+
+                    // Store for download
+                    window.questionImageData = questionData;
+                    window.answerImageData = answerData;
+
+                    resultsSection.classList.add('active');
+                    showStatus('PNGs generated successfully!', 'success');
+                }
+            } catch (error) {
+                showStatus('Error generating PNGs. Please try again.', 'error');
+                console.error(error);
+            }
+        });
+
+        // Download functions
+        function downloadImage(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            link.click();
+        }
+
+        document.getElementById('downloadQuestionBtn').addEventListener('click', () => {
+            if (window.questionImageData) {
+                downloadImage(window.questionImageData, `BrandA_${brandNameInput.value || 'Brand'}.png`);
+                showStatus('Question image downloaded!', 'success');
+            }
+        });
+
+        document.getElementById('downloadAnswerBtn').addEventListener('click', () => {
+            if (window.answerImageData) {
+                downloadImage(window.answerImageData, `BrandB_${brandNameInput.value || 'Brand'}.png`);
+                showStatus('Answer image downloaded!', 'success');
+            }
+        });
+
+        resetMaskBtn.addEventListener('click', () => {
+            state.mask = null;
+            resetEditorCanvas();
+            showStatus('Mask reset!', 'success');
+        });
+
+        clearBtn.addEventListener('click', () => {
+            state.image = null;
+            state.mask = null;
+            brandNameInput.value = '';
+            fileInput.value = '';
+            resultsSection.classList.remove('active');
+            maskInfo.style.display = 'none';
+            editorContainer.innerHTML = `
+                <div class="no-image-placeholder">
+                    <div class="placeholder-icon">🖼️</div>
+                    <div>Upload a logo to start editing</div>
+                </div>
+            `;
+            editCanvas.style.display = 'none';
+            updateUI();
+            showStatus('All cleared!', 'success');
+        });
+
+        // Update UI state
+        function updateUI() {
+            const hasImage = state.image !== null;
+            const hasBrandName = brandNameInput.value.trim().length > 0;
+
+            generateBtn.disabled = !hasImage || !hasBrandName;
+            clearBtn.disabled = !hasImage;
+            resetMaskBtn.disabled = !hasImage;
+            blurStrengthInput.disabled = !hasImage;
+
+            if (hasImage) {
+                editCanvas.style.display = 'block';
+                editorContainer.querySelector('.no-image-placeholder')?.remove();
+            }
+        }
+
+        brandNameInput.addEventListener('input', updateUI);
+
+        // Initial UI state
+        updateUI();
+
+        // ─── AI Generate Brand Trivia ─────────────────────────────────────────
+        async function generateBrandTrivia() {
+          const brandInput = document.getElementById('brandNameInput') || document.getElementById('brand') || document.querySelector('input[id*="brand" i]') || document.querySelector('input[placeholder*="brand" i]');
+          const brand = brandInput ? brandInput.value.trim() : '';
+          if (!brand) { alert('Enter the brand name first!'); return; }
+          const btn = document.getElementById('aiBrandBtn');
+          const panel = document.getElementById('aiBrandPanel');
+          btn.disabled = true; btn.textContent = '⏳ Generating...';
+          try {
+            const res = await fetch('/api/ai-text', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({ tool: 'brand', brand })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            panel.textContent = data.result;
+            panel.style.display = 'block';
+          } catch(err) { alert('AI error: ' + err.message); }
+          finally { btn.disabled = false; btn.textContent = '🤖 AI Generate Trivia Question'; }
+        }
+    </script>
+</body>
+</html>
