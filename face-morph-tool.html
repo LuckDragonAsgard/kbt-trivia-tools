@@ -193,7 +193,7 @@ async function loadApi(){
 
 async function getLandmarks(imgEl){
   try{
-    const opts=new faceapi.TinyFaceDetectorOptions({inputSize:416,scoreThreshold:0.3});
+    const opts=new faceapi.TinyFaceDetectorOptions({inputSize:128,scoreThreshold:0.05});
     const r=await faceapi.detectSingleFace(imgEl,opts).withFaceLandmarks(true);
     return r?r.landmarks:null;
   }catch(e){return null;}
