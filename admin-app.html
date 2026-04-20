@@ -1,1733 +1,927 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Know Brainer Trivia Admin Portal — Manage venues, teams, analytics, question banks, and system settings.">
-    <meta name="theme-color" content="#000000">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
-    <title>KNOW BRAINER - Admin</title>
-    <style>
-        @font-face {
-            font-family: "VVDS Fifties";
-            src: url("https://knowbrainertrivia.com.au/fonts/VVDSFifties-SExpBold.woff2") format("woff2");
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Know Brainer — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --white:#ffffff;--bg:#f5f5f7;--surface:#ffffff;
+  --sidebar-bg:#ffffff;--sidebar-width:220px;
+  --blue:#1d6fa4;--blue-light:#e8f2f9;--blue-mid:#2580b8;
+  --text:#111;--text2:#444;--muted:#888;--border:#e5e5e5;
+  --green:#16a34a;--green-bg:#dcfce7;
+  --red:#dc2626;--red-bg:#fee2e2;
+  --yellow:#ca8a04;--yellow-bg:#fef9c3;
+  --radius:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:'Barlow',sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+/* TOP BAR */
+.topbar{height:52px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:100}
+.logo{display:flex;flex-direction:column;line-height:1;text-decoration:none}
+.logo-main{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:#111}
+.logo-sub{font-size:11px;font-weight:400;color:var(--muted);letter-spacing:.5px}
+.topbar-spacer{flex:1}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-light);border:1px solid var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--blue)}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+/* LAYOUT */
+.app-body{display:flex;flex:1;min-height:0}
 
-        :root {
-            --dark-bg: #000000;
-            --primary: #2C94C2;
-            --cream: #F4F2EE;
-            --white: #ffffff;
-            --text-dark: #383737;
-            --text-light: #718096;
-            --border-light: #E8E5E0;
-            --success: #00d084;
-            --danger: #ff3860;
-            --warning: #ffb700;
-        }
-        /* Admin Login Gate */
-        .admin-login-gate {
-            position: fixed; inset: 0; z-index: 9999;
-            background: linear-gradient(135deg, #2C94C2 0%, #1a5f85 100%);
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px; font-family: 'Outfit', sans-serif;
-        }
-        .admin-login-gate.hidden { display: none; }
-        .admin-login-card {
-            background: #F4F2EE; border-radius: 16px; padding: 40px 32px;
-            max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        .admin-login-card h1 {
-            font-family: 'VVDS Fifties', sans-serif; color: #000; font-size: 28px;
-            margin-bottom: 8px; letter-spacing: 0.5px;
-        }
-        .admin-login-card .subtitle { color: #718096; font-size: 14px; margin-bottom: 24px; }
-        .admin-login-card input {
-            width: 100%; padding: 14px 16px; font-size: 18px; font-family: 'Outfit', sans-serif;
-            border: 2px solid #e0e6ed; border-radius: 10px; text-align: center;
-            letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
-            background: #ffffff; color: #000;
-        }
-        .admin-login-card input:focus { outline: none; border-color: #2C94C2; }
-        .admin-login-card button {
-            width: 100%; padding: 14px; background: #2C94C2; color: #fff; border: none;
-            border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer;
-            font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .admin-login-card button:hover { background: #1a5f85; }
-        .admin-login-error { color: #ff3860; font-size: 13px; min-height: 18px; margin-bottom: 8px; }
-        .admin-login-hint { color: #718096; font-size: 12px; margin-top: 16px; }
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-width);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;position:sticky;top:52px;height:calc(100vh - 52px);flex-shrink:0}
+.sidebar-section{padding:16px 12px 4px}
+.sidebar-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.1s;border:none;background:none;width:100%;text-align:left;text-decoration:none}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:600}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
 
+/* MAIN CONTENT */
+.main{flex:1;overflow-y:auto;padding:28px 32px;max-width:1100px}
+.page-title{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.page-title svg{width:22px;height:22px;color:var(--blue)}
+.page-title h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
 
-        [data-theme="dark"] {
-            --dark-bg: #020817;
-            --light-bg: #0a0f1e;
-            --border-light: #2d3748;
-            --text-dark: #f5f7fa;
-            --text-light: #a0aec0;
-        }
+/* CARDS / PANELS */
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:14px;font-weight:600;letter-spacing:-.2px}
+.panel-body{padding:18px}
 
-        [data-theme="dark"] .sidebar { background: #000000; }
-        [data-theme="dark"] .top-bar { background: #ffffff; }
-        [data-theme="dark"] .modal-content,
-        [data-theme="dark"] .stat-card,
-        [data-theme="dark"] .table-container,
-        [data-theme="dark"] .detail-panel,
-        [data-theme="dark"] .activity-feed,
-        [data-theme="dark"] .badge-item,
-        [data-theme="dark"] .venue-card { background: #F4F2EE; }
-        [data-theme="dark"] th { background: #F4F2EE; }
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.stat-val{font-size:28px;font-weight:900;font-family:'Barlow Condensed',sans-serif;letter-spacing:-.5px;color:var(--text);line-height:1}
+.stat-val.blue{color:var(--blue)}
+.stat-label{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: #ffffff;
-            color: #383737;
-            transition: background-color 0.3s, color 0.3s;
-        }
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:2px solid var(--border);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafafa}
 
-        .app-container { display: flex; height: 100vh; overflow: hidden; }
-        
-        .sidebar {
-            width: 280px;
-            background: #000000;
-            color: white;
-            padding: 2rem 0;
-            overflow-y: auto;
-            border-right: none;
-        }
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.badge-grey{background:#f0f0f0;color:#666}
 
-        .sidebar-logo {
-            padding: 0 2rem 2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            font-family: "VVDS Fifties", sans-serif;
-            color: #ffffff;
-        }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;font-family:'Barlow',sans-serif}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-mid)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{opacity:.9}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{opacity:.9}
+.btn-sm{padding:4px 10px;font-size:12px}
 
-        .sidebar-logo::after {
-            content: "Trivia.";
-            display: block;
-            font-size: 0.9rem;
-            letter-spacing: 0.02em;
-            margin-top: 0.3rem;
-        }
+/* FORMS */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+input[type=text],input[type=number],select,textarea{
+  background:#fff;border:1px solid var(--border);border-radius:6px;
+  padding:7px 10px;font-size:13px;font-family:'Barlow',sans-serif;color:var(--text);
+  transition:.15s;width:100%
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(29,111,164,.1)}
+textarea{resize:vertical;min-height:70px}
 
-        .sidebar-nav { list-style: none; }
-        .sidebar-nav a {
-            display: block;
-            padding: 1rem 2rem;
-            color: #ffffff;
-            text-decoration: none;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-            font-weight: 500;
-        }
-        .sidebar-nav a:hover {
-            background: transparent;
-            color: #2C94C2;
-            border-left-color: #2C94C2;
-        }
-        .sidebar-nav a.active {
-            background: transparent;
-            color: #2C94C2;
-            border-left-color: #2C94C2;
-        }
+/* SECTIONS */
+.section{display:none}
+.section.active{display:block}
 
-        .sidebar-home {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(255,255,255,0.5);
-            text-decoration: none;
-            font-size: 0.8rem;
-            font-weight: 500;
-            padding: 0.8rem 2rem;
-            transition: all 0.2s;
-            border-left: 4px solid transparent;
-        }
-        .sidebar-home:hover { color: #ffffff; }
+/* AI FINDER */
+.ai-q-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:.15s}
+.ai-q-card:hover{border-color:#aaa}
+.ai-q-card.approved{border-color:var(--green);background:#fafffe}
+.ai-q-card.rejected{opacity:.4;border-color:var(--border)}
+.ai-q-question{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4}
+.ai-q-answer{font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px}
+.ai-q-meta{display:flex;gap:8px;align-items:center}
+.ai-q-actions{display:flex;gap:6px;margin-left:auto}
+.ai-status{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px}
+.ai-status.approved{background:var(--green-bg);color:var(--green)}
+.ai-status.rejected{background:var(--red-bg);color:var(--red)}
+.ai-status.pending{background:var(--yellow-bg);color:var(--yellow)}
 
-        .sidebar-live {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: rgba(255,255,255,0.35);
-            text-decoration: none;
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 0.6rem 2rem;
-            transition: all 0.2s;
-        }
-        .sidebar-live:hover { color: #2C94C2; }
+/* TOOLS GRID */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tool-tile{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center;text-decoration:none;color:var(--text);transition:.15s;display:block}
+.tool-tile:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(29,111,164,.12);transform:translateY(-1px)}
+.tool-tile-icon{font-size:28px;margin-bottom:8px}
+.tool-tile-name{font-size:13px;font-weight:700}
+.tool-tile-desc{font-size:11px;color:var(--muted);margin-top:3px}
 
-        .sidebar-divider {
-            height: 1px;
-            background: rgba(255,255,255,0.08);
-            margin: 0.5rem 2rem;
-        }
+/* LOADING / EMPTY */
+.loading{padding:32px;text-align:center;color:var(--muted);font-size:13px}
+.empty{padding:32px;text-align:center;color:var(--muted)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-        .trial-badge-sidebar {
-            margin: 1rem 2rem 0;
-            padding: 6px 12px;
-            background: rgba(44,148,194,0.15);
-            border: 1px solid rgba(44,148,194,0.3);
-            border-radius: 8px;
-            font-size: 0.7rem;
-            color: #2C94C2;
-            text-align: center;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+/* SEARCH BAR */
+.search-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.search-row input{flex:1;min-width:200px}
+.search-row select{width:160px}
 
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .top-bar {
-            background: white;
-            padding: 1.5rem 2rem;
-            border-bottom: 1px solid #E8E5E0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+/* CATEGORY BARS */
+.cat-bar-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
+.cat-bar-row:last-child{border-bottom:none}
+.cat-name{width:170px;font-size:13px;font-weight:500;flex-shrink:0}
+.cat-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.cat-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s}
+.cat-count{width:45px;text-align:right;font-size:12px;color:var(--muted)}
 
-        .page-title { 
-            font-size: 1.75rem; 
-            font-weight: 700; 
-            color: #383737;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .top-bar-controls { display: flex; align-items: center; gap: 2rem; }
-        .theme-toggle {
-            background: none;
-            border: 2px solid #E8E5E0;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            color: #383737;
-        }
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:6px;margin-top:12px}
+.pagination span{font-size:12px;color:var(--muted);flex:1;text-align:center}
 
-        .user-info { display: flex; align-items: center; gap: 1rem; padding: 0 1rem; border-left: 1px solid #E8E5E0; }
-        .logout-btn {
-            background: var(--danger);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 9999px;
-            cursor: pointer;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-family: 'Outfit', sans-serif;
-        }
+/* PROFILE CARD */
+.profile-card{display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;margin-bottom:24px}
+.profile-avatar{width:44px;height:44px;border-radius:50%;background:var(--blue-light);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--blue)}
+.profile-info{flex:1}
+.profile-name{font-weight:700;font-size:15px}
+.profile-email{font-size:12px;color:var(--muted);margin-top:2px}
+.profile-badge{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px}
 
-        .content-area { flex: 1; overflow-y: auto; padding: 2rem; }
-        .bottom-nav { display: none; }
-        .section { display: none; }
-        .section.active { display: block; }
-
-        .stat-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: #F4F2EE;
-            padding: 1.5rem;
-            border-radius: 24px;
-            border: none;
-            box-shadow: none;
-            transition: all 0.3s;
-        }
-        .stat-card:hover { box-shadow: none; transform: none; }
-        .stat-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .stat-label {
-            font-size: 0.85rem;
-            color: #718096;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-family: 'Outfit', sans-serif;
-        }
-        .stat-value { 
-            font-size: 2rem; 
-            font-weight: 700; 
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 9999px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.95rem;
-            font-family: 'Outfit', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-        .btn-primary {
-            background: #2C94C2;
-            color: white;
-        }
-        .btn-primary:hover { background: #1a7fa3; }
-        .btn-secondary {
-            background: white;
-            color: #2C94C2;
-            border: 2px solid #2C94C2;
-        }
-        .btn-secondary:hover { background: #2C94C2; color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-small { padding: 0.5rem 1rem; font-size: 0.85rem; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            padding: 2rem;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        .modal-header { 
-            font-size: 1.5rem; 
-            font-weight: 700; 
-            margin-bottom: 1.5rem; 
-            color: #383737;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .modal-close {
-            position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #718096;
-        }
-
-        .form-group { margin-bottom: 1.5rem; }
-        .form-label { 
-            display: block; 
-            font-weight: 600; 
-            margin-bottom: 0.5rem; 
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #E8E5E0;
-            border-radius: 24px;
-            font-size: 1rem;
-            font-family: 'Outfit', sans-serif;
-            background: #F4F2EE;
-            color: #383737;
-        }
-        .form-control:focus {
-            outline: none;
-            border-color: #2C94C2;
-            box-shadow: 0 0 0 3px rgba(44, 148, 194, 0.1);
-            background: #F4F2EE;
-        }
-
-        .table-container {
-            background: #F4F2EE;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: none;
-            margin-bottom: 2rem;
-            border: none;
-        }
-        .table-controls {
-            padding: 1.5rem;
-            border-bottom: 1px solid #E8E5E0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
-        .search-box input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.5rem;
-            border: 2px solid #E8E5E0;
-            border-radius: 24px;
-            background: white;
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        th {
-            background: white;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 700;
-            color: #383737;
-            border-bottom: 2px solid #E8E5E0;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            font-family: 'Outfit', sans-serif;
-        }
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid #E8E5E0;
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-        tr:hover { background: rgba(44, 148, 194, 0.05); }
-
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 24px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-family: 'Outfit', sans-serif;
-        }
-        .alert-warning {
-            background: rgba(255, 183, 0, 0.1);
-            color: var(--warning);
-            border-left: 4px solid var(--warning);
-        }
-        .alert-info {
-            background: rgba(44, 148, 194, 0.1);
-            color: #2C94C2;
-            border-left: 4px solid #2C94C2;
-        }
-
-        .activity-feed {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 1.5rem;
-            border: none;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .activity-item {
-            padding: 1rem;
-            border-bottom: 1px solid #E8E5E0;
-            display: flex;
-            gap: 1rem;
-            font-size: 0.95rem;
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-        .activity-time {
-            color: #718096;
-            font-size: 0.85rem;
-            min-width: 60px;
-        }
-
-        .detail-panel {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: none;
-            margin-bottom: 2rem;
-            border: none;
-        }
-
-        .badge-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-        .badge-item {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 1.5rem;
-            text-align: center;
-            border: none;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        .badge-item:hover {
-            border-color: transparent;
-            box-shadow: none;
-            transform: none;
-        }
-        .badge-emoji { font-size: 3rem; margin-bottom: 0.5rem; }
-        .badge-title { 
-            font-weight: 700; 
-            color: #383737; 
-            font-size: 0.9rem; 
-            margin-bottom: 0.5rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .badge-count { font-size: 0.8rem; color: #718096; }
-
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            border-bottom: 2px solid #E8E5E0;
-            margin-bottom: 2rem;
-        }
-        .tab-btn {
-            padding: 1rem 1.5rem;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            color: #718096;
-            font-family: 'Outfit', sans-serif;
-        }
-        .tab-btn.active {
-            color: #2C94C2;
-            border-bottom-color: #2C94C2;
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .chart-container {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: none;
-            border: none;
-        }
-        .chart-title { 
-            font-weight: 700; 
-            color: #383737; 
-            margin-bottom: 1.5rem; 
-            font-size: 1.1rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .bar-chart {
-            display: flex;
-            align-items: flex-end;
-            gap: 1.5rem;
-            height: 250px;
-            margin-bottom: 1.5rem;
-        }
-        .bar {
-            flex: 1;
-            background: #2C94C2;
-            border-radius: 0.5rem 0.5rem 0 0;
-            position: relative;
-            min-width: 40px;
-        }
-        .bar-label { 
-            position: absolute; 
-            bottom: -1.5rem; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            font-size: 0.85rem;
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-        .bar-value { 
-            position: absolute; 
-            top: -1.5rem; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            font-weight: 700;
-            color: #383737;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .progress-bar {
-            background: #ffffff;
-            border-radius: 0.5rem;
-            height: 10px;
-            overflow: hidden;
-            margin: 0.5rem 0 1rem 0;
-            border: 1px solid #E8E5E0;
-        }
-        .progress-fill {
-            background: #2C94C2;
-            height: 100%;
-            border-radius: 0.5rem;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #E8E5E0;
-        }
-        .stat-row-label { 
-            color: #718096; 
-            font-weight: 600;
-            font-family: 'Outfit', sans-serif;
-        }
-        .stat-row-value { 
-            color: #383737; 
-            font-weight: 700;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .award-badge {
-            background: white;
-            border: 2px solid #E8A317;
-            border-radius: 24px;
-            padding: 1.5rem;
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        .award-name { 
-            font-weight: 700; 
-            color: #383737; 
-            margin-bottom: 0.5rem; 
-            font-size: 1.1rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .award-winner { 
-            color: #718096; 
-            font-size: 0.9rem;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .announcement-item {
-            background: #F4F2EE;
-            border-left: none;
-            border: none;
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: none;
-        }
-        .announcement-title { 
-            font-weight: 700; 
-            color: #383737; 
-            font-size: 1.1rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .announcement-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            background: rgba(44, 148, 194, 0.1);
-            color: #2C94C2;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .venue-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-        .venue-card {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 1.5rem;
-            box-shadow: none;
-            border-left: none;
-            border: none;
-            cursor: pointer;
-        }
-        .venue-name { 
-            font-weight: 700; 
-            color: #383737; 
-            margin-bottom: 0.5rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .venue-info { 
-            font-size: 0.9rem; 
-            color: #718096;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .section-title { 
-            font-size: 1.25rem; 
-            font-weight: 700; 
-            color: #383737; 
-            margin: 2rem 0 1rem 0;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        .settings-group {
-            background: #F4F2EE;
-            border-radius: 24px;
-            padding: 2rem;
-            box-shadow: none;
-            margin-bottom: 2rem;
-            border: none;
-        }
-        .settings-group-title { 
-            font-weight: 700; 
-            color: #383737; 
-            margin-bottom: 1.5rem; 
-            font-size: 1.1rem;
-            font-family: "VVDS Fifties", sans-serif;
-        }
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid #E8E5E0;
-            font-family: 'Outfit', sans-serif;
-        }
-        .setting-label {
-            color: #383737;
-            font-weight: 600;
-        }
-        .setting-value {
-            color: #718096;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { width: 0; display: none; }
-            .bottom-nav {
-                display: flex;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: white;
-                border-top: 1px solid #E8E5E0;
-                height: 60px;
-                z-index: 100;
-                justify-content: space-around;
-                align-items: center;
-            }
-            .bottom-nav a {
-                color: #383737;
-                text-decoration: none;
-                transition: color 0.3s;
-                flex: 1;
-                text-align: center;
-                padding: 1rem;
-            }
-            .bottom-nav a.active {
-                color: #2C94C2;
-                border-bottom: 3px solid #2C94C2;
-            }
-            .content-area {
-                padding-bottom: 80px;
-            }
-        }
-
-    </style>
-    <script src="kbt-data.js"></script>
+@media(max-width:768px){
+  .sidebar{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .main{padding:16px}
+}
+</style>
 </head>
 <body>
-    <div class="admin-login-gate" id="adminLoginGate">
-        <div class="admin-login-card">
-            <h1>Admin Portal</h1>
-            <div class="subtitle">Enter your admin code to continue</div>
-            <input type="text" id="adminLoginCode" placeholder="ADMIN1" maxlength="10" autofocus>
-            <div class="admin-login-error" id="adminLoginError"></div>
-            <button onclick="adminLoginSubmit()">Enter</button>
-            <div class="admin-login-hint">Valid code for trial: ADMIN1</div>
-        </div>
-    </div>
-    <div class="app-container">
-        <nav class="sidebar">
-            <div class="sidebar-logo">KNOW BRAINER</div>
-            <div class="trial-badge-sidebar">Trial Build</div>
-            <ul class="sidebar-nav">
-                <li><a href="#" data-section="dashboard" class="active">📊 Dashboard</a></li>
-                <li><a href="#" data-section="teams">👥 Teams</a></li>
-                <li><a href="#" data-section="players">🎮 Players</a></li>
-                <li><a href="#" data-section="venues">📍 Venues</a></li>
-                <li><a href="#" data-section="hosts">🎤 Hosts</a></li>
-                <li><a href="#" data-section="leagues">🏆 Leagues</a></li>
-                <li><a href="#" data-section="awards">🎖️ Awards</a></li>
-                <li><a href="#" data-section="badges">🏅 Badges</a></li>
-                <li><a href="#" data-section="powerups">⚡ Power-ups</a></li>
-                <li><a href="#" data-section="analytics">📈 Analytics</a></li>
-                <li><a href="#" data-section="broadcast">📢 Broadcast</a></li>
-                <li><a href="#" data-section="export">💾 Export</a></li>
-                <li><a href="#" data-section="codes">🔐 Codes</a></li>
-                <li><a href="#" data-section="settings">⚙️ Settings</a></li>
-            </ul>
-            <div class="sidebar-divider"></div>
-            <a href="/" class="sidebar-home">← Back to Home</a>
-            <a href="https://knowbrainertrivia.com.au" target="_blank" class="sidebar-live">View live site ↗</a>
-        </nav>
 
-        <div class="main-content">
-            <div class="top-bar">
-                <h1 class="page-title" id="pageTitle">Dashboard</h1>
-                <div class="top-bar-controls">
-                    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">🌙</button>
-                    <div class="flex items-center gap-1">
-                        <div class="user-info">
-                            <span id="username">ADMIN1</span>
-                            <button class="logout-btn" onclick="logout()">Logout</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="/" class="logo">
+    <span class="logo-main">KNOW BRAINER</span>
+    <span class="logo-sub">Trivia.</span>
+  </a>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-user">
+    <div class="user-avatar">P</div>
+    <span>Paddy</span>
+  </div>
+</div>
 
-            <div class="content-area">
-                <!-- DASHBOARD -->
-                <section class="section active" id="dashboard-section">
-                    <div class="live-teams-widget" id="liveTeamsWidget" style="display:none; background:#e0f2fe; border:1px solid #0284c7; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h3 style="color:#075985; margin:0; font-size:16px;">🟢 Live Teams (from Supabase)</h3>
-                            <span id="liveTeamsCount" style="background:#0284c7; color:#fff; padding:2px 10px; border-radius:12px; font-weight:700; font-size:12px;">0</span>
-                        </div>
-                        <div id="liveEventHeader" style="color:#075985; font-size:12px; margin-bottom:8px;"></div>
-                        <div id="liveTeamsList" style="display:flex; flex-direction:column; gap:6px;"></div>
-                    </div>
-                    <div class="pending-registrations-widget" id="pendingRegistrationsWidget" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:10px; padding:16px 20px; margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h3 style="color:#856404; margin:0; font-size:16px;">🕒 Pending Player Registrations</h3>
-                            <span id="pendingRegistrationsCount" style="background:#ffc107; color:#000; padding:2px 10px; border-radius:12px; font-weight:700; font-size:12px;">0</span>
-                        </div>
-                        <div id="pendingRegistrationsList" style="display:flex; flex-direction:column; gap:8px;"></div>
-                    </div>
-                    <div class="stat-cards">
-                        <div class="stat-card">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-label">Teams</div>
-                            <div class="stat-value">4</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">🎮</div>
-                            <div class="stat-label">Players</div>
-                            <div class="stat-value">16</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">📍</div>
-                            <div class="stat-label">Venues</div>
-                            <div class="stat-value">9</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">🎤</div>
-                            <div class="stat-label">Hosts</div>
-                            <div class="stat-value">2</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">🏆</div>
-                            <div class="stat-label">Leagues</div>
-                            <div class="stat-value">3</div>
-                        </div>
-                    </div>
+<div class="app-body">
 
-                    <div class="alert alert-warning">
-                        <span>⚠️</span>
-                        <span><strong>Tuesday Alert:</strong> 4 venues Tuesday — unique packs needed!</span>
-                    </div>
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Overview</div>
+    <button class="nav-item active" onclick="nav('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>
+  </div>
 
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="openModal('createTeamModal')">+ Team</button>
-                        <button class="btn btn-primary" onclick="openModal('createPlayerModal')">+ Player</button>
-                        <button class="btn btn-primary" onclick="generateBulkCodes()">Generate Codes</button>
-                    </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Live</div>
+    <button class="nav-item" onclick="nav('live-scoring')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>
+      Live Scoring
+    </button>
+  </div>
 
-                    <h2 class="section-title">📋 Recent Activity</h2>
-                    <div class="activity-feed" id="activityFeed"></div>
-                </section>
-                <section class="section" id="teams-section">
-                    <div class="table-container">
-                        <div class="table-controls">
-                            <div class="search-box"><input type="text" placeholder="Search teams..."></div>
-                            <button class="btn btn-primary" onclick="openModal('createTeamModal')">+ Create Team</button>
-                        </div>
-                        <table><thead><tr><th>Team Name</th><th>Code</th><th>Captain</th><th>Players</th><th>Games</th><th>League Pos</th><th>Actions</th></tr></thead><tbody></tbody></table>
-                    </div>
-                </section>
-                <section class="section" id="players-section">
-                    <div class="table-container">
-                        <div class="table-controls">
-                            <div class="search-box"><input type="text" placeholder="Search players..."></div>
-                            <button class="btn btn-primary" onclick="openModal('createPlayerModal')">+ Add Player</button>
-                        </div>
-                        <table><thead><tr><th>Avatar</th><th>Name</th><th>Code</th><th>Team</th><th>Captain</th><th>Games</th><th>Joined</th><th>Actions</th></tr></thead><tbody></tbody></table>
-                    </div>
-                </section>
-                <section class="section" id="venues-section">
-                    <div class="table-container"><div class="table-controls"><button class="btn btn-primary" onclick="openModal('createVenueModal')">+ Add Venue</button></div></div>
-                    <h3 class="section-title">⚠️ Tuesday Venues</h3>
-                    <div class="venue-grid" id="tuesdayVenues"></div>
-                    <h3 class="section-title">📅 Other Nights</h3>
-                    <div class="venue-grid" id="otherVenues"></div>
-                </section>
-                <section class="section" id="hosts-section">
-                    <div class="table-container">
-                        <div class="table-controls">
-                            <div class="search-box"><input type="text" placeholder="Search hosts..."></div>
-                            <button class="btn btn-primary" onclick="openModal('createHostModal')">+ Add Host</button>
-                        </div>
-                        <table><thead><tr><th>Name</th><th>Code</th><th>Assigned Venues</th><th>Quizzes Hosted</th><th>Actions</th></tr></thead><tbody></tbody></table>
-                    </div>
-                </section>
-                <section class="section" id="leagues-section">
-                    <div style="margin-bottom:2rem;"><label class="form-label">Select Venue/League:</label><select class="form-control" id="venueSelect" onchange="loadLeagueTable()"><option value="">Choose a venue...</option></select></div>
-                    <div id="leagueTableContainer" style="display:none;"><div class="button-group"><button class="btn btn-primary" onclick="openModal('enterResultsModal')">Enter Results</button><button class="btn btn-secondary" onclick="newSeason()">New Season</button></div><div class="table-container"><table><thead><tr><th>Position</th><th>Team</th><th>Played</th><th>Wins</th><th>Points</th></tr></thead><tbody></tbody></table></div></div>
-                </section>
-                <section class="section" id="awards-section">
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="openModal('createAwardModal')">+ Create Custom Award</button>
-                        <button class="btn btn-success" onclick="generateAwards()">Generate Awards</button>
-                        <button class="btn btn-secondary" onclick="publishAwards()">Publish Awards</button>
-                    </div>
-                    <h3 class="section-title">🏆 Available Award Categories</h3>
-                    <div class="badge-grid">
-                        <div class="badge-item"><div class="badge-emoji">👑</div><div class="badge-title">Season Champion</div><div class="badge-count">Most league points</div></div>
-                        <div class="badge-item"><div class="badge-emoji">⭐</div><div class="badge-title">MVP</div><div class="badge-count">Best overall player</div></div>
-                        <div class="badge-item"><div class="badge-emoji">🔥</div><div class="badge-title">Hottest Streak</div><div class="badge-count">Best consecutive wins</div></div>
-                        <div class="badge-item"><div class="badge-emoji">💪</div><div class="badge-title">Most Dedicated</div><div class="badge-count">Most games played</div></div>
-                        <div class="badge-item"><div class="badge-emoji">💰</div><div class="badge-title">Gambler of Year</div><div class="badge-count">Most power-ups used</div></div>
-                        <div class="badge-item"><div class="badge-emoji">🧠</div><div class="badge-title">Brain of Year</div><div class="badge-count">Highest accuracy</div></div>
-                        <div class="badge-item"><div class="badge-emoji">🦋</div><div class="badge-title">Social Butterfly</div><div class="badge-count">Most teammates invited</div></div>
-                        <div class="badge-item"><div class="badge-emoji">📈</div><div class="badge-title">Most Improved</div><div class="badge-count">Biggest score jump</div></div>
-                        <div class="badge-item"><div class="badge-emoji">🍻</div><div class="badge-title">Pub Crawler</div><div class="badge-count">Most venues attended</div></div>
-                        <div class="badge-item"><div class="badge-emoji">🎖️</div><div class="badge-title">Captain Fantastic</div><div class="badge-count">Best team leadership</div></div>
-                    </div>
-                    <h3 class="section-title">🎁 Generated Awards</h3>
-                    <div id="generatedAwardsContainer"></div>
-                </section>
-                <section class="section" id="badges-section">
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="openModal('createBadgeModal')">+ Create Badge</button>
-                        <button class="btn btn-secondary" onclick="openModal('playerBadgeAuditModal')">Player Audit</button>
-                        <button class="btn btn-secondary" onclick="openModal('bulkAwardModal')">Award Badge</button>
-                    </div>
-                    <div class="badge-grid" id="badgeGrid"></div>
-                </section>
-                <section class="section" id="powerups-section">
-                    <div class="button-group">
-       <button class="btn btn-primary" onclick="openModal('managePowerupsModal')">Manage Power-ups</button>
-                    </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Quiz Operations</div>
+    <button class="nav-item" onclick="nav('quiz-gen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Quiz Gen
+    </button>
+    <button class="nav-item" onclick="nav('quiz-edit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Quiz Edit
+    </button>
+  </div>
 
-                    <div class="grid-2">
-                        <div class="settings-group">
-                            <div class="settings-group-title">⚡ Power-up Configuration</div>
-                            <div class="setting-row">
-                                <div>
-                                    <div class="setting-label">Max per Quiz</div>
-                                    <div class="setting-description">Maximum power-ups allowed</div>
-                                </div>
-                                <input type="number" class="form-control" style="width: 100px;" value="3">
-                            </div>
-                            <div class="setting-row">
-                                <div>
-                                    <div class="setting-label">Max per Round</div>
-                                    <div class="setting-description">Maximum power-ups per round</div>
-                                </div>
-                                <input type="number" class="form-control" style="width: 100px;" value="1">
-                            </div>
-                        </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Questions</div>
+    <button class="nav-item" onclick="nav('ai-finder')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      AI Question Finder
+    </button>
+    <button class="nav-item" onclick="nav('question-review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Question Review
+    </button>
+    <button class="nav-item" onclick="nav('grading-queue')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Grading Queue
+    </button>
+  </div>
 
-                        <div class="settings-group">
-                            <div class="settings-group-title">📊 Power-up Statistics</div>
-                            <div class="stat-row">
-                                <span class="stat-row-label">Most Used</span>
-                                <span class="stat-row-value">Double Points (324)</span>
-                            </div>
-                            <div class="stat-row">
-                                <span class="stat-row-label">Total Uses</span>
-                                <span class="stat-row-value">1,247</span>
-                            </div>
-                            <div class="stat-row">
-                                <span class="stat-row-label">Teams Using</span>
-                                <span class="stat-row-value">23/25</span>
-                            </div>
-                        </div>
-                    </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Multimedia Tools</div>
+    <button class="nav-item" onclick="nav('tools')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      All Tools
+    </button>
+  </div>
 
-                    <h3 class="section-title">Available Power-ups</h3>
-                    <div class="badge-grid" id="powerupGrid"></div>
-                </section>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Business</div>
+    <button class="nav-item" onclick="nav('locations')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Locations
+    </button>
+    <button class="nav-item" onclick="nav('hosts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      Hosts
+    </button>
+    <button class="nav-item" onclick="nav('teams')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Teams
+    </button>
+    <button class="nav-item" onclick="nav('events')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Events
+    </button>
+  </div>
+</nav>
 
-                <!-- ANALYTICS -->
-                <section class="section" id="analytics-section">
-                    <div class="chart-container">
-                        <div class="chart-title">📈 Player Growth Over Time</div>
-                        <div class="bar-chart" id="playerGrowthChart"></div>
-                    </div>
+<!-- MAIN -->
+<div class="main">
 
-                    <div class="chart-container">
-                        <div class="chart-title">📍 Average Attendance per Venue</div>
-                        <div class="bar-chart" id="venueAttendanceChart"></div>
-                    </div>
-
-                    <div class="grid-2">
-                        <div class="chart-container">
-                            <div class="chart-title">🎯 Category Performance</div>
-                            <div id="categoryChart"></div>
-                        </div>
-
-                        <div class="chart-container">
-                            <div class="chart-title">✅ Quiz Completion Rates</div>
-                            <div id="completionChart"></div>
-                        </div>
-                    </div>
-
-                    <div class="chart-container">
-                        <div class="chart-title">📅 Registration Trends</div>
-                        <div id="registrationChart"></div>
-                    </div>
-                </section>
-
-                <!-- BROADCAST -->
-                <section class="section" id="broadcast-section">
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="openModal('createAnnouncementModal')">+ New Announcement</button>
-                    </div>
-
-                    <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('active-announcements', this)">Active</button>
-                        <button class="tab-btn" onclick="switchTab('archived-announcements', this)">Archived</button>
-                    </div>
-
-                    <div class="tab-content active" id="active-announcements"></div>
-                    <div class="tab-content" id="archived-announcements"></div>
-                </section>
-
-                <!-- EXPORT -->
-                <section class="section" id="export-section">
-                    <div class="grid-2">
-                        <div class="detail-panel">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy);">👥 Teams & Codes</div>
-                            <p style="margin-bottom: 1rem; color: var(--text-light);">Export teams with codes</p>
-                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportTeams()">Download CSV</button>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="copyTeamsToClipboard()">Copy</button>
-                        </div>
-
-                        <div class="detail-panel">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy);">🎮 Players & Codes</div>
-                            <p style="margin-bottom: 1rem; color: var(--text-light);">Export players with codes</p>
-                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportPlayers()">Download CSV</button>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="copyPlayersToClipboard()">Copy</button>
-                        </div>
-
-                        <div class="detail-panel">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy);">🏆 League Standings</div>
-                            <p style="margin-bottom: 1rem; color: var(--text-light);">Export league standings</p>
-                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportLeagueStandings()">Download CSV</button>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="copyLeagueToClipboard()">Copy</button>
-                        </div>
-
-                        <div class="detail-panel">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy);">📊 Season Results</div>
-                            <p style="margin-bottom: 1rem; color: var(--text-light);">Export season results</p>
-                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportSeasonResults()">Download CSV</button>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="copySeasonToClipboard()">Copy</button>
-                        </div>
-
-                        <div class="detail-panel">
-                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--navy);">🏅 Badge Report</div>
-                            <p style="margin-bottom: 1rem; color: var(--text-light);">Export badge data</p>
-                            <button class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;" onclick="exportBadgeReport()">Download CSV</button>
-                            <button class="btn btn-secondary" style="width: 100%;" onclick="copyBadgesToClipboard()">Copy</button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- CODES -->
-                <section class="section" id="codes-section">
-                    <div class="tabs" id="codeTabs"></div>
-                    <div id="codeTabContent"></div>
-                </section>
-
-                <!-- SETTINGS -->
-                <section class="section" id="settings-section">
-                    <h3 class="section-title">⚙️ Settings & Configuration</h3>
-
-                    <div class="settings-group">
-                        <div class="settings-group-title">🌙 Appearance</div>
-                        <div class="setting-row">
-                            <div>
-                                <div class="setting-label">Theme</div>
-                                <div class="setting-description">Light or dark mode</div>
-                            </div>
-                            <button class="btn btn-secondary btn-small" onclick="toggleTheme()">Switch</button>
-                        </div>
-                    </div>
-
-                    <div class="settings-group">
-                        <div class="settings-group-title">👤 Admin Profile</div>
-                        <div class="form-group">
-                            <label class="form-label">Admin Name</label>
-                            <input type="text" class="form-control" value="ADMIN1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Admin Code</label>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="text" class="form-control" value="ADM-9876-5432" readonly>
-                                <button class="btn btn-secondary btn-small" onclick="regenerateAdminCode()">Regenerate</button>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" onclick="saveAdminProfile()">Save Changes</button>
-                    </div>
-
-                    <div class="settings-group">
-                        <div class="settings-group-title">⚙️ App Configuration</div>
-                        <div class="setting-row">
-                            <div>
-                                <div class="setting-label">Default Timer (seconds)</div>
-                                <div class="setting-description">Quiz timer</div>
-                            </div>
-                            <input type="number" class="form-control" style="width: 120px;" value="30">
-                        </div>
-                        <div class="setting-row">
-                            <div>
-                                <div class="setting-label">Power-ups Enabled</div>
-                                <div class="setting-description">Allow power-ups</div>
-                            </div>
-                            <div class="toggle active" onclick="toggleSetting(this)">
-                                <div class="toggle-slider"></div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div>
-                                <div class="setting-label">Self-Registration</div>
-                                <div class="setting-description">Allow player sign-up</div>
-                            </div>
-                            <div class="toggle active" onclick="toggleSetting(this)">
-                                <div class="toggle-slider"></div>
-                            </div>
-                        </div>
-                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
-                    </div>
-
-                    <div class="alert alert-info">
-                        <span>ℹ️</span>
-                        <span><strong>KBT Admin v1.0</strong> - Ultimate trivia command centre</span>
-                    </div>
-                </section>
-            </div>
-
-            <!-- BOTTOM NAV (Mobile) -->
-            <div class="bottom-nav" id="bottomNav">
-                <a class="nav-item active" data-section="dashboard">📊</a>
-                <a class="nav-item" data-section="teams">👥</a>
-                <a class="nav-item" data-section="players">🎮</a>
-                <a class="nav-item" data-section="venues">📍</a>
-                <a class="nav-item" data-section="hosts">🎤</a>
-                <a class="nav-item" data-section="leagues">🏆</a>
-                <a class="nav-item" data-section="awards">🎖️</a>
-                <a class="nav-item" data-section="badges">🏅</a>
-                <a class="nav-item" data-section="powerups">⚡</a>
-                <a class="nav-item" data-section="analytics">📈</a>
-                <a class="nav-item" data-section="broadcast">📢</a>
-                <a class="nav-item" data-section="export">💾</a>
-                <a class="nav-item" data-section="codes">🔐</a>
-                <a class="nav-item" data-section="settings">⚙️</a>
-            </div>
-        </div>
+  <!-- DASHBOARD -->
+  <div class="section active" id="sec-dashboard">
+    <div class="profile-card">
+      <div class="profile-avatar">P</div>
+      <div class="profile-info">
+        <div class="profile-name">Patrick Gallivan</div>
+        <div class="profile-email">pgallivan@outlook.com</div>
+      </div>
+      <div class="profile-badge">Owner</div>
     </div>
 
-    <!-- MODALS -->
-    <div class="modal" id="createTeamModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createTeamModal')">×</button>
-            <div class="modal-header">Create Team</div>
-            <div class="form-group">
-                <label class="form-label">Team Name</label>
-                <input type="text" class="form-control" placeholder="e.g., The Brainians">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Team Color</label>
-                <input type="text" class="form-control" placeholder="e.g., Purple">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Team Mascot</label>
-                <input type="text" class="form-control" placeholder="e.g., Brain">
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createTeam()">Create Team</button>
-        </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val blue" id="d-questions">—</div>
+        <div class="stat-label">Active Questions</div>
+        <div class="stat-sub" id="d-multimedia">— multimedia</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="d-categories">—</div>
+        <div class="stat-label">Categories</div>
+        <div class="stat-sub">Across all question types</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="d-venues">—</div>
+        <div class="stat-label">Locations</div>
+        <div class="stat-sub" id="d-events">— events on record</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="d-teams">—</div>
+        <div class="stat-label">Teams</div>
+        <div class="stat-sub" id="d-sessions">— sessions recorded</div>
+      </div>
     </div>
 
-    <div class="modal" id="createPlayerModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createPlayerModal')">×</button>
-            <div class="modal-header">Add Player</div>
-            <div class="form-group">
-                <label class="form-label">Player Name</label>
-                <input type="text" class="form-control" placeholder="e.g., John Smith">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Team</label>
-                <select class="form-control">
-                    <option>Select a team...</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createPlayer()">Add Player</button>
-        </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Questions by Category</span></div>
+        <div class="panel-body" id="d-cat-bars"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Recent Events</span></div>
+        <div class="panel-body" style="padding:0" id="d-recent-events"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI QUESTION FINDER -->
+  <div class="section" id="sec-ai-finder">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      <h1>AI Question Finder</h1>
     </div>
 
-    <div class="modal" id="createVenueModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createVenueModal')">×</button>
-            <div class="modal-header">Add Venue</div>
-            <div class="form-group">
-                <label class="form-label">Venue Name</label>
-                <input type="text" class="form-control" placeholder="e.g., The Quiz Bar">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <input type="text" class="form-control" placeholder="e.g., Downtown">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Quiz Night</label>
-                <select class="form-control">
-                    <option>Tuesday</option>
-                    <option>Wednesday</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createVenue()">Add Venue</button>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Generate Questions with AI</span></div>
+      <div class="panel-body">
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Topic / Theme</label>
+            <input type="text" id="ai-topic" placeholder="e.g. 90s Movies, Australian Sport, Rock Music…">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Category</label>
+            <select id="ai-category">
+              <option value="">Auto-detect</option>
+              <option>Movies</option><option>Music</option><option>Sport</option>
+              <option>Geography & Travel</option><option>History & Politics</option>
+              <option>Science & Nature</option><option>Entertainment</option>
+              <option>Food & Beverages</option><option>General Knowledge</option>
+              <option>Australiana</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Difficulty</label>
+            <select id="ai-difficulty">
+              <option value="">Mixed</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 80px">
+            <label>Count</label>
+            <input type="number" id="ai-count" value="10" min="5" max="20">
+          </div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" onclick="generateAIQuestions()" id="ai-gen-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Generate Questions
+          </button>
+          <span id="ai-status-msg" style="font-size:13px;color:var(--muted)"></span>
+          <div style="margin-left:auto;display:flex;gap:6px" id="ai-batch-btns" style="display:none">
+            <button class="btn btn-green btn-sm" onclick="approveAll()">✓ Approve All</button>
+            <button class="btn btn-ghost btn-sm" onclick="saveApproved()" id="ai-save-btn">Save Approved to DB</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="modal" id="createHostModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createHostModal')">×</button>
-            <div class="modal-header">Add Host</div>
-            <div class="form-group">
-                <label class="form-label">Host Name</label>
-                <input type="text" class="form-control" placeholder="e.g., Bob Smith">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Assigned Venues</label>
-                <input type="text" class="form-control" placeholder="e.g., The Quiz Bar, Brain Central">
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createHost()">Add Host</button>
-        </div>
+    <div id="ai-results"></div>
+  </div>
+
+  <!-- QUESTION REVIEW -->
+  <div class="section" id="sec-question-review">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <h1>Question Review</h1>
     </div>
-
-    <div class="modal" id="createBadgeModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createBadgeModal')">×</button>
-            <div class="modal-header">Create Badge</div>
-            <div class="form-group">
-                <label class="form-label">Badge Name</label>
-                <input type="text" class="form-control" placeholder="e.g., Quiz Master">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Badge Emoji</label>
-                <input type="text" class="form-control" placeholder="e.g., 🌟">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Description</label>
-                <input type="text" class="form-control" placeholder="e.g., Won 10 quizzes">
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createBadge()">Create Badge</button>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Question Bank <span id="qr-total" style="color:var(--muted);font-weight:400"></span></span>
+        <button class="btn btn-primary btn-sm" onclick="nav('ai-finder')">+ AI Generate</button>
+      </div>
+      <div class="panel-body">
+        <div class="search-row">
+          <input type="text" id="qr-search" placeholder="Search questions…" oninput="debounceQR()">
+          <select id="qr-cat" onchange="loadQR(true)">
+            <option value="">All Categories</option>
+          </select>
+          <select id="qr-type" onchange="loadQR(true)">
+            <option value="">All Types</option>
+            <option value="standard">Standard</option>
+            <option value="face_morph">Face Morph</option>
+            <option value="brain">Brain</option>
+            <option value="guess_year">Guess Year</option>
+            <option value="crack_code">Crack Code</option>
+            <option value="linked_pics">Linked Pics</option>
+            <option value="brand">Brand</option>
+            <option value="soundmash">SoundMash</option>
+            <option value="ghost_actors">Ghost Actors</option>
+            <option value="carmen">Carmen</option>
+          </select>
         </div>
-    </div>
-
-    <div class="modal" id="createAwardModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createAwardModal')">×</button>
-            <div class="modal-header">Create Custom Award</div>
-            <div class="form-group">
-                <label class="form-label">Award Name</label>
-                <input type="text" class="form-control" placeholder="e.g., Best Underdog">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Award Emoji</label>
-                <input type="text" class="form-control" placeholder="e.g., 🐕">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Criteria</label>
-                <textarea class="form-control" placeholder="e.g., Biggest upset victory" style="height: 80px;"></textarea>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createCustomAward()">Create Award</button>
+        <div id="qr-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+        <div class="pagination">
+          <button class="btn btn-ghost btn-sm" onclick="qrPage(-1)">← Prev</button>
+          <span id="qr-page-info"></span>
+          <button class="btn btn-ghost btn-sm" onclick="qrPage(1)">Next →</button>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div class="modal" id="managePowerupsModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('managePowerupsModal')">×</button>
-            <div class="modal-header">Manage Power-ups</div>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <div class="badge-grid" id="powerupManagementList"></div>
-            </div>
-            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="savePowerups()">Save Changes</button>
+  <!-- QUIZ GEN -->
+  <div class="section" id="sec-quiz-gen">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M12 5v14M5 12h14"/></svg>
+      <h1>Quiz Gen</h1>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Build a Quiz</span></div>
+      <div class="panel-body">
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Quiz Name</label>
+            <input type="text" id="qg-name" placeholder="e.g. Tuesday Night — Spotswood Hotel">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Number of Rounds</label>
+            <input type="number" id="qg-rounds" value="6" min="1" max="12">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Qs per Round</label>
+            <input type="number" id="qg-per-round" value="5" min="3" max="10">
+          </div>
         </div>
-    </div>
-
-    <div class="modal" id="createAnnouncementModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('createAnnouncementModal')">×</button>
-            <div class="modal-header">Create Announcement</div>
-            <div class="form-group">
-                <label class="form-label">Title</label>
-                <input type="text" class="form-control" placeholder="e.g., New Venue Alert">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Message</label>
-                <textarea class="form-control" placeholder="e.g., New venue opening next month" style="height: 100px;"></textarea>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Type</label>
-                <select class="form-control">
-                    <option>Info</option>
-                    <option>Alert</option>
-                    <option>Promo</option>
-                    <option>Event</option>
-                </select>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="createAnnouncement()">Create Announcement</button>
+        <div class="form-row">
+          <div class="form-group" style="flex:2">
+            <label>Categories to Include</label>
+            <select id="qg-cats" multiple style="height:90px">
+              <option selected>Movies</option><option selected>Music</option>
+              <option selected>Sport</option><option selected>Geography & Travel</option>
+              <option selected>History & Politics</option><option selected>Science & Nature</option>
+              <option>Entertainment</option><option>Food & Beverages</option>
+              <option>General Knowledge</option><option>Australiana</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>Include Multimedia?</label>
+            <select id="qg-multimedia">
+              <option value="yes">Yes — mix in tools</option>
+              <option value="no">No — standard only</option>
+            </select>
+          </div>
         </div>
+        <button class="btn btn-primary" onclick="generateQuiz()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Generate Quiz
+        </button>
+      </div>
     </div>
+    <div id="qg-result"></div>
+  </div>
 
-    <div class="modal" id="bulkAwardModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('bulkAwardModal')">×</button>
-            <div class="modal-header">Award Badge</div>
-            <div class="form-group">
-                <label class="form-label">Select Badge</label>
-                <select class="form-control"><option>Choose a badge...</option></select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Select Player</label>
-                <select class="form-control"><option>Choose a player...</option></select>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="awardBadge()">Award Badge</button>
+  <!-- QUIZ EDIT -->
+  <div class="section" id="sec-quiz-edit">
+    <div class="page-title"><h1>Quiz Edit</h1></div>
+    <div class="panel"><div class="panel-body"><div class="empty">Select a quiz to edit — coming soon.</div></div></div>
+  </div>
+
+  <!-- GRADING QUEUE -->
+  <div class="section" id="sec-grading-queue">
+    <div class="page-title"><h1>Grading Queue</h1></div>
+    <div class="panel"><div class="panel-body"><div class="empty">No answers pending grading.</div></div></div>
+  </div>
+
+  <!-- LIVE SCORING -->
+  <div class="section" id="sec-live-scoring">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>
+      <h1>Live Scoring</h1>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Active Events</span></div>
+      <div class="panel-body" id="ls-content"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- MULTIMEDIA TOOLS -->
+  <div class="section" id="sec-tools">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <h1>Multimedia Tools</h1>
+    </div>
+    <div class="tools-grid">
+      <a href="/face-morph-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">👤</div><div class="tool-tile-name">Face Morph</div><div class="tool-tile-desc">AI face blender</div></a>
+      <a href="/brain-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🧠</div><div class="tool-tile-name">Name the Brain</div><div class="tool-tile-desc">Top-of-head reveal</div></a>
+      <a href="/ghost-actors-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">👻</div><div class="tool-tile-name">Ghost Actors</div><div class="tool-tile-desc">Remove actors from stills</div></a>
+      <a href="/soundmash-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🎵</div><div class="tool-tile-name">Sound Mash</div><div class="tool-tile-desc">Song connection round</div></a>
+      <a href="/crack-the-code-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🔐</div><div class="tool-tile-name">Crack The Code</div><div class="tool-tile-desc">Rebus puzzles</div></a>
+      <a href="/linked-pics-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🖼</div><div class="tool-tile-name">Linked Pics</div><div class="tool-tile-desc">4 images, one connection</div></a>
+      <a href="/brand-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">®️</div><div class="tool-tile-name">Brands</div><div class="tool-tile-desc">Brand history questions</div></a>
+      <a href="/carmen-sandiego-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🌍</div><div class="tool-tile-name">Carmen</div><div class="tool-tile-desc">Where in the world?</div></a>
+      <a href="/guess-the-year-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">📅</div><div class="tool-tile-name">Guess The Year</div><div class="tool-tile-desc">Historical events</div></a>
+      <a href="/host-brief-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🎤</div><div class="tool-tile-name">Host Brief</div><div class="tool-tile-desc">Generate host script</div></a>
+    </div>
+  </div>
+
+  <!-- LOCATIONS -->
+  <div class="section" id="sec-locations">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <h1>Locations</h1>
+    </div>
+    <div class="panel">
+      <div class="panel-body" style="padding:0" id="loc-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- HOSTS -->
+  <div class="section" id="sec-hosts">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <h1>Hosts</h1>
+    </div>
+    <div class="panel">
+      <div class="panel-body" style="padding:0" id="hosts-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- TEAMS -->
+  <div class="section" id="sec-teams">
+    <div class="page-title"><h1>Teams</h1></div>
+    <div class="panel">
+      <div class="panel-body" style="padding:0" id="teams-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="section" id="sec-events">
+    <div class="page-title"><h1>Events</h1></div>
+    <div class="panel">
+      <div class="panel-body" style="padding:0" id="events-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app-body -->
+
+<script>
+const SB = 'https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY };
+
+async function db(path) {
+  const r = await fetch(SB + path, { headers: H });
+  return r.json();
+}
+
+// ── NAVIGATION ──────────────────────────────────────────────────
+const loaders = {
+  'dashboard': loadDashboard, 'locations': loadLocations,
+  'hosts': loadHosts, 'teams': loadTeams, 'events': loadEventsFull,
+  'question-review': loadQR, 'ai-finder': null,
+  'live-scoring': loadLiveScoring, 'quiz-gen': null,
+};
+const loaded = {};
+
+function nav(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const sec = document.getElementById('sec-' + id);
+  if (sec) sec.classList.add('active');
+  const btn = [...document.querySelectorAll('.nav-item')].find(b => b.getAttribute('onclick') === `nav('${id}')`);
+  if (btn) btn.classList.add('active');
+  if (!loaded[id] && loaders[id]) { loaders[id](); loaded[id] = true; }
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [qs, cats, locs, events, teams, sessions] = await Promise.all([
+    db('/questions?status=eq.active&select=id,question_type'),
+    db('/questions?status=eq.active&select=category'),
+    db('/kbt_loc?select=id'),
+    db('/kbt_event?select=id&order=id.desc&limit=5'),
+    db('/kbt_team?select=id'),
+    db('/kbt_sess?select=id'),
+  ]);
+
+  document.getElementById('d-questions').textContent = qs.length.toLocaleString();
+  const mm = qs.filter(q => q.question_type !== 'standard').length;
+  document.getElementById('d-multimedia').textContent = mm + ' multimedia';
+
+  const catCounts = {};
+  cats.forEach(r => { if (r.category) catCounts[r.category] = (catCounts[r.category]||0)+1; });
+  const catArr = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('d-categories').textContent = catArr.length;
+
+  // Populate QR dropdown too
+  const sel = document.getElementById('qr-cat');
+  catArr.forEach(([name]) => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name; sel.appendChild(o);
+  });
+
+  document.getElementById('d-venues').textContent = locs.length;
+  document.getElementById('d-events').textContent = '1,135 events on record';
+  document.getElementById('d-teams').textContent = teams.length.toLocaleString();
+  document.getElementById('d-sessions').textContent = sessions.length.toLocaleString() + ' sessions recorded';
+
+  const maxC = catArr[0]?.[1] || 1;
+  document.getElementById('d-cat-bars').innerHTML = catArr.slice(0,12).map(([n,c]) =>
+    `<div class="cat-bar-row">
+      <div class="cat-name">${n}</div>
+      <div class="cat-track"><div class="cat-fill" style="width:${Math.round(c/maxC*100)}%"></div></div>
+      <div class="cat-count">${c.toLocaleString()}</div>
+    </div>`).join('');
+
+  // Recent events
+  const ev = await db('/kbt_event?order=id.desc&limit=8&select=id,event_date,event_status,event_code');
+  document.getElementById('d-recent-events').innerHTML = `<table class="tbl">
+    <thead><tr><th>Date</th><th>Code</th><th>Status</th></tr></thead>
+    <tbody>${ev.map(e=>`<tr>
+      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
+      <td style="font-weight:700;color:var(--blue)">${e.event_code||'—'}</td>
+      <td><span class="badge ${e.event_status==='active'?'badge-green':'badge-grey'}">${e.event_status||'—'}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// ── AI QUESTION FINDER ────────────────────────────────────────────
+let aiQuestions = [];
+
+async function generateAIQuestions() {
+  const topic = document.getElementById('ai-topic').value.trim();
+  if (!topic) { alert('Enter a topic first'); return; }
+  const category = document.getElementById('ai-category').value;
+  const difficulty = document.getElementById('ai-difficulty').value;
+  const count = parseInt(document.getElementById('ai-count').value) || 10;
+
+  const btn = document.getElementById('ai-gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating…';
+  document.getElementById('ai-status-msg').textContent = '';
+  document.getElementById('ai-results').innerHTML = '';
+  document.getElementById('ai-batch-btns').style.display = 'none';
+
+  try {
+    const prompt = `You are a professional pub trivia writer for Know Brainer Trivia in Melbourne, Australia.
+Generate exactly ${count} trivia questions about: "${topic}"
+${category ? `Category: ${category}` : ''}
+${difficulty ? `Difficulty: ${difficulty}` : 'Mix of difficulties'}
+
+Rules:
+- Each question must have a clear, unambiguous correct answer
+- Answers should be concise (1-5 words ideally)
+- Questions should be fun, engaging, suitable for a pub trivia night
+- Include Australian/local flavour where relevant
+- NO questions that are too obscure or niche
+
+Return ONLY valid JSON array, no markdown, no explanation:
+[{"q":"question text","a":"answer","category":"${category||'auto'}","difficulty":"easy|medium|hard","fun_fact":"one interesting extra fact"}]`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    aiQuestions = JSON.parse(clean);
+
+    renderAIQuestions();
+    document.getElementById('ai-batch-btns').style.display = 'flex';
+    document.getElementById('ai-status-msg').textContent = `${aiQuestions.length} questions generated`;
+  } catch(e) {
+    document.getElementById('ai-results').innerHTML = `<div class="panel"><div class="panel-body" style="color:var(--red)">${e.message}</div></div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate Questions';
+}
+
+function renderAIQuestions() {
+  document.getElementById('ai-results').innerHTML = aiQuestions.map((q, i) => `
+    <div class="ai-q-card ${q._status||'pending'}" id="aiq-${i}">
+      <div class="ai-q-question">${i+1}. ${q.q}</div>
+      <div class="ai-q-answer">✓ ${q.a}</div>
+      ${q.fun_fact ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-style:italic">💡 ${q.fun_fact}</div>` : ''}
+      <div class="ai-q-meta">
+        <span class="badge badge-grey">${q.category||'General'}</span>
+        <span class="badge ${q.difficulty==='hard'?'badge-red':q.difficulty==='easy'?'badge-green':'badge-yellow'}">${q.difficulty||'medium'}</span>
+        <span class="ai-status ${q._status||'pending'}" id="aiq-status-${i}">
+          ${q._status==='approved'?'✓ Approved':q._status==='rejected'?'✗ Rejected':'⏳ Pending'}
+        </span>
+        <div class="ai-q-actions">
+          <button class="btn btn-green btn-sm" onclick="approveQ(${i})">✓ Approve</button>
+          <button class="btn btn-ghost btn-sm" onclick="rejectQ(${i})">✗ Skip</button>
         </div>
-    </div>
+      </div>
+    </div>`).join('');
+}
 
-    <div class="modal" id="playerBadgeAuditModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('playerBadgeAuditModal')">×</button>
-            <div class="modal-header">Badge Audit</div>
-            <div id="badgeAuditContent"></div>
-        </div>
-    </div>
+function approveQ(i) {
+  aiQuestions[i]._status = 'approved';
+  const card = document.getElementById('aiq-' + i);
+  card.className = 'ai-q-card approved';
+  document.getElementById('aiq-status-' + i).className = 'ai-status approved';
+  document.getElementById('aiq-status-' + i).textContent = '✓ Approved';
+}
 
-    <div class="modal" id="enterResultsModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('enterResultsModal')">×</button>
-            <div class="modal-header">Enter Results</div>
-            <div class="form-group">
-                <label class="form-label">Home Team</label>
-                <select class="form-control"><option>Select team...</option></select>
+function rejectQ(i) {
+  aiQuestions[i]._status = 'rejected';
+  const card = document.getElementById('aiq-' + i);
+  card.className = 'ai-q-card rejected';
+  document.getElementById('aiq-status-' + i).className = 'ai-status rejected';
+  document.getElementById('aiq-status-' + i).textContent = '✗ Skipped';
+}
+
+function approveAll() {
+  aiQuestions.forEach((_, i) => { if (!aiQuestions[i]._status || aiQuestions[i]._status === 'pending') approveQ(i); });
+}
+
+async function saveApproved() {
+  const approved = aiQuestions.filter(q => q._status === 'approved');
+  if (!approved.length) { alert('No approved questions to save'); return; }
+
+  const btn = document.getElementById('ai-save-btn');
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  const rows = approved.map(q => ({
+    source: 'kbt', question: q.q, answer: q.a,
+    category: q.category || 'General Knowledge',
+    difficulty: q.difficulty || 'medium',
+    question_type: 'standard', status: 'active', points: 1
+  }));
+
+  const res = await fetch(SB + '/questions', {
+    method: 'POST',
+    headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(rows)
+  });
+
+  if (res.ok) {
+    btn.textContent = `✓ Saved ${approved.length} questions!`;
+    btn.style.background = 'var(--green)'; btn.style.color = '#fff';
+    approved.forEach(q => q._status = 'saved');
+    setTimeout(() => { btn.textContent = 'Save Approved to DB'; btn.disabled = false; btn.style = ''; }, 3000);
+  } else {
+    btn.textContent = 'Error — try again';
+    btn.disabled = false;
+  }
+}
+
+// ── QUESTION REVIEW ────────────────────────────────────────────
+let qrOffset = 0, qrSearchTimer;
+const QR_LIMIT = 25;
+
+async function loadQR(reset) {
+  if (reset) qrOffset = 0;
+  const search = document.getElementById('qr-search')?.value;
+  const cat = document.getElementById('qr-cat')?.value;
+  const type = document.getElementById('qr-type')?.value;
+  let url = `/questions?status=eq.active&order=id&limit=${QR_LIMIT}&offset=${qrOffset}&select=id,question,answer,category,question_type,difficulty`;
+  if (cat) url += `&category=eq.${encodeURIComponent(cat)}`;
+  if (type) url += `&question_type=eq.${type}`;
+  if (search) url += `&question=ilike.*${encodeURIComponent(search)}*`;
+
+  document.getElementById('qr-table').innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
+  const rows = await db(url);
+
+  document.getElementById('qr-table').innerHTML = `<table class="tbl">
+    <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th><th>Type</th><th>Diff</th></tr></thead>
+    <tbody>${rows.map(q=>`<tr>
+      <td style="color:var(--muted);width:50px">${q.id}</td>
+      <td>${q.question.substring(0,75)}${q.question.length>75?'…':''}</td>
+      <td style="color:var(--blue);font-weight:600">${q.answer}</td>
+      <td><span class="badge badge-grey">${q.category||'—'}</span></td>
+      <td><span class="badge ${q.question_type==='standard'?'badge-blue':'badge-green'}">${q.question_type}</span></td>
+      <td>${q.difficulty||'—'}</td>
+    </tr>`).join('')}</tbody></table>`;
+
+  document.getElementById('qr-page-info').textContent = `Showing ${qrOffset+1}–${qrOffset+rows.length}`;
+  document.getElementById('qr-total').textContent = `(${(qrOffset+rows.length).toLocaleString()}+)`;
+}
+function qrPage(dir) { qrOffset = Math.max(0, qrOffset + dir * QR_LIMIT); loadQR(false); }
+function debounceQR() { clearTimeout(qrSearchTimer); qrSearchTimer = setTimeout(()=>loadQR(true), 400); }
+
+// ── QUIZ GEN ───────────────────────────────────────────────────────
+async function generateQuiz() {
+  const name = document.getElementById('qg-name').value || 'New Quiz';
+  const rounds = parseInt(document.getElementById('qg-rounds').value) || 6;
+  const perRound = parseInt(document.getElementById('qg-per-round').value) || 5;
+  const cats = [...document.getElementById('qg-cats').selectedOptions].map(o => o.value);
+  const includeMultimedia = document.getElementById('qg-multimedia').value === 'yes';
+
+  document.getElementById('qg-result').innerHTML = '<div class="loading"><span class="spinner"></span>Building quiz…</div>';
+
+  // Fetch questions per category
+  const questionsPerCat = Math.ceil((rounds * perRound) / cats.length) + 2;
+  const allQ = [];
+  for (const cat of cats) {
+    const qs = await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=${questionsPerCat}&order=random()`);
+    allQ.push(...qs);
+    if (allQ.length >= rounds * perRound) break;
+  }
+
+  // Build rounds
+  const quiz = [];
+  let qi = 0;
+  for (let r = 0; r < rounds; r++) {
+    const round = { round: r + 1, questions: [] };
+    for (let q = 0; q < perRound; q++) {
+      if (allQ[qi]) round.questions.push(allQ[qi++]);
+    }
+    quiz.push(round);
+  }
+
+  // Add one multimedia round if requested
+  if (includeMultimedia) {
+    const mmQ = await db(`/questions?status=eq.active&question_type=neq.standard&limit=5`);
+    if (mmQ.length) quiz.push({ round: rounds + 1, questions: mmQ, multimedia: true });
+  }
+
+  document.getElementById('qg-result').innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">📋 ${name} — ${quiz.reduce((s,r)=>s+r.questions.length,0)} Questions</span>
+        <button class="btn btn-ghost btn-sm" onclick="printQuiz()">🖨 Print</button>
+      </div>
+      <div class="panel-body" id="qg-rounds">
+        ${quiz.map(r=>`
+          <div style="margin-bottom:20px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--blue)">
+              Round ${r.round}${r.multimedia?' 🎬 Multimedia':''}
             </div>
-            <div class="form-group">
-                <label class="form-label">Away Team</label>
-                <select class="form-control"><option>Select team...</option></select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Home Score</label>
-                <input type="number" class="form-control">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Away Score</label>
-                <input type="number" class="form-control">
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="enterResults()">Save Result</button>
-        </div>
-    </div>
+            <table class="tbl">
+              <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th></tr></thead>
+              <tbody>${r.questions.map((q,i)=>`<tr>
+                <td style="color:var(--muted)">${i+1}</td>
+                <td>${q.question}</td>
+                <td style="color:var(--blue);font-weight:600">${q.answer}</td>
+                <td><span class="badge badge-grey">${q.category||'—'}</span></td>
+              </tr>`).join('')}</tbody>
+            </table>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
 
-    <script>
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeToggle();
-        }
+// ── LIVE SCORING ───────────────────────────────────────────────────
+async function loadLiveScoring() {
+  const events = await db('/kbt_event?event_status=eq.active&order=id.desc&limit=10&select=id,event_date,event_code,event_status');
+  if (!events.length) {
+    document.getElementById('ls-content').innerHTML = '<div class="empty">No active events. Events show here when status = active.</div>';
+    return;
+  }
+  document.getElementById('ls-content').innerHTML = `<table class="tbl">
+    <thead><tr><th>ID</th><th>Date</th><th>Code</th><th>Status</th><th></th></tr></thead>
+    <tbody>${events.map(e=>`<tr>
+      <td style="color:var(--muted)">${e.id}</td>
+      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
+      <td style="font-weight:700;color:var(--blue)">${e.event_code||'—'}</td>
+      <td><span class="badge badge-green">Active</span></td>
+      <td><button class="btn btn-primary btn-sm" onclick="alert('Live scoring coming soon!')">Score</button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        function updateThemeToggle() {
-            const btn = document.getElementById('themeToggle');
-            const theme = document.documentElement.getAttribute('data-theme');
-            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
-        }
+// ── LOCATIONS ──────────────────────────────────────────────────────
+async function loadLocations() {
+  const locs = await db('/kbt_loc?order=id&select=id,loc_fullname,loc_nickname,loc_town,loc_region,loc_status,loc_freq');
+  document.getElementById('loc-table').innerHTML = `<table class="tbl">
+    <thead><tr><th>Name</th><th>Nickname</th><th>Town</th><th>Frequency</th><th>Status</th></tr></thead>
+    <tbody>${locs.map(l=>`<tr>
+      <td style="font-weight:600">${l.loc_fullname||'—'}</td>
+      <td style="color:var(--blue)">${l.loc_nickname||'—'}</td>
+      <td>${l.loc_town||'—'}</td>
+      <td style="color:var(--muted)">${l.loc_freq||'—'}</td>
+      <td><span class="badge ${l.loc_status==='active'?'badge-green':'badge-grey'}">${l.loc_status||'—'}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeToggle();
-        }
+// ── HOSTS ──────────────────────────────────────────────────────────
+async function loadHosts() {
+  const hosts = await db('/kbt_host?order=id&select=id,host_firstname,host_lastname,host_displayname,host_email,is_active');
+  document.getElementById('hosts-table').innerHTML = `<table class="tbl">
+    <thead><tr><th>Name</th><th>Display Name</th><th>Email</th><th>Status</th></tr></thead>
+    <tbody>${hosts.map(h=>`<tr>
+      <td style="font-weight:600">${h.host_firstname||''} ${h.host_lastname||''}</td>
+      <td style="color:var(--blue)">${h.host_displayname||'—'}</td>
+      <td style="color:var(--muted)">${h.host_email||'—'}</td>
+      <td><span class="badge ${h.is_active?'badge-green':'badge-grey'}">${h.is_active?'Active':'Inactive'}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        function navigateTo(section) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.getElementById(section + '-section').classList.add('active');
-            document.querySelectorAll('[data-section]').forEach(a => a.classList.remove('active'));
-            document.querySelectorAll(`[data-section="${section}"]`).forEach(a => a.classList.add('active'));
-            const titles = {
-                dashboard: 'Dashboard', teams: 'Teams', players: 'Players', venues: 'Venues',
-                hosts: 'Hosts', leagues: 'Leagues', awards: 'Awards', badges: 'Badges',
-                powerups: 'Power-ups', analytics: 'Analytics', broadcast: 'Broadcast',
-                export: 'Export', codes: 'Codes', settings: 'Settings'
-            };
-            document.getElementById('pageTitle').textContent = titles[section];
-        }
+// ── TEAMS ──────────────────────────────────────────────────────────
+async function loadTeams() {
+  const teams = await db('/kbt_team?order=id.desc&limit=100&select=id,created_at,team_email,team_prevname');
+  document.getElementById('teams-table').innerHTML = `<table class="tbl">
+    <thead><tr><th>ID</th><th>Email</th><th>Previous Name</th><th>Joined</th></tr></thead>
+    <tbody>${teams.map(t=>`<tr>
+      <td style="color:var(--muted)">${t.id.substring(0,8)}…</td>
+      <td>${t.team_email||'—'}</td>
+      <td>${t.team_prevname||'—'}</td>
+      <td style="color:var(--muted)">${t.created_at?t.created_at.substring(0,10):'—'}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        document.querySelectorAll('[data-section]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                navigateTo(link.getAttribute('data-section'));
-            });
-        });
+// ── EVENTS ─────────────────────────────────────────────────────────
+async function loadEventsFull() {
+  const events = await db('/kbt_event?order=id.desc&limit=50&select=id,event_date,event_status,event_code,event_description');
+  document.getElementById('events-table').innerHTML = `<table class="tbl">
+    <thead><tr><th>ID</th><th>Date</th><th>Code</th><th>Status</th><th>Description</th></tr></thead>
+    <tbody>${events.map(e=>`<tr>
+      <td style="color:var(--muted)">${e.id}</td>
+      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
+      <td style="font-weight:700;color:var(--blue)">${e.event_code||'—'}</td>
+      <td><span class="badge ${e.event_status==='active'?'badge-green':'badge-grey'}">${e.event_status||'—'}</span></td>
+      <td style="color:var(--muted)">${(e.event_description||'').substring(0,50)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
 
-        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
-        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('active');
-            }
-        }
-
-        function switchTab(tabId, btn) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        function createTeam() { alert('Team created!'); closeModal('createTeamModal'); }
-        function createPlayer() { alert('Player added!'); closeModal('createPlayerModal'); }
-        function createVenue() { alert('Venue added!'); closeModal('createVenueModal'); }
-        function createHost() { alert('Host added!'); closeModal('createHostModal'); }
-        function createBadge() { alert('Badge created!'); closeModal('createBadgeModal'); }
-        function awardBadge() { alert('Badge awarded!'); closeModal('bulkAwardModal'); }
-
-        function generateAwards() {
-            const awards = [
-                { name: 'Season Champion', emoji: '👑', winner: 'Quiz Masters' },
-                { name: 'MVP', emoji: '⭐', winner: 'Alex Johnson' },
-                { name: 'Hottest Streak', emoji: '🔥', winner: 'Brain Busters' }
-            ];
-            let html = '';
-            awards.forEach(award => {
-                html += `<div class="award-badge">
-                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">${award.emoji}</div>
-                    <div class="award-name">${award.name}</div>
-                    <div class="award-winner">${award.winner}</div>
-                </div>`;
-            });
-            document.getElementById('generatedAwardsContainer').innerHTML = html;
-            alert('Awards generated!');
-        }
-
-        function publishAwards() { alert('Awards published!'); }
-        function createCustomAward() { alert('Custom award created!'); closeModal('createAwardModal'); }
-        function savePowerups() { alert('Power-ups saved!'); closeModal('managePowerupsModal'); }
-
-        function generateCharts() {
-            const playerGrowthChart = document.getElementById('playerGrowthChart');
-            if (playerGrowthChart) {
-                playerGrowthChart.innerHTML = `
-                    <div class="bar" style="height: 60%;"><div class="bar-label">Jan</div><div class="bar-value">8</div></div>
-                    <div class="bar" style="height: 70%;"><div class="bar-label">Feb</div><div class="bar-value">10</div></div>
-                    <div class="bar" style="height: 85%;"><div class="bar-label">Mar</div><div class="bar-value">12</div></div>
-                    <div class="bar" style="height: 95%;"><div class="bar-label">Apr</div><div class="bar-value">14</div></div>
-                    <div class="bar" style="height: 100%;"><div class="bar-label">May</div><div class="bar-value">16</div></div>
-                `;
-            }
-            const venueChart = document.getElementById('venueAttendanceChart');
-            if (venueChart) {
-                venueChart.innerHTML = `
-                    <div class="bar" style="height: 75%;"><div class="bar-label">Bar A</div><div class="bar-value">12</div></div>
-                    <div class="bar" style="height: 85%;"><div class="bar-label">Bar B</div><div class="bar-value">14</div></div>
-                    <div class="bar" style="height: 95%;"><div class="bar-label">Bar D</div><div class="bar-value">16</div></div>
-                `;
-            }
-            const categoryChart = document.getElementById('categoryChart');
-            if (categoryChart) {
-                categoryChart.innerHTML = `
-                    <div class="stat-row"><span class="stat-row-label">History</span><span class="stat-row-value">78%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 78%;"></div></div>
-                    <div class="stat-row"><span class="stat-row-label">Science</span><span class="stat-row-value">82%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 82%;"></div></div>
-                `;
-            }
-            const completionChart = document.getElementById('completionChart');
-            if (completionChart) {
-                completionChart.innerHTML = `
-                    <div class="stat-row"><span class="stat-row-label">Completed</span><span class="stat-row-value">87%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 87%; background: var(--success);"></div></div>
-                `;
-            }
-            const registrationChart = document.getElementById('registrationChart');
-            if (registrationChart) {
-                registrationChart.innerHTML = `
-                    <div class="stat-row"><span class="stat-row-label">This Month</span><span class="stat-row-value">+8 players</span></div>
-                    <div class="stat-row"><span class="stat-row-label">Growth Rate</span><span class="stat-row-value">+60%</span></div>
-                `;
-            }
-        }
-
-        function createAnnouncement() { alert('Announcement created!'); closeModal('createAnnouncementModal'); }
-
-        function loadAnnouncements() {
-            document.getElementById('active-announcements').innerHTML = `
-                <div class="announcement-item">
-                    <div class="announcement-title">New Venue Alert<span class="announcement-badge" style="margin-left: 1rem;">Alert</span></div>
-                    <p style="margin-top: 0.5rem;">A new quiz venue is opening next month!</p>
-                </div>
-            `;
-            document.getElementById('archived-announcements').innerHTML = '<p style="color: var(--text-light);">No archived announcements</p>';
-        }
-
-        function exportTeams() {
-            const csv = 'Team Name,Code,Players\nQuiz Masters,TM-1234,4\nBrain Busters,BB-5678,4';
-            downloadCSV('teams.csv', csv);
-        }
-
-        function exportPlayers() { downloadCSV('players.csv', 'Player Name,Code,Team\nAlex Johnson,PL-1001,Quiz Masters'); }
-        function exportLeagueStandings() { downloadCSV('standings.csv', 'Position,Team,Played,Wins,Points\n1,Quiz Masters,5,4,12'); }
-        function exportSeasonResults() { downloadCSV('season_results.csv', 'Date,Venue,Winner,Score\n2024-01-15,Bar A,Quiz Masters,85'); }
-        function exportBadgeReport() { downloadCSV('badge_report.csv', 'Player,Badge,Earned Date\nAlex Johnson,Quiz Master,2024-01-15'); }
-
-        function downloadCSV(filename, csv) {
-            const link = document.createElement('a');
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-            link.download = filename;
-            link.click();
-        }
-
-        function copyTeamsToClipboard() { navigator.clipboard.writeText('Team Name,Code,Players\nQuiz Masters,TM-1234,4'); }
-        function copyPlayersToClipboard() { navigator.clipboard.writeText('Player Name,Code,Team\nAlex Johnson,PL-1001,Quiz Masters'); }
-        function copyLeagueToClipboard() { navigator.clipboard.writeText('Position,Team,Played,Wins,Points\n1,Quiz Masters,5,4,12'); }
-        function copySeasonToClipboard() { navigator.clipboard.writeText('Date,Venue,Winner,Score\n2024-01-15,Bar A,Quiz Masters,85'); }
-        function copyBadgesToClipboard() { navigator.clipboard.writeText('Player,Badge,Earned Date\nAlex Johnson,Quiz Master,2024-01-15'); }
-
-        function toggleSetting(element) { element.classList.toggle('active'); }
-        function saveSettings() { alert('Settings saved!'); }
-        function saveAdminProfile() { alert('Admin profile updated!'); }
-        function regenerateAdminCode() {
-            const newCode = 'ADM-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            alert('New admin code generated: ' + newCode + '\n\n(Trial build only — this is a mock regeneration and is not persisted.)');
-        }
-
-        function adminLoginSubmit() {
-            const input = document.getElementById('adminLoginCode');
-            const err = document.getElementById('adminLoginError');
-            const code = (input.value || '').toUpperCase().trim();
-            if (code === 'ADMIN1') {
-                document.getElementById('adminLoginGate').classList.add('hidden');
-                localStorage.setItem('kbtAdminCode', code);
-            } else {
-                err.textContent = 'Invalid admin code. Try ADMIN1.';
-                input.value = '';
-                input.focus();
-            }
-        }
-
-        function generateBulkCodes() { alert('Generated 10 team codes and 10 player codes'); }
-        function loadLeagueTable() { document.getElementById('leagueTableContainer').style.display = 'block'; }
-        function newSeason() { if (confirm('Start new season?')) alert('New season started!'); }
-        function enterResults() { alert('Results saved!'); closeModal('enterResultsModal'); }
-        function logout() { window.location.reload(); }
-
-        function renderPendingRegistrations() {
-            let queue = [];
-            try { queue = JSON.parse(localStorage.getItem('kbtPendingRegistrations') || '[]'); } catch (e) { queue = []; }
-            const widget = document.getElementById('pendingRegistrationsWidget');
-            const list = document.getElementById('pendingRegistrationsList');
-            const count = document.getElementById('pendingRegistrationsCount');
-            if (!widget || !list || !count) return;
-            if (!queue.length) { widget.style.display = 'none'; return; }
-            widget.style.display = 'block';
-            count.textContent = queue.length;
-            list.innerHTML = '';
-            queue.forEach((entry, idx) => {
-                const row = document.createElement('div');
-                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #ffe58f; border-radius:6px; padding:10px 14px;';
-                const when = new Date(entry.ts || Date.now()).toLocaleString();
-                row.innerHTML = `
-                    <div>
-                        <div style="font-weight:600; color:#333;">${entry.name || '(unnamed)'}</div>
-                        <div style="font-size:12px; color:#856404;">wants to join <strong>${entry.teamName || entry.teamCode || 'team'}</strong> (code ${entry.teamCode || '—'}) • ${when}</div>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn btn-primary btn-small" style="padding:6px 12px; font-size:12px;" onclick="approvePendingRegistration(${idx})">Approve</button>
-                        <button class="btn btn-secondary btn-small" style="padding:6px 12px; font-size:12px;" onclick="rejectPendingRegistration(${idx})">Reject</button>
-                    </div>
-                `;
-                list.appendChild(row);
-            });
-        }
-
-        function approvePendingRegistration(idx) {
-            let queue = [];
-            try { queue = JSON.parse(localStorage.getItem('kbtPendingRegistrations') || '[]'); } catch (e) {}
-            const entry = queue[idx];
-            if (!entry) return;
-            queue.splice(idx, 1);
-            localStorage.setItem('kbtPendingRegistrations', JSON.stringify(queue));
-            alert('Approved ' + entry.name + ' into ' + (entry.teamName || entry.teamCode));
-            renderPendingRegistrations();
-        }
-
-        function rejectPendingRegistration(idx) {
-            let queue = [];
-            try { queue = JSON.parse(localStorage.getItem('kbtPendingRegistrations') || '[]'); } catch (e) {}
-            const entry = queue[idx];
-            if (!entry) return;
-            queue.splice(idx, 1);
-            localStorage.setItem('kbtPendingRegistrations', JSON.stringify(queue));
-            renderPendingRegistrations();
-        }
-
-        // Refresh widget every 5 seconds to pick up new registrations from other tabs
-        setInterval(renderPendingRegistrations, 5000);
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'kbtPendingRegistrations') renderPendingRegistrations();
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            renderPendingRegistrations();
-            loadLiveTeams();
-            setInterval(loadLiveTeams, 5000);
-            const adminInput = document.getElementById('adminLoginCode');
-            if (adminInput) {
-                adminInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') adminLoginSubmit();
-                });
-                const saved = localStorage.getItem('kbtAdminCode');
-                if (saved === 'ADMIN1') {
-                    adminInput.value = saved;
-                    adminLoginSubmit();
-                }
-            }
-
-            initTheme();
-            generateCharts();
-            loadAnnouncements();
-
-            const powerups = ['Double Points', 'Skip Question', 'Extra Time', 'Peek Answer', 'Team Boost'];
-            let html = '';
-            powerups.forEach(pu => {
-                html += `<div class="badge-item"><div class="badge-emoji">⚡</div><div class="badge-title">${pu}</div><div class="badge-count">Active</div></div>`;
-            });
-            if (document.getElementById('powerupGrid')) document.getElementById('powerupGrid').innerHTML = html;
-            if (document.getElementById('powerupManagementList')) document.getElementById('powerupManagementList').innerHTML = html;
-        });
-
-        async function loadLiveTeams() {
-            try {
-                if (!window.kbtData) return;
-                const code = window.kbtData.TARGET_EVENT_CODE;
-                const ev = await window.kbtData.getEventByCode(code);
-                const widget = document.getElementById('liveTeamsWidget');
-                const list = document.getElementById('liveTeamsList');
-                const count = document.getElementById('liveTeamsCount');
-                const header = document.getElementById('liveEventHeader');
-                if (!widget || !list || !count) return;
-                if (!ev) { widget.style.display = 'none'; return; }
-                header.textContent = ev.event_description + ' (' + ev.event_date + ') — status: ' + (ev.event_status || '—');
-                const [regs, leaderboard] = await Promise.all([
-                    window.kbtData.getRegisteredTeams(ev.id),
-                    window.kbtData.getLeaderboard(code).catch(function(){ return []; })
-                ]);
-                const scoreMap = {};
-                leaderboard.forEach(function(s){ scoreMap[s.team_name] = s.total; });
-                widget.style.display = 'block';
-                count.textContent = regs.length;
-                list.innerHTML = '';
-                if (!regs.length) {
-                    const empty = document.createElement('div');
-                    empty.style.cssText = 'background:#fff; border:1px dashed #7dd3fc; border-radius:6px; padding:10px 14px; color:#075985; font-size:13px;';
-                    empty.textContent = 'No teams registered yet.';
-                    list.appendChild(empty);
-                } else {
-                    const sorted = regs.slice().sort(function(a, b){
-                        const sa = scoreMap[(a.team && a.team.team_name) || a.display_name] || 0;
-                        const sb = scoreMap[(b.team && b.team.team_name) || b.display_name] || 0;
-                        return sb - sa;
-                    });
-                    const maxPts = Math.max(1, ...sorted.map(function(r){
-                        const tn = (r.team&&r.team.team_name)||r.display_name||'';
-                        return scoreMap[tn]||0;
-                    }));
-                    sorted.forEach(function(r, i) {
-                        const row = document.createElement('div');
-                        row.style.cssText = 'background:#fff;border:1px solid #bae6fd;border-radius:10px;padding:12px 16px;margin-bottom:6px;box-shadow:0 1px 3px rgba(0,0,0,0.04);';
-                        const team = r.team || {};
-                        const teamName = team.team_name || r.display_name || '(unnamed)';
-                        const pts = scoreMap[teamName] !== undefined ? scoreMap[teamName] : null;
-                        const ptsDisplay = pts !== null ? pts : '—';
-                        const pct = pts !== null ? Math.round((pts/maxPts)*100) : 0;
-                        const emoji = r.team_emoji || '🎯';
-                        const color = r.team_color || '#2C94C2';
-                        const medal = i===0&&pts>0?'🥇':i===1&&pts>0?'🥈':i===2&&pts>0?'🥉':'';
-                        const rank = medal || ('#'+(i+1));
-                        row.innerHTML =
-                            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
-                            '<span style="font-size:20px;line-height:1;">'+emoji+'</span>' +
-                            '<div style="flex:1;min-width:0;">' +
-                            '<div style="font-weight:700;color:#0c4a6e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+rank+' '+(r.display_name||teamName)+'</div>' +
-                            '<div style="font-size:11px;color:#64748b;">'+teamName+'</div>' +
-                            '</div>' +
-                            '<div style="text-align:right;flex-shrink:0;">' +
-                            '<div style="font-size:22px;font-weight:800;color:'+color+';">'+ptsDisplay+'</div>' +
-                            '<div style="font-size:10px;color:#94a3b8;margin-top:-2px;">pts</div>' +
-                            '</div></div>' +
-                            '<div style="background:#f1f5f9;border-radius:4px;height:6px;overflow:hidden;">' +
-                            '<div style="height:100%;background:'+color+';width:'+pct+'%;border-radius:4px;transition:width 0.5s ease;"></div>' +
-                            '</div>';
-                        list.appendChild(row);
-                    });
-                }
-                const unlinked = leaderboard.filter(function(s){
-                    return !regs.some(function(r){ return (r.team&&r.team.team_name)===s.team_name||r.display_name===s.team_name; });
-                });
-                if (unlinked.length) {
-                    const sep = document.createElement('div');
-                    sep.style.cssText = 'font-size:11px;color:#64748b;margin:8px 0 4px;font-weight:600;';
-                    sep.textContent = 'HOST-ENTERED SCORES';
-                    list.appendChild(sep);
-                    const maxU = Math.max(1, ...unlinked.map(function(s){ return s.total; }));
-                    unlinked.forEach(function(s, i) {
-                        const row = document.createElement('div');
-                        row.style.cssText = 'background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px;margin-bottom:6px;';
-                        const pct = Math.round((s.total/maxU)*100);
-                        row.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
-                            '<div style="font-weight:600;color:#334155;">#'+(i+1)+' '+s.team_name+'</div>' +
-                            '<div style="font-size:20px;font-weight:800;color:#64748b;">'+s.total+' <span style="font-size:10px;font-weight:400;color:#94a3b8;">pts</span></div>' +
-                            '</div><div style="background:#e2e8f0;border-radius:4px;height:5px;">' +
-                            '<div style="height:100%;background:#94a3b8;width:'+pct+'%;border-radius:4px;"></div></div>';
-                        list.appendChild(row);
-                    });
-                }
-                let ts = document.getElementById('liveTeamsTimestamp');
-                if (!ts) { ts=document.createElement('div'); ts.id='liveTeamsTimestamp'; ts.style.cssText='font-size:11px;color:#94a3b8;text-align:right;margin-top:6px;'; widget.appendChild(ts); }
-                ts.textContent = 'Updated ' + new Date().toLocaleTimeString();
-            } catch (e) {
-                console.warn('[kbt] loadLiveTeams failed:', e);
-            }
-        }
-        loadLiveTeams();
-        setInterval(loadLiveTeams, 8000);
-    </script>
+// ── BOOT ───────────────────────────────────────────────────────────
+loadDashboard();
+loaded['dashboard'] = true;
+</script>
 </body>
 </html>
