@@ -1017,7 +1017,7 @@ async function approveAllDrafts() {
 
 
 // ── FACT CHECK ────────────────────────────────────────────────────
-const FACT_CHECK_API = '/api/fact-check';
+const FACT_CHECK_API = 'https://kbt-fact-check.pgallivan.workers.dev';
 
 async function factCheckAll() {
   const pending = aiQuestions.filter(q => q._status !== 'rejected');
