@@ -163,6 +163,20 @@ textarea{resize:vertical;min-height:70px}
   .stats-grid{grid-template-columns:1fr 1fr}
   .main{padding:16px}
 }
+
+/* FACT CHECK */
+.fc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.fc-pass{background:#dcfce7;color:#16a34a}
+.fc-edit{background:#fef9c3;color:#ca8a04}
+.fc-fail{background:#fee2e2;color:#dc2626}
+.fc-checking{background:#e0f2fe;color:#0369a1}
+.fc-row{background:#fafafa;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
+.fc-row td{padding:6px 12px 10px}
+.quality-bar{display:flex;gap:3px;align-items:center;margin-top:3px}
+.quality-pip{width:18px;height:6px;border-radius:2px;background:var(--border)}
+.quality-pip.filled{background:var(--blue)}
+.quality-pip.filled.low{background:var(--red)}
+.quality-pip.filled.mid{background:var(--yellow)}
 </style>
 </head>
 <body>
@@ -358,7 +372,8 @@ textarea{resize:vertical;min-height:70px}
           <span id="ai-status-msg" style="font-size:13px;color:var(--muted)"></span>
           <div style="margin-left:auto;display:flex;gap:6px" id="ai-batch-btns" style="display:none">
             <button class="btn btn-green btn-sm" onclick="approveAll()">✓ Approve All</button>
-            <button class="btn btn-ghost btn-sm" onclick="saveApproved()" id="ai-save-btn">Save Approved to DB</button>
+            <button class="btn btn-ghost btn-sm" onclick="factCheckAll()" id="ai-fc-btn">🔍 Fact Check All</button>
+          <button class="btn btn-ghost btn-sm" onclick="saveApproved()" id="ai-save-btn">Save Approved to DB</button>
           </div>
         </div>
       </div>
@@ -552,6 +567,7 @@ textarea{resize:vertical;min-height:70px}
       <div class="panel-header">
         <span class="panel-title">Pipeline-generated questions awaiting approval <span id="dr-count" style="color:var(--muted);font-weight:400"></span></span>
         <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="factCheckDraftBatch()" id="dr-fc-btn">🔍 Fact Check</button>
           <button class="btn btn-green btn-sm" onclick="approveAllDrafts()">✓ Approve All</button>
           <button class="btn btn-ghost btn-sm" onclick="loadDrafts()">↻ Refresh</button>
         </div>
@@ -999,7 +1015,159 @@ async function approveAllDrafts() {
   loadDrafts();
 }
 
+
+// ── FACT CHECK ────────────────────────────────────────────────────
+const FACT_CHECK_API = '/api/fact-check';
+
+async function factCheckAll() {
+  const pending = aiQuestions.filter(q => q._status !== 'rejected');
+  if (!pending.length) return;
+
+  const btn = document.getElementById('ai-fc-btn');
+  btn.innerHTML = '<span class="spinner"></span> Checking…';
+  btn.disabled = true;
+
+  // Show checking state on all cards
+  pending.forEach((q, _) => {
+    const idx = aiQuestions.indexOf(q);
+    const statusEl = document.getElementById('aiq-status-' + idx);
+    if (statusEl) { statusEl.className = 'ai-status'; statusEl.innerHTML = '<span class="fc-badge fc-checking">⏳ Checking…</span>'; }
+  });
+
+  try {
+    const res = await fetch(FACT_CHECK_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: pending.map(q => ({ q: q.q, a: q.a, category: q.category, difficulty: q.difficulty })) })
+    });
+    const data = await res.json();
+    if (!data.results) throw new Error(data.error || 'No results');
+
+    // Apply results back to questions
+    data.results.forEach((r, i) => {
+      const q = pending[i];
+      const idx = aiQuestions.indexOf(q);
+      q._fc = r;
+
+      // Update the card
+      const card = document.getElementById('aiq-' + idx);
+      const statusEl = document.getElementById('aiq-status-' + idx);
+      if (!card) return;
+
+      const vcls = r.verdict === 'PASS' ? 'fc-pass' : r.verdict === 'EDIT' ? 'fc-edit' : 'fc-fail';
+      const vemoji = r.verdict === 'PASS' ? '✓' : r.verdict === 'EDIT' ? '⚠' : '✗';
+
+      // Build quality pips
+      const score = r.quality_score || 0;
+      const pips = Array.from({length:10}, (_,i) =>
+        `<div class="quality-pip ${i < score ? 'filled ' + (score < 5 ? 'low' : score < 7 ? 'mid' : '') : ''}"></div>`).join('');
+
+      // Insert FC result below meta row
+      const existing = card.querySelector('.fc-detail');
+      if (existing) existing.remove();
+
+      const detail = document.createElement('div');
+      detail.className = 'fc-detail';
+      detail.style.cssText = 'margin-top:8px;padding-top:8px;border-top:1px solid var(--border)';
+      detail.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="fc-badge ${vcls}">${vemoji} ${r.verdict}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:var(--muted)">Quality ${score}/10</span>
+            <div class="quality-bar">${pips}</div>
+          </div>
+          <span style="font-size:12px;color:var(--muted)">${r.fact_status} · ${r.verdict_reason}</span>
+        </div>
+        ${r.fact_notes ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">🔍 ${r.fact_notes}</div>` : ''}
+        ${r.corrected_answer ? `<div style="font-size:12px;color:var(--red);margin-top:4px">❌ Correct answer: <strong>${r.corrected_answer}</strong></div>` : ''}
+        ${r.suggested_rewrite ? `<div style="font-size:12px;color:var(--blue);margin-top:4px">✏️ Suggested: <em>${r.suggested_rewrite}</em></div>` : ''}
+      `;
+      card.appendChild(detail);
+
+      // Auto-approve PASSed, mark FAILed
+      if (r.verdict === 'PASS' && !q._status) approveQ(idx);
+      if (r.verdict === 'FAIL') rejectQ(idx);
+    });
+
+    const s = data.summary;
+    document.getElementById('ai-status-msg').textContent =
+      `Fact check: ${s.pass} pass · ${s.edit} needs edit · ${s.fail} failed`;
+
+  } catch(e) {
+    document.getElementById('ai-status-msg').textContent = '❌ Fact check error: ' + e.message;
+  }
+
+  btn.innerHTML = '🔍 Fact Check All';
+  btn.disabled = false;
+}
+
+async function factCheckDraftBatch() {
+  const rows = document.querySelectorAll('#dr-table tbody tr[id^="dr-row-"]');
+  if (!rows.length) return;
+
+  const btn = document.getElementById('dr-fc-btn');
+  btn.innerHTML = '<span class="spinner"></span> Checking…';
+  btn.disabled = true;
+
+  // Collect questions from table
+  const qs = [];
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    qs.push({
+      id: row.id.replace('dr-row-', ''),
+      q: cells[1]?.textContent?.trim(),
+      a: cells[2]?.textContent?.trim(),
+      category: cells[3]?.textContent?.trim()
+    });
+  });
+
+  try {
+    const res = await fetch(FACT_CHECK_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ questions: qs })
+    });
+    const data = await res.json();
+
+    data.results.forEach((r, i) => {
+      const q = qs[i];
+      const row = document.getElementById('dr-row-' + q.id);
+      if (!row) return;
+
+      const vcls = r.verdict === 'PASS' ? 'fc-pass' : r.verdict === 'EDIT' ? 'fc-edit' : 'fc-fail';
+
+      // Insert detail row
+      const detail = row.nextSibling;
+      const detailRow = document.createElement('tr');
+      detailRow.className = 'fc-row';
+      detailRow.id = 'fc-row-' + q.id;
+      detailRow.innerHTML = `<td colspan="7">
+        <span class="fc-badge ${vcls}">${r.verdict}</span>
+        <span style="margin-left:8px">Q:${r.quality_score}/10 · ${r.fact_status}</span>
+        <span style="margin-left:8px;color:var(--muted)">${r.verdict_reason}</span>
+        ${r.corrected_answer ? `<span style="margin-left:8px;color:var(--red)">→ Fix: ${r.corrected_answer}</span>` : ''}
+        ${r.suggested_rewrite ? `<span style="margin-left:8px;color:var(--blue)">✏️ ${r.suggested_rewrite}</span>` : ''}
+      </td>`;
+      row.after(detailRow);
+
+      // Auto-reject FAILs
+      if (r.verdict === 'FAIL') {
+        row.style.opacity = '0.4';
+        row.querySelectorAll('button')[0].disabled = true;
+      }
+    });
+
+    const s = data.summary;
+    btn.innerHTML = `✓ ${s.pass} pass · ${s.edit} edit · ${s.fail} fail`;
+  } catch(e) {
+    btn.innerHTML = '❌ Error';
+    console.error(e);
+  }
+  btn.disabled = false;
+}
+
 // ── BOOT ───────────────────────────────────────────────────────────
+
 
 loadDashboard();
 loaded['dashboard'] = true;
