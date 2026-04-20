@@ -1,8 +1,3 @@
-/**
- * /api/fact-check
- * Routes through Asgard AI which has ANTHROPIC_API_KEY configured
- * Uses Claude Sonnet with web search for deep fact verification
- */
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -14,60 +9,68 @@ export default async function handler(req, res) {
   if (!questions?.length) return res.status(400).json({ error: 'questions[] required' });
 
   const KEY = process.env.ANTHROPIC_API_KEY;
-  if (!KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Vercel env' });
+  if (!KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
 
-  const prompt = `You are a senior trivia quality auditor for Know Brainer Trivia — a professional pub trivia company running weekly nights across Melbourne pubs.
+  const questionsText = questions.map((q, i) =>
+    `[${i}] Q: ${q.q}\n    A: ${q.a}\n    Category: ${q.category || 'General'}\n    Difficulty: ${q.difficulty || 'medium'}`
+  ).join('\n\n');
 
-Your job: evaluate EVERY question below using TWO lenses:
+  const prompt = `You are a senior trivia quality auditor for Know Brainer Trivia — a pub trivia company running weekly nights at Melbourne pubs. You deeply understand what makes a great pub trivia question based on KBT's own philosophy.
 
-━━━ LENS 1: QUALITY SCORING ━━━
-Score each question 0–10 based on:
-• CLARITY (0-2): Is the question unambiguous? One clear interpretation only?
-• ANSWER (0-2): Is the answer specific, concise (ideally 1-4 words), and indisputably correct?
-• AUDIENCE FIT (0-2): Can a typical pub-goer reasonably know this? Not too obscure, not too simple?
-• ENGAGEMENT (0-2): Does it create a "oh yeah!" or "I should have known that!" moment?
-• PUB SAFE (0-2): Appropriate for a mixed adult pub audience? No sensitive/offensive content?
+KBT QUALITY STANDARDS:
 
-DISQUALIFY (score 0) if:
-- Multiple valid answers exist
-- Answer is a number that requires knowing an exact figure (e.g. "How many bones in the human body?")
-- Question is about something that may have changed (e.g. "Who is the current Prime Minister?")
-- Answer is too long (>6 words)
-- Question is offensive or politically charged
+1. GUESSABLE (even without knowing)
+   - Can it be logically narrowed down? Reducible to a set of possible values?
+   - No worse than 4-to-1 odds with logic. Answer should feel like "of course!"
+   - INSTANT FAIL: leaves teams with nothing to work with
 
-━━━ LENS 2: FACT VERIFICATION ━━━
-Verify the answer is factually correct. Use your knowledge to check.
-Status options:
-• VERIFIED — 100% confident, well-known fact
-• LIKELY — Probably correct, minor uncertainty
-• UNCERTAIN — Not confident, needs human check  
-• WRONG — Answer is incorrect (provide correction)
+2. INCLUSIVE (not a trivia snob question)  
+   - Normal pub-goer should have a fighting chance
+   - INSTANT FAIL: obscure-for-obscure's-sake (e.g. "What is an aglet?" = immediate reject)
+   - Would only hardcore trivia nerds know this? Reject it.
 
-━━━ QUESTIONS TO EVALUATE ━━━
-${questions.map((q, i) => `[${i}] Q: ${q.q}\n    A: ${q.a}\n    Category: ${q.category || 'General'}\n    Difficulty: ${q.difficulty || 'medium'}`).join('\n\n')}
+3. ENTERTAINING (creates team debate and drama)
+   - "I should've known that!" moments
+   - Sparks debate between teammates, each knowing different pieces
+   - Cross-genre questions are great (music + film + sport)
+   - "Hidden in plain sight" — things you see daily but never thought about
+   - Nostalgic but not so old it excludes younger players
 
-━━━ VERDICT RULES ━━━
-PASS    → quality ≥ 7 AND fact is VERIFIED or LIKELY
-EDIT    → quality 5-6, OR fact is UNCERTAIN, OR minor wording fix needed
-FAIL    → quality < 5, OR fact is WRONG, OR disqualified
+4. EDUCATIONAL (definitively correct)
+   - No urban myths, no old wives tales, don't trust first Google result
+   - If source needed, cite in question phrasing ("According to X...")
+   - INSTANT FAIL: Time-sensitive answers (current populations, records, holders) unless timestamped
+   - INSTANT FAIL: Undefinable/disputable (river lengths, coastlines, building heights, species counts)
+   - INSTANT FAIL: Multiple valid correct answers exist
 
-Return ONLY a JSON array, no markdown, no explanation:
-[{"index":0,"quality_score":8,"quality_breakdown":{"clarity":2,"answer":2,"audience_fit":2,"engagement":1,"pub_safe":1},"quality_notes":"Brief issue if any","fact_status":"VERIFIED","fact_notes":"Why you're confident","corrected_answer":null,"suggested_rewrite":null,"verdict":"PASS","verdict_reason":"One line summary"}]
+5. WELL-CRAFTED
+   - Not too wordy — no paragraph of background needed
+   - Consider flipping subject/object so the answer is the interesting payoff
+   - Answer: short (1-4 words ideal), specific, easy to score unambiguously
+   - INSTANT FAIL: Answers requiring exact contested figures
 
-If fact is WRONG, set corrected_answer to the right answer.
-If quality < 7 but fixable, set suggested_rewrite to an improved version.`;
+6. PUB-SAFE: appropriate for mixed adult pub audience
+
+Questions to evaluate:
+${questionsText}
+
+Scoring 0-10:
+9-10: Exemplary KBT question | 7-8: Good | 5-6: Needs rewrite | 3-4: Poor | 0-2: Instant fail
+
+Fact verification: VERIFIED (100% confident) | LIKELY (probably correct) | UNCERTAIN (flag for human) | WRONG (incorrect, provide fix)
+
+Verdict: PASS (score≥7 AND VERIFIED/LIKELY) | EDIT (score 5-6 OR UNCERTAIN OR fixable) | FAIL (score<5 OR WRONG OR instant-fail)
+
+Return ONLY valid JSON array:
+[{"index":0,"quality_score":8,"quality_breakdown":{"guessable":2,"inclusive":2,"entertaining":2,"educational":2},"quality_notes":"Brief note","fact_status":"VERIFIED","fact_notes":"Why confident","corrected_answer":null,"suggested_rewrite":null,"cheat_risk":"low","verdict":"PASS","verdict_reason":"One line summary"}]`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': KEY,
-        'anthropic-version': '2023-06-01',
-      },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 6000,
+        max_tokens: 8000,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }],
       })
@@ -76,18 +79,14 @@ If quality < 7 but fixable, set suggested_rewrite to an improved version.`;
     const data = await r.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
 
-    // Get the last text block (after any tool use)
     const textBlock = [...(data.content || [])].reverse().find(b => b.type === 'text');
-    if (!textBlock?.text) return res.status(500).json({ error: 'No text in response', raw: data });
+    if (!textBlock?.text) return res.status(500).json({ error: 'No response text', raw: JSON.stringify(data.content) });
 
     const clean = textBlock.text.replace(/```json\n?|```/g, '').trim();
     const results = JSON.parse(clean);
-
-    // Summary stats
     const pass = results.filter(r => r.verdict === 'PASS').length;
     const edit = results.filter(r => r.verdict === 'EDIT').length;
     const fail = results.filter(r => r.verdict === 'FAIL').length;
-
     return res.status(200).json({ results, summary: { pass, edit, fail, total: results.length } });
   } catch (e) {
     return res.status(500).json({ error: e.message });
