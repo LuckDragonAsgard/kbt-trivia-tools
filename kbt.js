@@ -83,7 +83,7 @@ const KBT = {
   // GET armada events (real KBT events)
   async getEvents(limit = 20) {
     const res = await fetch(
-      `${this.SUPABASE}/rest/v1/armada_event?order=id.desc&limit=${limit}&select=*`,
+      `${this.SUPABASE}/rest/v1/kbt_event?order=id.desc&limit=${limit}&select=*`,
       { headers: this.headers() }
     );
     return res.json();
@@ -92,7 +92,7 @@ const KBT = {
   // GET venues
   async getVenues() {
     const res = await fetch(
-      `${this.SUPABASE}/rest/v1/armada_loc?order=id&select=id,loc_fullname,loc_nickname,loc_town,loc_status`,
+      `${this.SUPABASE}/rest/v1/kbt_loc?order=id&select=id,loc_fullname,loc_nickname,loc_town,loc_status`,
       { headers: this.headers() }
     );
     return res.json();
