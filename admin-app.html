@@ -226,6 +226,10 @@ textarea{resize:vertical;min-height:70px}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       Grading Queue
     </button>
+    <button class="nav-item" onclick="nav('draft-review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Draft Review <span id="draft-badge" style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px"></span>
+    </button>
   </div>
 
   <div class="sidebar-section">
@@ -537,6 +541,25 @@ textarea{resize:vertical;min-height:70px}
     </div>
   </div>
 
+
+  <!-- DRAFT REVIEW -->
+  <div class="section" id="sec-draft-review">
+    <div class="page-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <h1>Draft Review</h1>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Pipeline-generated questions awaiting approval <span id="dr-count" style="color:var(--muted);font-weight:400"></span></span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-green btn-sm" onclick="approveAllDrafts()">✓ Approve All</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadDrafts()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="dr-table"><div class="loading"><span class="spinner"></span>Loading drafts…</div></div>
+    </div>
+  </div>
+
 </div><!-- /main -->
 </div><!-- /app-body -->
 
@@ -555,7 +578,7 @@ const loaders = {
   'dashboard': loadDashboard, 'locations': loadLocations,
   'hosts': loadHosts, 'teams': loadTeams, 'events': loadEventsFull,
   'question-review': loadQR, 'ai-finder': null,
-  'live-scoring': loadLiveScoring, 'quiz-gen': null,
+  'live-scoring': loadLiveScoring, 'quiz-gen': null, 'draft-review': loadDrafts,
 };
 const loaded = {};
 
@@ -919,9 +942,72 @@ async function loadEventsFull() {
     </tr>`).join('')}</tbody></table>`;
 }
 
+
+// ── DRAFT REVIEW ───────────────────────────────────────────────
+async function loadDrafts() {
+  document.getElementById('dr-table').innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
+  const rows = await db('/questions?status=eq.draft&order=id.desc&limit=100&select=id,question,answer,category,difficulty,fun_fact,source');
+  document.getElementById('dr-count').textContent = `(${rows.length} pending)`;
+  document.getElementById('draft-badge').textContent = rows.length || '';
+
+  if (!rows.length) {
+    document.getElementById('dr-table').innerHTML = '<div class="empty" style="padding:24px">No drafts — pipeline will add questions daily at 6am AEST.</div>';
+    return;
+  }
+
+  document.getElementById('dr-table').innerHTML = `
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th><th>Diff</th><th>Fun Fact</th><th>Action</th></tr></thead>
+      <tbody>${rows.map(q=>`<tr id="dr-row-${q.id}">
+        <td style="color:var(--muted);width:40px">${q.id}</td>
+        <td style="max-width:280px">${q.question}</td>
+        <td style="color:var(--blue);font-weight:600;max-width:120px">${q.answer}</td>
+        <td><span class="badge badge-grey">${q.category||'—'}</span></td>
+        <td><span class="badge ${q.difficulty==='hard'?'badge-red':q.difficulty==='easy'?'badge-green':'badge-yellow'}">${q.difficulty||'—'}</span></td>
+        <td style="color:var(--muted);font-size:12px;max-width:180px">${q.fun_fact?q.fun_fact.substring(0,80)+'…':''}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-green btn-sm" onclick="approveDraft(${q.id})" style="margin-right:4px">✓</button>
+          <button class="btn btn-red btn-sm" onclick="rejectDraft(${q.id})">✗</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+async function approveDraft(id) {
+  await fetch(SB + `/questions?id=eq.${id}`, {
+    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ status: 'active' })
+  });
+  document.getElementById(`dr-row-${id}`)?.remove();
+}
+
+async function rejectDraft(id) {
+  await fetch(SB + `/questions?id=eq.${id}`, {
+    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ status: 'rejected' })
+  });
+  document.getElementById(`dr-row-${id}`)?.remove();
+}
+
+async function approveAllDrafts() {
+  if (!confirm('Approve ALL draft questions and make them active?')) return;
+  await fetch(SB + '/questions?status=eq.draft', {
+    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ status: 'active' })
+  });
+  document.getElementById('draft-badge').textContent = '';
+  loadDrafts();
+}
+
 // ── BOOT ───────────────────────────────────────────────────────────
+
 loadDashboard();
 loaded['dashboard'] = true;
+// Load draft badge count on boot
+db('/questions?status=eq.draft&select=id').then(r => {
+  if (r.length) document.getElementById('draft-badge').textContent = r.length;
+});
+
 </script>
 </body>
 </html>
