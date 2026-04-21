@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Know Brainer — Submit Answers</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--blue:#2c94c2;--yellow:#fbc500;--charcoal:#383737;--bg:#f8fafc}
+body{font-family:'Outfit',sans-serif;background:var(--bg);min-height:100vh;padding-bottom:40px}
+.topbar{background:var(--charcoal);padding:14px 20px;display:flex;align-items:center;gap:10px}
+.logo{font-family:'Fira Sans Condensed',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.logo span{color:var(--yellow)}
+.team-chip{background:rgba(255,255,255,.15);color:#fff;font-size:12px;padding:4px 10px;border-radius:10px;margin-left:auto}
+.main{max-width:480px;margin:0 auto;padding:20px}
+.round-header{text-align:center;margin-bottom:24px}
+.round-num{font-family:'Fira Sans Condensed',sans-serif;font-size:48px;font-weight:900;color:var(--blue);line-height:1}
+.round-label{font-size:13px;color:#666;margin-top:2px}
+.q-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px}
+.q-num{font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.q-type{display:inline-block;font-size:10px;font-weight:700;background:#e8f4fb;color:var(--blue);padding:2px 7px;border-radius:10px;margin-bottom:8px}
+.q-answer{width:100%;border:2px solid #e5e7eb;border-radius:8px;padding:10px 14px;font-size:16px;font-family:'Outfit',sans-serif;outline:none;transition:.15s}
+.q-answer:focus{border-color:var(--blue)}
+.mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.mc-opt{padding:10px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;text-align:center;cursor:pointer;transition:.1s;background:#fff}
+.mc-opt.selected{background:var(--blue);color:#fff;border-color:var(--blue)}
+.submit-btn{width:100%;padding:16px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;margin-top:16px}
+.submit-btn:active{transform:scale(.98)}
+.submit-btn:disabled{opacity:.5}
+.success-screen{text-align:center;padding:40px 20px}
+.success-icon{font-size:64px;margin-bottom:16px}
+.success-title{font-family:'Fira Sans Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--charcoal)}
+.success-sub{font-size:14px;color:#666;margin-top:8px}
+.round-btns{display:flex;gap:8px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.round-btn{padding:10px 20px;border:2px solid var(--blue);border-radius:8px;color:var(--blue);font-weight:700;font-size:14px;cursor:pointer;background:#fff}
+.round-btn.current{background:var(--blue);color:#fff}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">KNOW<span>BRAINER</span></div>
+  <div class="team-chip" id="team-chip">Loading…</div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="loading" style="text-align:center;padding:40px;color:#9ca3af">Loading quiz…</div>
+</div>
+
+<script>
+const SB='https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+const H={apikey:KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+
+const params=new URLSearchParams(location.search);
+const eventCode=params.get('code')||localStorage.getItem('kbt_event_code')||'';
+const teamId=params.get('team')||localStorage.getItem('kbt_team_id')||'';
+const teamName=params.get('name')||localStorage.getItem('kbt_team_name')||'Your Team';
+const round=parseInt(params.get('round')||'1');
+
+let eventData=null, quizSlots=[], answers={};
+
+document.getElementById('team-chip').textContent=teamName;
+
+async function init(){
+  const evs=await fetch(`${SB}/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=id,event_code,event_description`,{headers:H}).then(r=>r.json());
+  eventData=evs[0];
+  if(!eventData){document.getElementById('main-content').innerHTML='<div style="text-align:center;padding:40px;color:#9ca3af">Event not found</div>';return;}
+
+  const qs=await fetch(`${SB}/kbt_quiz?quiz_event_id=eq.${eventData.id}&quiz_item_round=eq.${round}&order=quiz_item_order.asc&select=id,quiz_item_round,quiz_item_number,quiz_points,quiz_qtype,quiz_question_id`,{headers:H}).then(r=>r.json());
+  
+  if(qs.length){
+    const qids=[...new Set(qs.map(q=>q.quiz_question_id).filter(Boolean))];
+    let qMap={};
+    if(qids.length){
+      const qd=await fetch(`${SB}/kbt_question?id=in.(${qids.join(',')})&select=id,question_question_text,question_question_supporttext`,{headers:H}).then(r=>r.json());
+      qd.forEach(q=>qMap[q.id]=q);
+    }
+    quizSlots=qs.map(s=>({...s,qd:qMap[s.quiz_question_id]||{}}));
+  }
+
+  renderQuiz();
+}
+
+function renderQuiz(){
+  const content=document.getElementById('main-content');
+  const isBonus=[].includes; // check later
+  
+  let html=`<div class="round-header">
+    <div class="round-num">Round ${round}</div>
+    <div class="round-label">Enter your answers below</div>
+  </div>`;
+
+  if(!quizSlots.length){
+    // No quiz linked - show generic answer slots
+    for(let i=1;i<=10;i++){
+      html+=`<div class="q-card">
+        <div class="q-num">Question ${i}</div>
+        <input class="q-answer" id="ans-Q${i}" placeholder="Your answer…" autocomplete="off">
+      </div>`;
+    }
+    html+=`<div class="q-card" style="border-color:#fbc500">
+      <div class="q-num">🎯 Bonus Question</div>
+      <input class="q-answer" id="ans-BONUS" placeholder="Your best guess…" autocomplete="off">
+    </div>`;
+  } else {
+    quizSlots.forEach(slot=>{
+      const q=slot.qd;
+      const qText=q.question_question_text||'';
+      const type=slot.quiz_qtype||'standard';
+      const isBonus=type==='bonus_1'||type==='bonus_ht';
+      const isGambler=type==='gambler';
+      const isMC=type==='multiple_choice'||type==='50-50';
+
+      html+=`<div class="q-card" ${isBonus?'style="border-color:#22c55e"':isGambler?'style="border-color:#fb4141"':''}>
+        <div class="q-num">${isBonus?'🎯 Bonus':isGambler?'🎲 Gambler':'Question '+slot.quiz_item_number}</div>
+        ${type!=='standard'?`<div class="q-type">${type.replace(/_/g,' ')}</div>`:''}
+        ${qText?`<div style="font-size:13px;color:#374151;margin-bottom:10px">${qText}</div>`:''}
+        ${isGambler?`
+          <div style="font-size:12px;color:#666;margin-bottom:8px">How many points do you want to wager?</div>
+          <input class="q-answer" id="ans-GAMBLER_WAGER" type="number" placeholder="Enter your wager (0 to your total)" style="width:120px">
+          <div style="margin-top:8px;font-size:12px;color:#666">Your answer:</div>
+          <input class="q-answer" id="ans-GAMBLER" placeholder="Your answer…" style="margin-top:4px" autocomplete="off">
+        `:isMC?`<div class="mc-grid" id="mc-${slot.quiz_item_number}">
+          <div class="mc-opt" onclick="selectMC(this,'Q${slot.quiz_item_number}','A')">A</div>
+          <div class="mc-opt" onclick="selectMC(this,'Q${slot.quiz_item_number}','B')">B</div>
+          ${type!=='50-50'?`<div class="mc-opt" onclick="selectMC(this,'Q${slot.quiz_item_number}','C')">C</div>
+          <div class="mc-opt" onclick="selectMC(this,'Q${slot.quiz_item_number}','D')">D</div>`:''}
+        </div>`:`<input class="q-answer" id="ans-Q${slot.quiz_item_number}" placeholder="Your answer…" autocomplete="off">`}
+      </div>`;
+    });
+  }
+
+  html+=`<button class="submit-btn" onclick="submitAnswers()" id="submit-btn">Submit Round ${round} →</button>`;
+  content.innerHTML=html;
+}
+
+function selectMC(el,key,val){
+  el.closest('.mc-grid').querySelectorAll('.mc-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[key]=val;
+}
+
+async function submitAnswers(){
+  if(!eventData){alert('No event loaded');return;}
+  // Collect all answers
+  document.querySelectorAll('.q-answer').forEach(inp=>{
+    if(inp.id.startsWith('ans-'))answers[inp.id.replace('ans-','')]=inp.value.trim();
+  });
+
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='Submitting…';
+
+  try{
+    await fetch(`${SB}/kbt_answer_submissions`,{
+      method:'POST',
+      headers:{...H,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({event_id:eventData.id,team_id:teamId||teamName,team_name:teamName,round,answers})
+    });
+
+    document.getElementById('main-content').innerHTML=`
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Submitted!</div>
+        <div class="success-sub">Round ${round} answers locked in for ${teamName}</div>
+        <div class="round-btns">
+          ${[1,2,3].map(r=>`<div class="round-btn ${r===round?'current':''}" onclick="goRound(${r})">Round ${r}</div>`).join('')}
+        </div>
+      </div>`;
+  }catch(e){
+    btn.disabled=false;btn.textContent='Submit Round '+round+' →';
+    alert('Error: '+e.message);
+  }
+}
+
+function goRound(r){
+  const url=new URL(location.href);
+  url.searchParams.set('round',r);
+  location.href=url.toString();
+}
+
+init();
+</script>
+</body>
+</html>
