@@ -2,6 +2,14 @@
   "version": 2,
   "routes": [
     {
+      "src": "/presentation",
+      "dest": "/presentation.html"
+    },
+    {
+      "src": "/presentation/",
+      "dest": "/presentation.html"
+    },
+    {
       "src": "/join",
       "dest": "/join.html"
     },
