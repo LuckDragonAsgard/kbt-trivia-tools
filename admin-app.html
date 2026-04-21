@@ -4,1221 +4,793 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Know Brainer — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --white:#ffffff;--bg:#f5f5f7;--surface:#ffffff;
-  --sidebar-bg:#ffffff;--sidebar-width:220px;
-  --blue:#1d6fa4;--blue-light:#e8f2f9;--blue-mid:#2580b8;
-  --text:#111;--text2:#444;--muted:#888;--border:#e5e5e5;
+  --bg:#f4f4f5;--white:#fff;--border:#e4e4e7;
+  --blue:#2c7cb0;--blue-light:#e8f2f9;
+  --text:#18181b;--text2:#52525b;--muted:#a1a1aa;
   --green:#16a34a;--green-bg:#dcfce7;
-  --red:#dc2626;--red-bg:#fee2e2;
-  --yellow:#ca8a04;--yellow-bg:#fef9c3;
-  --radius:8px;
-  --shadow:0 1px 3px rgba(0,0,0,.08);
+  --sidebar:220px;--topbar:52px;
 }
-body{font-family:'Barlow',sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+body{font-family:'Inter',sans-serif;font-size:13px;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
 
 /* TOP BAR */
-.topbar{height:52px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;position:sticky;top:0;z-index:100}
-.logo{display:flex;flex-direction:column;line-height:1;text-decoration:none}
-.logo-main{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;letter-spacing:-.5px;color:#111}
-.logo-sub{font-size:11px;font-weight:400;color:var(--muted);letter-spacing:.5px}
-.topbar-spacer{flex:1}
-.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
-.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-light);border:1px solid var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--blue)}
+.topbar{height:var(--topbar);background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.logo{display:flex;flex-direction:column;line-height:1;text-decoration:none;margin-right:auto}
+.logo-main{font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--text);text-transform:uppercase}
+.logo-sub{font-size:10px;font-weight:400;color:var(--muted);margin-top:1px}
+.topbar-user{display:flex;align-items:center;gap:8px;color:var(--text2);cursor:pointer}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--blue-light);border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:var(--blue)}
 
 /* LAYOUT */
-.app-body{display:flex;flex:1;min-height:0}
+.app{display:flex;flex:1;overflow:hidden}
 
 /* SIDEBAR */
-.sidebar{width:var(--sidebar-width);background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;position:sticky;top:52px;height:calc(100vh - 52px);flex-shrink:0}
-.sidebar-section{padding:16px 12px 4px}
-.sidebar-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:0 8px;margin-bottom:4px}
-.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.1s;border:none;background:none;width:100%;text-align:left;text-decoration:none}
-.nav-item:hover{background:var(--bg);color:var(--text)}
-.nav-item.active{background:var(--blue-light);color:var(--blue);font-weight:600}
-.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:.7}
-.nav-item.active svg{opacity:1}
+.sidebar{width:var(--sidebar);background:var(--white);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar-section{padding:8px 8px 2px}
+.sidebar-label{font-size:10px;font-weight:600;color:var(--muted);padding:4px 8px 2px;text-transform:uppercase;letter-spacing:.06em}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:5px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;border:none;background:none;width:100%;text-align:left;transition:.1s}
+.nav-btn svg{width:14px;height:14px;flex-shrink:0;color:var(--muted)}
+.nav-btn:hover{background:var(--bg);color:var(--text)}
+.nav-btn.active{background:var(--blue-light);color:var(--blue);font-weight:500}
+.nav-btn.active svg{color:var(--blue)}
 
-/* MAIN CONTENT */
-.main{flex:1;overflow-y:auto;padding:28px 32px;max-width:1100px}
-.page-title{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.page-title svg{width:22px;height:22px;color:var(--blue)}
-.page-title h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+.page-head{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.page-head svg{width:18px;height:18px;color:var(--blue);flex-shrink:0}
+.page-head h1{font-size:20px;font-weight:600;letter-spacing:-.3px}
 
-/* CARDS / PANELS */
-.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
-.panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.panel-title{font-size:14px;font-weight:600;letter-spacing:-.2px}
-.panel-body{padding:18px}
+/* SECTION */
+.section{display:none}
+.section.active{display:block}
 
-/* STAT CARDS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-.stat-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
-.stat-val{font-size:28px;font-weight:900;font-family:'Barlow Condensed',sans-serif;letter-spacing:-.5px;color:var(--text);line-height:1}
-.stat-val.blue{color:var(--blue)}
-.stat-label{font-size:11px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.stat-sub{font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+/* PROFILE CARD */
+.profile-row{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:0}
+.profile-av{width:36px;height:36px;border-radius:50%;background:var(--blue-light);border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--blue);flex-shrink:0}
+.profile-cols{display:flex;gap:32px;flex:1}
+.profile-col label{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:2px}
+.profile-col span{font-size:13px;font-weight:500;color:var(--text)}
+.owner-badge{margin-left:auto;background:var(--text);color:var(--white);font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px}
+
+/* PANEL */
+.panel{background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:16px}
+.panel-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:13px;font-weight:600}
+.panel-body{padding:16px}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.stat-val{font-size:26px;font-weight:700;color:var(--blue);letter-spacing:-.5px;line-height:1}
+.stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* CAT BARS */
+.cat-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
+.cat-row:last-child{border-bottom:none}
+.cat-name{width:160px;font-size:12px;flex-shrink:0;color:var(--text)}
+.cat-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.cat-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s}
+.cat-count{width:40px;text-align:right;font-size:11px;color:var(--muted)}
 
 /* TABLE */
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:2px solid var(--border);white-space:nowrap}
-.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.tbl th{text-align:left;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:6px 10px;border-bottom:2px solid var(--border)}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:#fafafa}
 
 /* BADGE */
-.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
-.badge-blue{background:var(--blue-light);color:var(--blue)}
-.badge-green{background:var(--green-bg);color:var(--green)}
-.badge-red{background:var(--red-bg);color:var(--red)}
-.badge-yellow{background:var(--yellow-bg);color:var(--yellow)}
-.badge-grey{background:#f0f0f0;color:#666}
+.badge{display:inline-flex;align-items:center;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.bg{background:var(--green-bg);color:var(--green)}
+.bb{background:var(--blue-light);color:var(--blue)}
+.bgr{background:#f4f4f5;color:#71717a}
+.by{background:#fef9c3;color:#a16207}
+.br{background:#fee2e2;color:#dc2626}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;font-family:'Barlow',sans-serif}
-.btn-primary{background:var(--blue);color:#fff}
-.btn-primary:hover{background:var(--blue-mid)}
+/* BTNS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-blue:hover{background:#2271a3}
 .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
-.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-ghost:hover{background:var(--bg)}
 .btn-green{background:var(--green);color:#fff}
-.btn-green:hover{opacity:.9}
-.btn-red{background:var(--red);color:#fff}
-.btn-red:hover{opacity:.9}
-.btn-sm{padding:4px 10px;font-size:12px}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-red{background:#dc2626;color:#fff}
 
-/* FORMS */
-.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-input[type=text],input[type=number],select,textarea{
-  background:#fff;border:1px solid var(--border);border-radius:6px;
-  padding:7px 10px;font-size:13px;font-family:'Barlow',sans-serif;color:var(--text);
-  transition:.15s;width:100%
-}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(29,111,164,.1)}
-textarea{resize:vertical;min-height:70px}
+/* FORM */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fg label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+input,select,textarea{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:6px 10px;font-size:12px;font-family:inherit;color:var(--text);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(44,124,176,.1)}
+textarea{resize:vertical;min-height:60px}
 
-/* SECTIONS */
-.section{display:none}
-.section.active{display:block}
+/* AI CARDS */
+.ai-card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:8px}
+.ai-card.approved{border-color:var(--green);background:#f0fdf4}
+.ai-card.rejected{opacity:.4}
+.ai-q{font-size:13px;font-weight:500;margin-bottom:5px}
+.ai-a{font-size:12px;color:var(--blue);font-weight:600;margin-bottom:8px}
+.ai-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ai-actions{margin-left:auto;display:flex;gap:5px}
+.ai-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}
+.as-p{background:var(--green-bg);color:var(--green)}
+.as-r{background:#fee2e2;color:#dc2626}
+.as-w{background:#fef9c3;color:#a16207}
 
-/* AI FINDER */
-.ai-q-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;transition:.15s}
-.ai-q-card:hover{border-color:#aaa}
-.ai-q-card.approved{border-color:var(--green);background:#fafffe}
-.ai-q-card.rejected{opacity:.4;border-color:var(--border)}
-.ai-q-question{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.4}
-.ai-q-answer{font-size:13px;color:var(--blue);font-weight:600;margin-bottom:8px}
-.ai-q-meta{display:flex;gap:8px;align-items:center}
-.ai-q-actions{display:flex;gap:6px;margin-left:auto}
-.ai-status{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px}
-.ai-status.approved{background:var(--green-bg);color:var(--green)}
-.ai-status.rejected{background:var(--red-bg);color:var(--red)}
-.ai-status.pending{background:var(--yellow-bg);color:var(--yellow)}
+/* FC */
+.fc-pass{background:var(--green-bg);color:var(--green);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700}
+.fc-edit{background:#fef9c3;color:#a16207;border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700}
+.fc-fail{background:#fee2e2;color:#dc2626;border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700}
+.fc-check{background:var(--blue-light);color:var(--blue);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:700}
+.q-pips{display:flex;gap:2px;align-items:center}
+.pip{width:14px;height:4px;border-radius:2px;background:var(--border)}
+.pip.on{background:var(--blue)}
+.pip.on.lo{background:#dc2626}
+.pip.on.mid{background:#ca8a04}
 
-/* TOOLS GRID */
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.tool-tile{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 12px;text-align:center;text-decoration:none;color:var(--text);transition:.15s;display:block}
-.tool-tile:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(29,111,164,.12);transform:translateY(-1px)}
-.tool-tile-icon{font-size:28px;margin-bottom:8px}
-.tool-tile-name{font-size:13px;font-weight:700}
-.tool-tile-desc{font-size:11px;color:var(--muted);margin-top:3px}
+/* TOOLS */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.tool-tile{background:var(--white);border:1px solid var(--border);border-radius:7px;padding:14px 10px;text-align:center;text-decoration:none;color:var(--text);display:block;transition:.1s}
+.tool-tile:hover{border-color:var(--blue);box-shadow:0 2px 8px rgba(44,124,176,.1);transform:translateY(-1px)}
+.tool-icon{font-size:24px;display:block;margin-bottom:6px}
+.tool-name{font-size:12px;font-weight:600}
+.tool-desc{font-size:10px;color:var(--muted);margin-top:2px}
 
-/* LOADING / EMPTY */
-.loading{padding:32px;text-align:center;color:var(--muted);font-size:13px}
-.empty{padding:32px;text-align:center;color:var(--muted)}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+/* LOADING */
+.loading{padding:24px;text-align:center;color:var(--muted);font-size:12px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .5s linear infinite;vertical-align:middle;margin-right:5px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.empty{padding:24px;text-align:center;color:var(--muted);font-size:12px}
 
-/* SEARCH BAR */
-.search-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.search-row input{flex:1;min-width:200px}
-.search-row select{width:160px}
-
-/* CATEGORY BARS */
-.cat-bar-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
-.cat-bar-row:last-child{border-bottom:none}
-.cat-name{width:170px;font-size:13px;font-weight:500;flex-shrink:0}
-.cat-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.cat-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s}
-.cat-count{width:45px;text-align:right;font-size:12px;color:var(--muted)}
+/* SEARCH */
+.search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search-row input{flex:1;min-width:180px}
+.search-row select{width:150px}
 
 /* PAGINATION */
-.pagination{display:flex;align-items:center;gap:6px;margin-top:12px}
-.pagination span{font-size:12px;color:var(--muted);flex:1;text-align:center}
+.pg{display:flex;align-items:center;gap:6px;margin-top:10px}
+.pg span{flex:1;text-align:center;font-size:11px;color:var(--muted)}
 
-/* PROFILE CARD */
-.profile-card{display:flex;align-items:center;gap:16px;padding:16px 18px;border:1px solid var(--border);border-radius:var(--radius);background:#fff;margin-bottom:24px}
-.profile-avatar{width:44px;height:44px;border-radius:50%;background:var(--blue-light);border:2px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--blue)}
-.profile-info{flex:1}
-.profile-name{font-weight:700;font-size:15px}
-.profile-email{font-size:12px;color:var(--muted);margin-top:2px}
-.profile-badge{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px}
+/* HAMBURGER */
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:6px;background:none;border:none;margin-right:4px}
+.hamburger span{width:18px;height:2px;background:var(--text2);border-radius:1px;display:block}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99}
+.overlay.show{display:block}
 
-
-@media(max-width:768px){
-  .sidebar{
-    display:none;position:fixed;top:52px;left:0;bottom:0;z-index:200;
-    width:240px;box-shadow:4px 0 20px rgba(0,0,0,.15);
-  }
-  .sidebar.open{display:flex}
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .main{padding:16px}
-  .grid-2,.grid-3{grid-template-columns:1fr}
+@media(max-width:800px){
   .hamburger{display:flex}
+  .sidebar{position:fixed;top:var(--topbar);left:0;bottom:0;z-index:100;transform:translateX(-100%);transition:.2s;box-shadow:4px 0 16px rgba(0,0,0,.1)}
+  .sidebar.open{transform:translateX(0)}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .main{padding:16px}
 }
-.hamburger{
-  display:none;flex-direction:column;gap:4px;cursor:pointer;
-  padding:8px;border-radius:6px;background:none;border:none;
-}
-.hamburger span{display:block;width:20px;height:2px;background:var(--text2);border-radius:2px}
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;
-}
-.sidebar-overlay.show{display:block}
-
-
-/* FACT CHECK */
-.fc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700}
-.fc-pass{background:#dcfce7;color:#16a34a}
-.fc-edit{background:#fef9c3;color:#ca8a04}
-.fc-fail{background:#fee2e2;color:#dc2626}
-.fc-checking{background:#e0f2fe;color:#0369a1}
-.fc-row{background:#fafafa;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
-.fc-row td{padding:6px 12px 10px}
-.quality-bar{display:flex;gap:3px;align-items:center;margin-top:3px}
-.quality-pip{width:18px;height:6px;border-radius:2px;background:var(--border)}
-.quality-pip.filled{background:var(--blue)}
-.quality-pip.filled.low{background:var(--red)}
-.quality-pip.filled.mid{background:var(--yellow)}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
 <div class="topbar">
   <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-  <a href="/" class="logo">
-    <span class="logo-main">KNOW BRAINER</span>
-    <span class="logo-sub">Trivia.</span>
-  </a>
-  <div class="topbar-spacer"></div>
-  <div class="topbar-user">
-    <div class="user-avatar">P</div>
-    <span>Paddy</span>
-  </div>
+  <a class="logo" href="/"><div class="logo-main">Know Brainer</div><div class="logo-sub">Trivia.</div></a>
+  <div class="topbar-user"><div class="avatar">P</div></div>
 </div>
 
-<div class="app-body">
+<div class="app">
+<nav class="sidebar" id="sidebar">
 
-<!-- SIDEBAR -->
-<nav class="sidebar">
   <div class="sidebar-section">
     <div class="sidebar-label">Overview</div>
-    <button class="nav-item active" onclick="nav('dashboard')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <button class="nav-btn active" onclick="go('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
+    </button>
+    <button class="nav-btn" onclick="go('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>Workflow
     </button>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Live</div>
-    <button class="nav-item" onclick="nav('live-scoring')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>
-      Live Scoring
+    <button class="nav-btn" onclick="go('live-scoring')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Live Scoring
     </button>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Quiz Operations</div>
-    <button class="nav-item" onclick="nav('quiz-gen')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
-      Quiz Gen
+    <button class="nav-btn" onclick="go('quiz-gen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Quiz Gen
     </button>
-    <button class="nav-item" onclick="nav('quiz-edit')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      Quiz Edit
+    <button class="nav-btn" onclick="go('slide-gen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Slide Gen
+    </button>
+    <button class="nav-btn" onclick="go('quiz-edit')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Quiz Edit
     </button>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Questions</div>
-    <button class="nav-item" onclick="nav('ai-finder')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-      AI Question Finder
+    <button class="nav-btn" onclick="go('ai-finder')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>AI Question Finder
     </button>
-    <button class="nav-item" onclick="nav('question-review')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      Question Review
+    <button class="nav-btn" onclick="go('bulk-upload')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Bulk Upload
     </button>
-    <button class="nav-item" onclick="nav('grading-queue')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      Grading Queue
+    <button class="nav-btn" onclick="go('question-review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Question Review
     </button>
-    <button class="nav-item" onclick="nav('draft-review')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Draft Review <span id="draft-badge" style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px"></span>
+    <button class="nav-btn" onclick="go('grading-queue')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Grading Queue
+    </button>
+    <button class="nav-btn" onclick="go('draft-review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Draft Review <span id="draft-badge" style="background:var(--blue);color:#fff;border-radius:8px;padding:1px 5px;font-size:9px;margin-left:2px"></span>
+    </button>
+    <button class="nav-btn" onclick="go('grade-review')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>Grade Review
     </button>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-label">Multimedia Tools</div>
-    <button class="nav-item" onclick="nav('tools')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-      All Tools
+    <div class="sidebar-label">Multimedia</div>
+    <button class="nav-btn" onclick="go('tools')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>All Tools
     </button>
   </div>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Business</div>
-    <button class="nav-item" onclick="nav('locations')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      Locations
+    <button class="nav-btn" onclick="go('roster')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Roster
     </button>
-    <button class="nav-item" onclick="nav('hosts')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      Hosts
+    <button class="nav-btn" onclick="go('locations')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>Locations
     </button>
-    <button class="nav-item" onclick="nav('teams')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      Teams
+    <button class="nav-btn" onclick="go('hosts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Hosts
     </button>
-    <button class="nav-item" onclick="nav('events')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Events
+    <button class="nav-btn" onclick="go('teams')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Teams
+    </button>
+    <button class="nav-btn" onclick="go('events')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Events
+    </button>
+    <button class="nav-btn" onclick="go('members')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Members
     </button>
   </div>
+
 </nav>
 
-<!-- MAIN -->
-<div class="main">
+<div class="main" id="main">
 
-  <!-- DASHBOARD -->
-  <div class="section active" id="sec-dashboard">
-    <div class="profile-card">
-      <div class="profile-avatar">P</div>
-      <div class="profile-info">
-        <div class="profile-name">Patrick Gallivan</div>
-        <div class="profile-email">pgallivan@outlook.com</div>
-      </div>
-      <div class="profile-badge">Owner</div>
+<!-- DASHBOARD -->
+<div class="section active" id="sec-dashboard">
+  <div class="page-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <h1>Dashboard</h1>
+  </div>
+  <div class="profile-row">
+    <div class="profile-av">P</div>
+    <div class="profile-cols">
+      <div class="profile-col"><label>Display Name</label><span>Paddy</span></div>
+      <div class="profile-col"><label>Full Name</label><span>Patrick Gallivan</span></div>
+      <div class="profile-col"><label>Email</label><span>pgallivan@outlook.com</span></div>
     </div>
+    <div class="owner-badge">Owner</div>
+  </div>
+</div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val blue" id="d-questions">—</div>
-        <div class="stat-label">Active Questions</div>
-        <div class="stat-sub" id="d-multimedia">— multimedia</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="d-categories">—</div>
-        <div class="stat-label">Categories</div>
-        <div class="stat-sub">Across all question types</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="d-venues">—</div>
-        <div class="stat-label">Locations</div>
-        <div class="stat-sub" id="d-events">— events on record</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="d-teams">—</div>
-        <div class="stat-label">Teams</div>
-        <div class="stat-sub" id="d-sessions">— sessions recorded</div>
-      </div>
-    </div>
+<!-- STATS (Workflow) -->
+<div class="section" id="sec-stats">
+  <div class="page-head"><h1>Workflow</h1></div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val" id="s-q">—</div><div class="stat-label">Active Questions</div><div class="stat-sub" id="s-mm">—</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-cat">—</div><div class="stat-label">Categories</div><div class="stat-sub" id="s-dr">— drafts pending</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-loc">—</div><div class="stat-label">Locations</div><div class="stat-sub" id="s-ev">—</div></div>
+    <div class="stat-card"><div class="stat-val" id="s-teams">—</div><div class="stat-label">Teams</div><div class="stat-sub" id="s-sess">—</div></div>
+  </div>
+  <div class="two-col">
+    <div class="panel"><div class="panel-hd"><span class="panel-title">Questions by Category</span></div><div class="panel-body" id="s-cats"><div class="loading"><span class="spinner"></span>Loading…</div></div></div>
+    <div class="panel"><div class="panel-hd"><span class="panel-title">Recent Events</span></div><div style="padding:0" id="s-events"><div class="loading"><span class="spinner"></span>Loading…</div></div></div>
+  </div>
+</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="panel">
-        <div class="panel-header"><span class="panel-title">Questions by Category</span></div>
-        <div class="panel-body" id="d-cat-bars"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+<!-- LIVE SCORING -->
+<div class="section" id="sec-live-scoring">
+  <div class="page-head"><h1>Live Scoring</h1></div>
+  <div class="panel"><div class="panel-body" id="ls-body"><div class="loading"><span class="spinner"></span>Loading…</div></div></div>
+</div>
+
+<!-- QUIZ GEN -->
+<div class="section" id="sec-quiz-gen">
+  <div class="page-head"><h1>Quiz Gen</h1></div>
+  <div class="panel">
+    <div class="panel-hd"><span class="panel-title">Build a Quiz</span></div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="fg" style="flex:2"><label>Quiz Name</label><input id="qg-name" placeholder="e.g. Tuesday Night — Spotswood"></div>
+        <div class="fg" style="flex:0 0 100px"><label>Rounds</label><input type="number" id="qg-rounds" value="6" min="1" max="12"></div>
+        <div class="fg" style="flex:0 0 100px"><label>Qs / Round</label><input type="number" id="qg-per" value="5" min="3" max="10"></div>
       </div>
-      <div class="panel">
-        <div class="panel-header"><span class="panel-title">Recent Events</span></div>
-        <div class="panel-body" style="padding:0" id="d-recent-events"><div class="loading"><span class="spinner"></span>Loading…</div></div>
+      <div class="form-row">
+        <div class="fg" style="flex:2"><label>Categories</label><select id="qg-cats" multiple style="height:80px"><option selected>Movies</option><option selected>Music</option><option selected>Sport</option><option selected>Geography & Travel</option><option selected>History & Politics</option><option selected>Science & Nature</option><option>Entertainment</option><option>Food & Beverages</option><option>General Knowledge</option><option>Australiana</option></select></div>
+        <div class="fg" style="flex:1"><label>Multimedia?</label><select id="qg-mm"><option value="yes">Yes — include</option><option value="no">Standard only</option></select></div>
       </div>
+      <button class="btn btn-blue" onclick="generateQuiz()">Generate Quiz</button>
     </div>
   </div>
+  <div id="qg-result"></div>
+</div>
 
-  <!-- AI QUESTION FINDER -->
-  <div class="section" id="sec-ai-finder">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-      <h1>AI Question Finder</h1>
-    </div>
+<!-- SLIDE GEN -->
+<div class="section" id="sec-slide-gen">
+  <div class="page-head"><h1>Slide Gen</h1></div>
+  <div class="panel"><div class="panel-body"><div class="empty">Select a quiz to generate slides — coming soon.</div></div></div>
+</div>
 
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">Generate Questions with AI</span></div>
-      <div class="panel-body">
-        <div class="form-row">
-          <div class="form-group" style="flex:2">
-            <label>Topic / Theme</label>
-            <input type="text" id="ai-topic" placeholder="e.g. 90s Movies, Australian Sport, Rock Music…">
-          </div>
-          <div class="form-group" style="flex:1">
-            <label>Category</label>
-            <select id="ai-category">
-              <option value="">Auto-detect</option>
-              <option>Movies</option><option>Music</option><option>Sport</option>
-              <option>Geography & Travel</option><option>History & Politics</option>
-              <option>Science & Nature</option><option>Entertainment</option>
-              <option>Food & Beverages</option><option>General Knowledge</option>
-              <option>Australiana</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1">
-            <label>Difficulty</label>
-            <select id="ai-difficulty">
-              <option value="">Mixed</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:0 0 80px">
-            <label>Count</label>
-            <input type="number" id="ai-count" value="10" min="5" max="20">
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-primary" onclick="generateAIQuestions()" id="ai-gen-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-            Generate Questions
-          </button>
-          <span id="ai-status-msg" style="font-size:13px;color:var(--muted)"></span>
-          <div style="margin-left:auto;display:flex;gap:6px" id="ai-batch-btns" style="display:none">
-            <button class="btn btn-green btn-sm" onclick="approveAll()">✓ Approve All</button>
-            <button class="btn btn-ghost btn-sm" onclick="factCheckAll()" id="ai-fc-btn">🔍 Fact Check All</button>
-          <button class="btn btn-ghost btn-sm" onclick="saveApproved()" id="ai-save-btn">Save Approved to DB</button>
-          </div>
-        </div>
+<!-- QUIZ EDIT -->
+<div class="section" id="sec-quiz-edit">
+  <div class="page-head"><h1>Quiz Edit</h1></div>
+  <div class="panel"><div class="panel-body"><div class="empty">Select a quiz to edit — coming soon.</div></div></div>
+</div>
+
+<!-- AI FINDER -->
+<div class="section" id="sec-ai-finder">
+  <div class="page-head"><h1>AI Question Finder</h1></div>
+  <div class="panel">
+    <div class="panel-hd"><span class="panel-title">Generate with AI</span></div>
+    <div class="panel-body">
+      <div class="form-row">
+        <div class="fg" style="flex:2"><label>Topic</label><input id="ai-topic" placeholder="e.g. 90s Movies, Australian Sport…"></div>
+        <div class="fg" style="flex:1"><label>Category</label><select id="ai-cat"><option value="">Auto</option><option>Movies</option><option>Music</option><option>Sport</option><option>Geography & Travel</option><option>History & Politics</option><option>Science & Nature</option><option>Entertainment</option><option>Food & Beverages</option><option>General Knowledge</option><option>Australiana</option></select></div>
+        <div class="fg" style="flex:0 0 110px"><label>Difficulty</label><select id="ai-diff"><option value="">Mixed</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></div>
+        <div class="fg" style="flex:0 0 70px"><label>Count</label><input type="number" id="ai-count" value="10" min="5" max="20"></div>
       </div>
-    </div>
-
-    <div id="ai-results"></div>
-  </div>
-
-  <!-- QUESTION REVIEW -->
-  <div class="section" id="sec-question-review">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      <h1>Question Review</h1>
-    </div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Question Bank <span id="qr-total" style="color:var(--muted);font-weight:400"></span></span>
-        <button class="btn btn-primary btn-sm" onclick="nav('ai-finder')">+ AI Generate</button>
-      </div>
-      <div class="panel-body">
-        <div class="search-row">
-          <input type="text" id="qr-search" placeholder="Search questions…" oninput="debounceQR()">
-          <select id="qr-cat" onchange="loadQR(true)">
-            <option value="">All Categories</option>
-          </select>
-          <select id="qr-type" onchange="loadQR(true)">
-            <option value="">All Types</option>
-            <option value="standard">Standard</option>
-            <option value="face_morph">Face Morph</option>
-            <option value="brain">Brain</option>
-            <option value="guess_year">Guess Year</option>
-            <option value="crack_code">Crack Code</option>
-            <option value="linked_pics">Linked Pics</option>
-            <option value="brand">Brand</option>
-            <option value="soundmash">SoundMash</option>
-            <option value="ghost_actors">Ghost Actors</option>
-            <option value="carmen">Carmen</option>
-          </select>
-        </div>
-        <div id="qr-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-        <div class="pagination">
-          <button class="btn btn-ghost btn-sm" onclick="qrPage(-1)">← Prev</button>
-          <span id="qr-page-info"></span>
-          <button class="btn btn-ghost btn-sm" onclick="qrPage(1)">Next →</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="aiGenerate()" id="ai-btn">Generate</button>
+        <span id="ai-msg" style="font-size:12px;color:var(--muted)"></span>
+        <div id="ai-batch" style="display:none;margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="aiFCAll()" id="ai-fc-btn">🔍 Fact Check</button>
+          <button class="btn btn-ghost btn-sm" onclick="aiApproveAll()">✓ Approve All</button>
+          <button class="btn btn-ghost btn-sm" onclick="aiSave()" id="ai-save-btn">Save to DB</button>
         </div>
       </div>
     </div>
   </div>
+  <div id="ai-results"></div>
+</div>
 
-  <!-- QUIZ GEN -->
-  <div class="section" id="sec-quiz-gen">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M12 5v14M5 12h14"/></svg>
-      <h1>Quiz Gen</h1>
+<!-- BULK UPLOAD -->
+<div class="section" id="sec-bulk-upload">
+  <div class="page-head"><h1>Bulk Upload</h1></div>
+  <div class="panel"><div class="panel-body">
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Upload a CSV with columns: question, answer, category, difficulty, fun_fact</p>
+    <input type="file" id="csv-file" accept=".csv" onchange="handleCSV(event)" style="margin-bottom:12px">
+    <div id="csv-preview"></div>
+  </div></div>
+</div>
+
+<!-- QUESTION REVIEW -->
+<div class="section" id="sec-question-review">
+  <div class="page-head"><h1>Question Review</h1></div>
+  <div class="panel">
+    <div class="panel-hd"><span class="panel-title">Question Bank <span id="qr-total" style="color:var(--muted);font-weight:400"></span></span><button class="btn btn-blue btn-sm" onclick="go('ai-finder')">+ AI Generate</button></div>
+    <div class="panel-body">
+      <div class="search-row">
+        <input id="qr-search" placeholder="Search…" oninput="debQR()">
+        <select id="qr-cat" onchange="loadQR(true)"><option value="">All Categories</option></select>
+        <select id="qr-type" onchange="loadQR(true)"><option value="">All Types</option><option value="standard">Standard</option><option value="face_morph">Face Morph</option><option value="brain">Brain</option><option value="guess_year">Guess Year</option><option value="crack_code">Crack Code</option><option value="linked_pics">Linked Pics</option><option value="brand">Brand</option><option value="soundmash">SoundMash</option><option value="ghost_actors">Ghost Actors</option><option value="carmen">Carmen</option></select>
+      </div>
+      <div id="qr-table"><div class="loading"><span class="spinner"></span></div></div>
+      <div class="pg"><button class="btn btn-ghost btn-sm" onclick="qrPage(-1)">← Prev</button><span id="qr-info"></span><button class="btn btn-ghost btn-sm" onclick="qrPage(1)">Next →</button></div>
     </div>
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">Build a Quiz</span></div>
-      <div class="panel-body">
-        <div class="form-row">
-          <div class="form-group" style="flex:2">
-            <label>Quiz Name</label>
-            <input type="text" id="qg-name" placeholder="e.g. Tuesday Night — Spotswood Hotel">
-          </div>
-          <div class="form-group" style="flex:1">
-            <label>Number of Rounds</label>
-            <input type="number" id="qg-rounds" value="6" min="1" max="12">
-          </div>
-          <div class="form-group" style="flex:1">
-            <label>Qs per Round</label>
-            <input type="number" id="qg-per-round" value="5" min="3" max="10">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group" style="flex:2">
-            <label>Categories to Include</label>
-            <select id="qg-cats" multiple style="height:90px">
-              <option selected>Movies</option><option selected>Music</option>
-              <option selected>Sport</option><option selected>Geography & Travel</option>
-              <option selected>History & Politics</option><option selected>Science & Nature</option>
-              <option>Entertainment</option><option>Food & Beverages</option>
-              <option>General Knowledge</option><option>Australiana</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1">
-            <label>Include Multimedia?</label>
-            <select id="qg-multimedia">
-              <option value="yes">Yes — mix in tools</option>
-              <option value="no">No — standard only</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="generateQuiz()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-          Generate Quiz
-        </button>
+  </div>
+</div>
+
+<!-- GRADING QUEUE -->
+<div class="section" id="sec-grading-queue">
+  <div class="page-head"><h1>Grading Queue</h1></div>
+  <div class="panel"><div class="panel-body"><div class="empty">No answers pending grading.</div></div></div>
+</div>
+
+<!-- DRAFT REVIEW -->
+<div class="section" id="sec-draft-review">
+  <div class="page-head"><h1>Draft Review</h1></div>
+  <div class="panel">
+    <div class="panel-hd">
+      <span class="panel-title">Pipeline drafts <span id="dr-count" style="color:var(--muted);font-weight:400"></span></span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" id="dr-fc-btn" onclick="drFCAll()">🔍 Fact Check</button>
+        <button class="btn btn-green btn-sm" onclick="drApproveAll()">✓ Approve All</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadDrafts()">↻</button>
       </div>
     </div>
-    <div id="qg-result"></div>
+    <div id="dr-table"><div class="loading"><span class="spinner"></span></div></div>
   </div>
+</div>
 
-  <!-- QUIZ EDIT -->
-  <div class="section" id="sec-quiz-edit">
-    <div class="page-title"><h1>Quiz Edit</h1></div>
-    <div class="panel"><div class="panel-body"><div class="empty">Select a quiz to edit — coming soon.</div></div></div>
+<!-- GRADE REVIEW -->
+<div class="section" id="sec-grade-review">
+  <div class="page-head"><h1>Grade Review</h1></div>
+  <div class="panel"><div class="panel-body"><div class="empty">No grades to review.</div></div></div>
+</div>
+
+<!-- TOOLS -->
+<div class="section" id="sec-tools">
+  <div class="page-head"><h1>Multimedia Tools</h1></div>
+  <div class="tool-grid">
+    <a href="/face-morph-tool" class="tool-tile" target="_blank"><span class="tool-icon">👤</span><div class="tool-name">Face Morph</div><div class="tool-desc">AI face blend</div></a>
+    <a href="/brain-tool" class="tool-tile" target="_blank"><span class="tool-icon">🧠</span><div class="tool-name">Name the Brain</div><div class="tool-desc">Top-of-head reveal</div></a>
+    <a href="/ghost-actors-tool" class="tool-tile" target="_blank"><span class="tool-icon">👻</span><div class="tool-name">Ghost Actors</div><div class="tool-desc">Remove from stills</div></a>
+    <a href="/soundmash-tool" class="tool-tile" target="_blank"><span class="tool-icon">🎵</span><div class="tool-name">Sound Mash</div><div class="tool-desc">Song connections</div></a>
+    <a href="/crack-the-code-tool" class="tool-tile" target="_blank"><span class="tool-icon">🔐</span><div class="tool-name">Crack The Code</div><div class="tool-desc">Rebus puzzles</div></a>
+    <a href="/linked-pics-tool" class="tool-tile" target="_blank"><span class="tool-icon">🖼</span><div class="tool-name">Linked Pics</div><div class="tool-desc">4 images, 1 link</div></a>
+    <a href="/brand-tool" class="tool-tile" target="_blank"><span class="tool-icon">®️</span><div class="tool-name">Brands</div><div class="tool-desc">Brand history</div></a>
+    <a href="/carmen-sandiego-tool" class="tool-tile" target="_blank"><span class="tool-icon">🌍</span><div class="tool-name">Carmen</div><div class="tool-desc">Where in the world?</div></a>
+    <a href="/guess-the-year-tool" class="tool-tile" target="_blank"><span class="tool-icon">📅</span><div class="tool-name">Guess The Year</div><div class="tool-desc">Historical events</div></a>
+    <a href="/host-brief-tool" class="tool-tile" target="_blank"><span class="tool-icon">🎤</span><div class="tool-name">Host Brief</div><div class="tool-desc">Generate script</div></a>
   </div>
+</div>
 
-  <!-- GRADING QUEUE -->
-  <div class="section" id="sec-grading-queue">
-    <div class="page-title"><h1>Grading Queue</h1></div>
-    <div class="panel"><div class="panel-body"><div class="empty">No answers pending grading.</div></div></div>
-  </div>
+<!-- ROSTER -->
+<div class="section" id="sec-roster"><div class="page-head"><h1>Roster</h1></div><div class="panel"><div class="panel-body"><div class="empty">Host roster — coming soon.</div></div></div></div>
 
-  <!-- LIVE SCORING -->
-  <div class="section" id="sec-live-scoring">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>
-      <h1>Live Scoring</h1>
-    </div>
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">Active Events</span></div>
-      <div class="panel-body" id="ls-content"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-    </div>
-  </div>
+<!-- LOCATIONS -->
+<div class="section" id="sec-locations">
+  <div class="page-head"><h1>Locations</h1></div>
+  <div class="panel"><div style="padding:0" id="loc-tbl"><div class="loading"><span class="spinner"></span></div></div></div>
+</div>
 
-  <!-- MULTIMEDIA TOOLS -->
-  <div class="section" id="sec-tools">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-      <h1>Multimedia Tools</h1>
-    </div>
-    <div class="tools-grid">
-      <a href="/face-morph-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">👤</div><div class="tool-tile-name">Face Morph</div><div class="tool-tile-desc">AI face blender</div></a>
-      <a href="/brain-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🧠</div><div class="tool-tile-name">Name the Brain</div><div class="tool-tile-desc">Top-of-head reveal</div></a>
-      <a href="/ghost-actors-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">👻</div><div class="tool-tile-name">Ghost Actors</div><div class="tool-tile-desc">Remove actors from stills</div></a>
-      <a href="/soundmash-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🎵</div><div class="tool-tile-name">Sound Mash</div><div class="tool-tile-desc">Song connection round</div></a>
-      <a href="/crack-the-code-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🔐</div><div class="tool-tile-name">Crack The Code</div><div class="tool-tile-desc">Rebus puzzles</div></a>
-      <a href="/linked-pics-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🖼</div><div class="tool-tile-name">Linked Pics</div><div class="tool-tile-desc">4 images, one connection</div></a>
-      <a href="/brand-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">®️</div><div class="tool-tile-name">Brands</div><div class="tool-tile-desc">Brand history questions</div></a>
-      <a href="/carmen-sandiego-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🌍</div><div class="tool-tile-name">Carmen</div><div class="tool-tile-desc">Where in the world?</div></a>
-      <a href="/guess-the-year-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">📅</div><div class="tool-tile-name">Guess The Year</div><div class="tool-tile-desc">Historical events</div></a>
-      <a href="/host-brief-tool" class="tool-tile" target="_blank"><div class="tool-tile-icon">🎤</div><div class="tool-tile-name">Host Brief</div><div class="tool-tile-desc">Generate host script</div></a>
-    </div>
-  </div>
+<!-- HOSTS -->
+<div class="section" id="sec-hosts">
+  <div class="page-head"><h1>Hosts</h1></div>
+  <div class="panel"><div style="padding:0" id="hosts-tbl"><div class="loading"><span class="spinner"></span></div></div></div>
+</div>
 
-  <!-- LOCATIONS -->
-  <div class="section" id="sec-locations">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <h1>Locations</h1>
-    </div>
-    <div class="panel">
-      <div class="panel-body" style="padding:0" id="loc-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-    </div>
-  </div>
+<!-- TEAMS -->
+<div class="section" id="sec-teams">
+  <div class="page-head"><h1>Teams</h1></div>
+  <div class="panel"><div style="padding:0" id="teams-tbl"><div class="loading"><span class="spinner"></span></div></div></div>
+</div>
 
-  <!-- HOSTS -->
-  <div class="section" id="sec-hosts">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      <h1>Hosts</h1>
-    </div>
-    <div class="panel">
-      <div class="panel-body" style="padding:0" id="hosts-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-    </div>
-  </div>
+<!-- EVENTS -->
+<div class="section" id="sec-events">
+  <div class="page-head"><h1>Events</h1></div>
+  <div class="panel"><div style="padding:0" id="events-tbl"><div class="loading"><span class="spinner"></span></div></div></div>
+</div>
 
-  <!-- TEAMS -->
-  <div class="section" id="sec-teams">
-    <div class="page-title"><h1>Teams</h1></div>
-    <div class="panel">
-      <div class="panel-body" style="padding:0" id="teams-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-    </div>
-  </div>
-
-  <!-- EVENTS -->
-  <div class="section" id="sec-events">
-    <div class="page-title"><h1>Events</h1></div>
-    <div class="panel">
-      <div class="panel-body" style="padding:0" id="events-table"><div class="loading"><span class="spinner"></span>Loading…</div></div>
-    </div>
-  </div>
-
-
-  <!-- DRAFT REVIEW -->
-  <div class="section" id="sec-draft-review">
-    <div class="page-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:22px;height:22px;color:var(--blue)"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      <h1>Draft Review</h1>
-    </div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Pipeline-generated questions awaiting approval <span id="dr-count" style="color:var(--muted);font-weight:400"></span></span>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="factCheckDraftBatch()" id="dr-fc-btn">🔍 Fact Check</button>
-          <button class="btn btn-green btn-sm" onclick="approveAllDrafts()">✓ Approve All</button>
-          <button class="btn btn-ghost btn-sm" onclick="loadDrafts()">↻ Refresh</button>
-        </div>
-      </div>
-      <div id="dr-table"><div class="loading"><span class="spinner"></span>Loading drafts…</div></div>
-    </div>
-  </div>
+<!-- MEMBERS -->
+<div class="section" id="sec-members"><div class="page-head"><h1>Members</h1></div><div class="panel"><div class="panel-body"><div class="empty">Members — coming soon.</div></div></div></div>
 
 </div><!-- /main -->
-</div><!-- /app-body -->
+</div><!-- /app -->
 
 <script>
-const SB = 'https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
-const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY };
+const SB='https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
+const FC_API='https://kbt-fact-check.pgallivan.workers.dev';
 
-async function db(path) {
-  const r = await fetch(SB + path, { headers: H });
-  return r.json();
+async function db(p){const r=await fetch(SB+p,{headers:H});return r.json();}
+async function dbCount(p){const r=await fetch(SB+p,{headers:{...H,'Prefer':'count=exact','Range-Unit':'items','Range':'0-0'}});const cr=r.headers.get('content-range')||'0/0';return parseInt(cr.split('/')[1])||0;}
+
+// ── NAV ──────────────────────────────────────────────────────────
+const loaded={};
+const loaders={stats:loadStats,locations:loadLocations,hosts:loadHosts,teams:loadTeams,events:loadEvents,'question-review':loadQR,'ai-finder':null,'live-scoring':loadLiveScoring,'draft-review':loadDrafts};
+
+function go(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id)?.classList.add('active');
+  [...document.querySelectorAll('.nav-btn')].find(b=>b.getAttribute('onclick')===`go('${id}')`)?.classList.add('active');
+  if(!loaded[id]&&loaders[id]){loaders[id]();loaded[id]=true;}
+  if(window.innerWidth<=800)closeSidebar();
 }
 
-// ── NAVIGATION ──────────────────────────────────────────────────
-const loaders = {
-  'dashboard': loadDashboard, 'locations': loadLocations,
-  'hosts': loadHosts, 'teams': loadTeams, 'events': loadEventsFull,
-  'question-review': loadQR, 'ai-finder': null,
-  'live-scoring': loadLiveScoring, 'quiz-gen': null, 'draft-review': loadDrafts,
-};
-const loaded = {};
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
 
-function nav(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-  const sec = document.getElementById('sec-' + id);
-  if (sec) sec.classList.add('active');
-  const btn = [...document.querySelectorAll('.nav-item')].find(b => b.getAttribute('onclick') === `nav('${id}')`);
-  if (btn) btn.classList.add('active');
-  if (!loaded[id] && loaders[id]) { loaders[id](); loaded[id] = true; }
-}
-
-// ── DASHBOARD ────────────────────────────────────────────────────
-async function dbCount(path) {
-  // Get exact count using Range header — avoids 1000 row limit
-  const r = await fetch(SB + path, {
-    headers: { ...H, 'Prefer': 'count=exact', 'Range-Unit': 'items', 'Range': '0-0' }
-  });
-  const range = r.headers.get('content-range') || '0-0/0';
-  return parseInt(range.split('/')[1]) || 0;
-}
-
-async function loadDashboard() {
-  const [qTotal, qMM, catRes, locCount, evCount, teamCount, sessCount] = await Promise.all([
+// ── STATS / WORKFLOW ───────────────────────────────────────────────
+async function loadStats(){
+  const[qTotal,qMM,qDraft,catRes,locCount,evCount,teamCount,sessCount]=await Promise.all([
     dbCount('/questions?status=eq.active'),
     dbCount('/questions?status=eq.active&question_type=neq.standard'),
-    fetch(SB + '/questions?status=eq.active&select=category&limit=10000', { headers: H }).then(r=>r.json()),
-    dbCount('/kbt_loc'),
-    dbCount('/kbt_event'),
-    dbCount('/kbt_team'),
-    dbCount('/kbt_sess'),
+    dbCount('/questions?status=eq.draft'),
+    fetch(SB+'/questions?status=eq.active&select=category&limit=10000',{headers:H}).then(r=>r.json()),
+    dbCount('/kbt_loc'),dbCount('/kbt_event'),dbCount('/kbt_team'),dbCount('/kbt_sess'),
   ]);
+  document.getElementById('s-q').textContent=qTotal.toLocaleString();
+  document.getElementById('s-mm').textContent=qMM+' multimedia questions';
+  document.getElementById('s-cat').textContent=([...new Set(catRes.map(r=>r.category).filter(Boolean))]).length;
+  document.getElementById('s-dr').textContent=qDraft+' drafts pending review';
+  document.getElementById('s-loc').textContent=locCount.toLocaleString();
+  document.getElementById('s-ev').textContent=evCount.toLocaleString()+' events on record';
+  document.getElementById('s-teams').textContent=teamCount.toLocaleString();
+  document.getElementById('s-sess').textContent=sessCount.toLocaleString()+' sessions';
 
-  document.getElementById('d-questions').textContent = qTotal.toLocaleString();
-  document.getElementById('d-multimedia').textContent = qMM + ' multimedia';
-
-  const catCounts = {};
-  catRes.forEach(r => { if (r.category) catCounts[r.category] = (catCounts[r.category]||0)+1; });
-  const catArr = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
-  document.getElementById('d-categories').textContent = catArr.length;
+  const catCounts={};
+  catRes.forEach(r=>{if(r.category)catCounts[r.category]=(catCounts[r.category]||0)+1;});
+  const catArr=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  const maxC=catArr[0]?.[1]||1;
+  document.getElementById('s-cats').innerHTML=catArr.slice(0,15).map(([n,c])=>`
+    <div class="cat-row"><div class="cat-name">${n}</div>
+    <div class="cat-track"><div class="cat-fill" style="width:${Math.round(c/maxC*100)}%"></div></div>
+    <div class="cat-count">${c.toLocaleString()}</div></div>`).join('');
 
   // Populate QR dropdown
-  const sel = document.getElementById('qr-cat');
-  catArr.forEach(([name]) => {
-    const o = document.createElement('option');
-    o.value = name; o.textContent = name; sel.appendChild(o);
-  });
+  const sel=document.getElementById('qr-cat');
+  catArr.forEach(([n])=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o);});
 
-  document.getElementById('d-venues').textContent = locCount.toLocaleString();
-  document.getElementById('d-events').textContent = evCount.toLocaleString() + ' events on record';
-  document.getElementById('d-teams').textContent = teamCount.toLocaleString();
-  document.getElementById('d-sessions').textContent = sessCount.toLocaleString() + ' sessions recorded';
-
-  // Category bars
-  const maxC = catArr[0]?.[1] || 1;
-  document.getElementById('d-cat-bars').innerHTML = catArr.slice(0,15).map(([n,c]) =>
-    `<div class="cat-bar-row">
-      <div class="cat-name">${n}</div>
-      <div class="cat-track"><div class="cat-fill" style="width:${Math.round(c/maxC*100)}%"></div></div>
-      <div class="cat-count">${c.toLocaleString()}</div>
-    </div>`).join('');
-
-  // Recent events — use description as fallback for code
-  const ev = await db('/kbt_event?order=id.desc&limit=8&select=id,event_date,event_status,event_code,event_description');
-  document.getElementById('d-recent-events').innerHTML = `<table class="tbl">
+  const ev=await db('/kbt_event?order=id.desc&limit=8&select=id,event_date,event_status,event_code,event_description');
+  document.getElementById('s-events').innerHTML=`<table class="tbl">
     <thead><tr><th>Date</th><th>Event</th><th>Status</th></tr></thead>
     <tbody>${ev.map(e=>`<tr>
       <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
-      <td style="font-weight:600;color:var(--blue);font-size:12px">${e.event_code || (e.event_description||'').substring(0,35) || '—'}</td>
-      <td><span class="badge ${e.event_status==='active'?'badge-green':'badge-grey'}">${e.event_status||'—'}</span></td>
+      <td style="font-size:11px;color:var(--blue)">${e.event_code||(e.event_description||'').substring(0,35)||'—'}</td>
+      <td><span class="badge ${e.event_status==='active'?'bg':'bgr'}">${e.event_status||'—'}</span></td>
     </tr>`).join('')}</tbody></table>`;
+
+  // Update draft badge
+  if(qDraft>0)document.getElementById('draft-badge').textContent=qDraft;
 }
 
-// ── AI QUESTION FINDER ────────────────────────────────────────────
-let aiQuestions = [];
-
-async function generateAIQuestions() {
-  const topic = document.getElementById('ai-topic').value.trim();
-  if (!topic) { alert('Enter a topic first'); return; }
-  const category = document.getElementById('ai-category').value;
-  const difficulty = document.getElementById('ai-difficulty').value;
-  const count = parseInt(document.getElementById('ai-count').value) || 10;
-
-  const btn = document.getElementById('ai-gen-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Generating…';
-  document.getElementById('ai-status-msg').textContent = '';
-  document.getElementById('ai-results').innerHTML = '';
-  document.getElementById('ai-batch-btns').style.display = 'none';
-
-  try {
-    const prompt = `You are a professional pub trivia writer for Know Brainer Trivia in Melbourne, Australia.
-Generate exactly ${count} trivia questions about: "${topic}"
-${category ? `Category: ${category}` : ''}
-${difficulty ? `Difficulty: ${difficulty}` : 'Mix of difficulties'}
-
-Rules:
-- Each question must have a clear, unambiguous correct answer
-- Answers should be concise (1-5 words ideally)
-- Questions should be fun, engaging, suitable for a pub trivia night
-- Include Australian/local flavour where relevant
-- NO questions that are too obscure or niche
-
-Return ONLY valid JSON array, no markdown, no explanation:
-[{"q":"question text","a":"answer","category":"${category||'auto'}","difficulty":"easy|medium|hard","fun_fact":"one interesting extra fact"}]`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await res.json();
-    const raw = data.content?.[0]?.text || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    aiQuestions = JSON.parse(clean);
-
-    renderAIQuestions();
-    document.getElementById('ai-batch-btns').style.display = 'flex';
-    document.getElementById('ai-status-msg').textContent = `${aiQuestions.length} questions generated`;
-  } catch(e) {
-    document.getElementById('ai-results').innerHTML = `<div class="panel"><div class="panel-body" style="color:var(--red)">${e.message}</div></div>`;
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate Questions';
+// ── LIVE SCORING ─────────────────────────────────────────────────────
+async function loadLiveScoring(){
+  const ev=await db('/kbt_event?event_status=eq.active&order=id.desc&limit=5&select=id,event_date,event_code,event_description');
+  document.getElementById('ls-body').innerHTML=ev.length?`<table class="tbl">
+    <thead><tr><th>Date</th><th>Event</th><th>Status</th><th></th></tr></thead>
+    <tbody>${ev.map(e=>`<tr>
+      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
+      <td>${e.event_code||e.event_description||'—'}</td>
+      <td><span class="badge bg">Active</span></td>
+      <td><button class="btn btn-blue btn-sm" onclick="alert('Live scoring UI coming soon!')">Score</button></td>
+    </tr>`).join('')}</tbody></table>`
+    :'<div class="empty">No active events. Events appear here when status = active.</div>';
 }
 
-function renderAIQuestions() {
-  document.getElementById('ai-results').innerHTML = aiQuestions.map((q, i) => `
-    <div class="ai-q-card ${q._status||'pending'}" id="aiq-${i}">
-      <div class="ai-q-question">${i+1}. ${q.q}</div>
-      <div class="ai-q-answer">✓ ${q.a}</div>
-      ${q.fun_fact ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-style:italic">💡 ${q.fun_fact}</div>` : ''}
-      <div class="ai-q-meta">
-        <span class="badge badge-grey">${q.category||'General'}</span>
-        <span class="badge ${q.difficulty==='hard'?'badge-red':q.difficulty==='easy'?'badge-green':'badge-yellow'}">${q.difficulty||'medium'}</span>
-        <span class="ai-status ${q._status||'pending'}" id="aiq-status-${i}">
-          ${q._status==='approved'?'✓ Approved':q._status==='rejected'?'✗ Rejected':'⏳ Pending'}
-        </span>
-        <div class="ai-q-actions">
-          <button class="btn btn-green btn-sm" onclick="approveQ(${i})">✓ Approve</button>
-          <button class="btn btn-ghost btn-sm" onclick="rejectQ(${i})">✗ Skip</button>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-function approveQ(i) {
-  aiQuestions[i]._status = 'approved';
-  const card = document.getElementById('aiq-' + i);
-  card.className = 'ai-q-card approved';
-  document.getElementById('aiq-status-' + i).className = 'ai-status approved';
-  document.getElementById('aiq-status-' + i).textContent = '✓ Approved';
-}
-
-function rejectQ(i) {
-  aiQuestions[i]._status = 'rejected';
-  const card = document.getElementById('aiq-' + i);
-  card.className = 'ai-q-card rejected';
-  document.getElementById('aiq-status-' + i).className = 'ai-status rejected';
-  document.getElementById('aiq-status-' + i).textContent = '✗ Skipped';
-}
-
-function approveAll() {
-  aiQuestions.forEach((_, i) => { if (!aiQuestions[i]._status || aiQuestions[i]._status === 'pending') approveQ(i); });
-}
-
-async function saveApproved() {
-  const approved = aiQuestions.filter(q => q._status === 'approved');
-  if (!approved.length) { alert('No approved questions to save'); return; }
-
-  const btn = document.getElementById('ai-save-btn');
-  btn.textContent = 'Saving…';
-  btn.disabled = true;
-
-  const rows = approved.map(q => ({
-    source: 'kbt', question: q.q, answer: q.a,
-    category: q.category || 'General Knowledge',
-    difficulty: q.difficulty || 'medium',
-    question_type: 'standard', status: 'active', points: 1
-  }));
-
-  const res = await fetch(SB + '/questions', {
-    method: 'POST',
-    headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify(rows)
-  });
-
-  if (res.ok) {
-    btn.textContent = `✓ Saved ${approved.length} questions!`;
-    btn.style.background = 'var(--green)'; btn.style.color = '#fff';
-    approved.forEach(q => q._status = 'saved');
-    setTimeout(() => { btn.textContent = 'Save Approved to DB'; btn.disabled = false; btn.style = ''; }, 3000);
-  } else {
-    btn.textContent = 'Error — try again';
-    btn.disabled = false;
-  }
-}
-
-// ── QUESTION REVIEW ────────────────────────────────────────────
-let qrOffset = 0, qrSearchTimer;
-const QR_LIMIT = 25;
-
-async function loadQR(reset) {
-  if (reset) qrOffset = 0;
-  const search = document.getElementById('qr-search')?.value;
-  const cat = document.getElementById('qr-cat')?.value;
-  const type = document.getElementById('qr-type')?.value;
-  let url = `/questions?status=eq.active&order=id&limit=${QR_LIMIT}&offset=${qrOffset}&select=id,question,answer,category,question_type,difficulty`;
-  if (cat) url += `&category=eq.${encodeURIComponent(cat)}`;
-  if (type) url += `&question_type=eq.${type}`;
-  if (search) url += `&question=ilike.*${encodeURIComponent(search)}*`;
-
-  document.getElementById('qr-table').innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
-  const rows = await db(url);
-
-  document.getElementById('qr-table').innerHTML = `<table class="tbl">
+// ── QUESTION REVIEW ─────────────────────────────────────────────────
+let qrOff=0,qrTimer;const QR_LIM=25;
+async function loadQR(reset){
+  if(reset)qrOff=0;
+  const search=document.getElementById('qr-search')?.value;
+  const cat=document.getElementById('qr-cat')?.value;
+  const type=document.getElementById('qr-type')?.value;
+  let url=`/questions?status=eq.active&order=id&limit=${QR_LIM}&offset=${qrOff}&select=id,question,answer,category,question_type,difficulty`;
+  if(cat)url+=`&category=eq.${encodeURIComponent(cat)}`;
+  if(type)url+=`&question_type=eq.${type}`;
+  if(search)url+=`&question=ilike.*${encodeURIComponent(search)}*`;
+  document.getElementById('qr-table').innerHTML='<div class="loading"><span class="spinner"></span></div>';
+  const rows=await db(url);
+  document.getElementById('qr-table').innerHTML=`<table class="tbl">
     <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th><th>Type</th><th>Diff</th></tr></thead>
     <tbody>${rows.map(q=>`<tr>
-      <td style="color:var(--muted);width:50px">${q.id}</td>
-      <td>${q.question.substring(0,75)}${q.question.length>75?'…':''}</td>
+      <td style="color:var(--muted);width:40px">${q.id}</td>
+      <td>${q.question.substring(0,70)}${q.question.length>70?'…':''}</td>
       <td style="color:var(--blue);font-weight:600">${q.answer}</td>
-      <td><span class="badge badge-grey">${q.category||'—'}</span></td>
-      <td><span class="badge ${q.question_type==='standard'?'badge-blue':'badge-green'}">${q.question_type}</span></td>
+      <td><span class="badge bgr">${q.category||'—'}</span></td>
+      <td><span class="badge ${q.question_type==='standard'?'bb':'bg'}">${q.question_type}</span></td>
       <td>${q.difficulty||'—'}</td>
     </tr>`).join('')}</tbody></table>`;
-
-  document.getElementById('qr-page-info').textContent = `Showing ${qrOffset+1}–${qrOffset+rows.length}`;
-  document.getElementById('qr-total').textContent = `(${(qrOffset+rows.length).toLocaleString()}+)`;
+  document.getElementById('qr-info').textContent=`${qrOff+1}–${qrOff+rows.length}`;
+  document.getElementById('qr-total').textContent=`(${(qrOff+rows.length).toLocaleString()}+)`;
 }
-function qrPage(dir) { qrOffset = Math.max(0, qrOffset + dir * QR_LIMIT); loadQR(false); }
-function debounceQR() { clearTimeout(qrSearchTimer); qrSearchTimer = setTimeout(()=>loadQR(true), 400); }
+function qrPage(d){qrOff=Math.max(0,qrOff+d*QR_LIM);loadQR(false);}
+function debQR(){clearTimeout(qrTimer);qrTimer=setTimeout(()=>loadQR(true),400);}
 
-// ── QUIZ GEN ───────────────────────────────────────────────────────
-async function generateQuiz() {
-  const name = document.getElementById('qg-name').value || 'New Quiz';
-  const rounds = parseInt(document.getElementById('qg-rounds').value) || 6;
-  const perRound = parseInt(document.getElementById('qg-per-round').value) || 5;
-  const cats = [...document.getElementById('qg-cats').selectedOptions].map(o => o.value);
-  const includeMultimedia = document.getElementById('qg-multimedia').value === 'yes';
-
-  document.getElementById('qg-result').innerHTML = '<div class="loading"><span class="spinner"></span>Building quiz…</div>';
-
-  // Fetch questions per category
-  const questionsPerCat = Math.ceil((rounds * perRound) / cats.length) + 2;
-  const allQ = [];
-  for (const cat of cats) {
-    const qs = await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=${questionsPerCat}&order=random()`);
+// ── QUIZ GEN ─────────────────────────────────────────────────────────
+async function generateQuiz(){
+  const name=document.getElementById('qg-name').value||'New Quiz';
+  const rounds=parseInt(document.getElementById('qg-rounds').value)||6;
+  const perRound=parseInt(document.getElementById('qg-per').value)||5;
+  const cats=[...document.getElementById('qg-cats').selectedOptions].map(o=>o.value);
+  const incMM=document.getElementById('qg-mm').value==='yes';
+  document.getElementById('qg-result').innerHTML='<div class="loading"><span class="spinner"></span>Building quiz…</div>';
+  const allQ=[];
+  for(const cat of cats){
+    const qs=await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=${Math.ceil(rounds*perRound/cats.length)+2}&order=random()`);
     allQ.push(...qs);
-    if (allQ.length >= rounds * perRound) break;
+    if(allQ.length>=rounds*perRound)break;
   }
-
-  // Build rounds
-  const quiz = [];
-  let qi = 0;
-  for (let r = 0; r < rounds; r++) {
-    const round = { round: r + 1, questions: [] };
-    for (let q = 0; q < perRound; q++) {
-      if (allQ[qi]) round.questions.push(allQ[qi++]);
-    }
-    quiz.push(round);
-  }
-
-  // Add one multimedia round if requested
-  if (includeMultimedia) {
-    const mmQ = await db(`/questions?status=eq.active&question_type=neq.standard&limit=5`);
-    if (mmQ.length) quiz.push({ round: rounds + 1, questions: mmQ, multimedia: true });
-  }
-
-  document.getElementById('qg-result').innerHTML = `
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">📋 ${name} — ${quiz.reduce((s,r)=>s+r.questions.length,0)} Questions</span>
-        <button class="btn btn-ghost btn-sm" onclick="printQuiz()">🖨 Print</button>
-      </div>
-      <div class="panel-body" id="qg-rounds">
-        ${quiz.map(r=>`
-          <div style="margin-bottom:20px">
-            <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--blue)">
-              Round ${r.round}${r.multimedia?' 🎬 Multimedia':''}
-            </div>
-            <table class="tbl">
-              <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th></tr></thead>
-              <tbody>${r.questions.map((q,i)=>`<tr>
-                <td style="color:var(--muted)">${i+1}</td>
-                <td>${q.question}</td>
-                <td style="color:var(--blue);font-weight:600">${q.answer}</td>
-                <td><span class="badge badge-grey">${q.category||'—'}</span></td>
-              </tr>`).join('')}</tbody>
-            </table>
-          </div>`).join('')}
-      </div>
-    </div>`;
+  const quiz=[];let qi=0;
+  for(let r=0;r<rounds;r++){const round={round:r+1,qs:[]};for(let q=0;q<perRound;q++){if(allQ[qi])round.qs.push(allQ[qi++]);}quiz.push(round);}
+  if(incMM){const mmQ=await db('/questions?status=eq.active&question_type=neq.standard&limit=5');if(mmQ.length)quiz.push({round:rounds+1,qs:mmQ,mm:true});}
+  const total=quiz.reduce((s,r)=>s+r.qs.length,0);
+  document.getElementById('qg-result').innerHTML=`<div class="panel">
+    <div class="panel-hd"><span class="panel-title">📋 ${name} — ${total} questions</span></div>
+    <div class="panel-body">${quiz.map(r=>`
+      <div style="margin-bottom:16px">
+        <div style="font-weight:600;font-size:12px;color:var(--blue);margin-bottom:6px">Round ${r.round}${r.mm?' 🎬':''}</div>
+        <table class="tbl"><thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Cat</th></tr></thead>
+        <tbody>${r.qs.map((q,i)=>`<tr><td style="color:var(--muted)">${i+1}</td><td>${q.question}</td><td style="color:var(--blue);font-weight:600">${q.answer}</td><td><span class="badge bgr">${q.category||'—'}</span></td></tr>`).join('')}</tbody></table>
+      </div>`).join('')}
+    </div></div>`;
 }
 
-// ── LIVE SCORING ───────────────────────────────────────────────────
-async function loadLiveScoring() {
-  const events = await db('/kbt_event?event_status=eq.active&order=id.desc&limit=10&select=id,event_date,event_code,event_status');
-  if (!events.length) {
-    document.getElementById('ls-content').innerHTML = '<div class="empty">No active events. Events show here when status = active.</div>';
-    return;
-  }
-  document.getElementById('ls-content').innerHTML = `<table class="tbl">
-    <thead><tr><th>ID</th><th>Date</th><th>Code</th><th>Status</th><th></th></tr></thead>
-    <tbody>${events.map(e=>`<tr>
-      <td style="color:var(--muted)">${e.id}</td>
-      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
-      <td style="font-weight:700;color:var(--blue)">${e.event_code||'—'}</td>
-      <td><span class="badge badge-green">Active</span></td>
-      <td><button class="btn btn-primary btn-sm" onclick="alert('Live scoring coming soon!')">Score</button></td>
-    </tr>`).join('')}</tbody></table>`;
+// ── AI FINDER ────────────────────────────────────────────────────────
+let aiQs=[];
+async function aiGenerate(){
+  const topic=document.getElementById('ai-topic').value.trim();
+  if(!topic){alert('Enter a topic');return;}
+  const cat=document.getElementById('ai-cat').value;
+  const diff=document.getElementById('ai-diff').value;
+  const count=parseInt(document.getElementById('ai-count').value)||10;
+  const btn=document.getElementById('ai-btn');
+  btn.disabled=true;btn.textContent='Generating…';
+  document.getElementById('ai-results').innerHTML='';document.getElementById('ai-batch').style.display='none';
+  const prompt=`You are a trivia writer for Know Brainer Trivia, a Melbourne pub trivia company.
+Generate exactly ${count} questions. Topic: "${topic}"${cat?` Category: ${cat}`:''}${diff?` Difficulty: ${diff}`:''}
+KBT Standards: guessable (teams can deduce even without knowing), payoff answer (answer is the interesting part), inclusive (general pub crowd), scorable (one clear answer max 6 words), factual (no myths).
+FAIL: multiple valid answers, disputed stats, "current/now" phrasing, list answers, trivia snob questions.
+Return ONLY JSON array: [{"q":"question","a":"answer","category":"${cat||'General'}","difficulty":"easy|medium|hard","fun_fact":"host fact"}]`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+    const data=await r.json();
+    const raw=data.content?.[0]?.text||'[]';
+    aiQs=JSON.parse(raw.replace(/```json
+?|```/g,'').trim());
+    renderAI();
+    document.getElementById('ai-batch').style.display='flex';
+    document.getElementById('ai-msg').textContent=`${aiQs.length} generated`;
+  }catch(e){document.getElementById('ai-msg').textContent='Error: '+e.message;}
+  btn.disabled=false;btn.textContent='Generate';
 }
-
-// ── LOCATIONS ──────────────────────────────────────────────────────
-async function loadLocations() {
-  const locs = await db('/kbt_loc?order=id&select=id,loc_fullname,loc_nickname,loc_town,loc_region,loc_status,loc_freq');
-  document.getElementById('loc-table').innerHTML = `<table class="tbl">
-    <thead><tr><th>Name</th><th>Nickname</th><th>Town</th><th>Frequency</th><th>Status</th></tr></thead>
-    <tbody>${locs.map(l=>`<tr>
-      <td style="font-weight:600">${l.loc_fullname||'—'}</td>
-      <td style="color:var(--blue)">${l.loc_nickname||'—'}</td>
-      <td>${l.loc_town||'—'}</td>
-      <td style="color:var(--muted)">${l.loc_freq||'—'}</td>
-      <td><span class="badge ${l.loc_status==='active'?'badge-green':'badge-grey'}">${l.loc_status||'—'}</span></td>
-    </tr>`).join('')}</tbody></table>`;
-}
-
-// ── HOSTS ──────────────────────────────────────────────────────────
-async function loadHosts() {
-  const hosts = await db('/kbt_host?order=id&select=id,host_firstname,host_lastname,host_displayname,host_email,is_active');
-  document.getElementById('hosts-table').innerHTML = `<table class="tbl">
-    <thead><tr><th>Name</th><th>Display Name</th><th>Email</th><th>Status</th></tr></thead>
-    <tbody>${hosts.map(h=>`<tr>
-      <td style="font-weight:600">${h.host_firstname||''} ${h.host_lastname||''}</td>
-      <td style="color:var(--blue)">${h.host_displayname||'—'}</td>
-      <td style="color:var(--muted)">${h.host_email||'—'}</td>
-      <td><span class="badge ${h.is_active?'badge-green':'badge-grey'}">${h.is_active?'Active':'Inactive'}</span></td>
-    </tr>`).join('')}</tbody></table>`;
-}
-
-// ── TEAMS ──────────────────────────────────────────────────────────
-async function loadTeams() {
-  const teams = await db('/kbt_team?order=id.desc&limit=100&select=id,created_at,team_email,team_prevname');
-  document.getElementById('teams-table').innerHTML = `<table class="tbl">
-    <thead><tr><th>ID</th><th>Email</th><th>Previous Name</th><th>Joined</th></tr></thead>
-    <tbody>${teams.map(t=>`<tr>
-      <td style="color:var(--muted)">${t.id.substring(0,8)}…</td>
-      <td>${t.team_email||'—'}</td>
-      <td>${t.team_prevname||'—'}</td>
-      <td style="color:var(--muted)">${t.created_at?t.created_at.substring(0,10):'—'}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
-
-// ── EVENTS ─────────────────────────────────────────────────────────
-async function loadEventsFull() {
-  const events = await db('/kbt_event?order=id.desc&limit=50&select=id,event_date,event_status,event_code,event_description');
-  document.getElementById('events-table').innerHTML = `<table class="tbl">
-    <thead><tr><th>ID</th><th>Date</th><th>Code</th><th>Status</th><th>Description</th></tr></thead>
-    <tbody>${events.map(e=>`<tr>
-      <td style="color:var(--muted)">${e.id}</td>
-      <td>${e.event_date?e.event_date.substring(0,10):'—'}</td>
-      <td style="font-weight:700;color:var(--blue)">${e.event_code||'—'}</td>
-      <td><span class="badge ${e.event_status==='active'?'badge-green':'badge-grey'}">${e.event_status||'—'}</span></td>
-      <td style="color:var(--muted)">${(e.event_description||'').substring(0,50)}</td>
-    </tr>`).join('')}</tbody></table>`;
-}
-
-
-// ── DRAFT REVIEW ───────────────────────────────────────────────
-async function loadDrafts() {
-  document.getElementById('dr-table').innerHTML = '<div class="loading"><span class="spinner"></span>Loading…</div>';
-  const rows = await db('/questions?status=eq.draft&order=id.desc&limit=100&select=id,question,answer,category,difficulty,fun_fact,source');
-  document.getElementById('dr-count').textContent = `(${rows.length} pending)`;
-  document.getElementById('draft-badge').textContent = rows.length || '';
-
-  if (!rows.length) {
-    document.getElementById('dr-table').innerHTML = '<div class="empty" style="padding:24px">No drafts — pipeline will add questions daily at 6am AEST.</div>';
-    return;
-  }
-
-  document.getElementById('dr-table').innerHTML = `
-    <table class="tbl">
-      <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Category</th><th>Diff</th><th>Fun Fact</th><th>Action</th></tr></thead>
-      <tbody>${rows.map(q=>`<tr id="dr-row-${q.id}">
-        <td style="color:var(--muted);width:40px">${q.id}</td>
-        <td style="max-width:280px">${q.question}</td>
-        <td style="color:var(--blue);font-weight:600;max-width:120px">${q.answer}</td>
-        <td><span class="badge badge-grey">${q.category||'—'}</span></td>
-        <td><span class="badge ${q.difficulty==='hard'?'badge-red':q.difficulty==='easy'?'badge-green':'badge-yellow'}">${q.difficulty||'—'}</span></td>
-        <td style="color:var(--muted);font-size:12px;max-width:180px">${q.fun_fact?q.fun_fact.substring(0,80)+'…':''}</td>
-        <td style="white-space:nowrap">
-          <button class="btn btn-green btn-sm" onclick="approveDraft(${q.id})" style="margin-right:4px">✓</button>
-          <button class="btn btn-red btn-sm" onclick="rejectDraft(${q.id})">✗</button>
-        </td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-}
-
-async function approveDraft(id) {
-  await fetch(SB + `/questions?id=eq.${id}`, {
-    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ status: 'active' })
-  });
-  document.getElementById(`dr-row-${id}`)?.remove();
-}
-
-async function rejectDraft(id) {
-  await fetch(SB + `/questions?id=eq.${id}`, {
-    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ status: 'rejected' })
-  });
-  document.getElementById(`dr-row-${id}`)?.remove();
-}
-
-async function approveAllDrafts() {
-  if (!confirm('Approve ALL draft questions and make them active?')) return;
-  await fetch(SB + '/questions?status=eq.draft', {
-    method: 'PATCH', headers: { ...H, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ status: 'active' })
-  });
-  document.getElementById('draft-badge').textContent = '';
-  loadDrafts();
-}
-
-
-// ── FACT CHECK ────────────────────────────────────────────────────
-const FACT_CHECK_API = 'https://kbt-fact-check.pgallivan.workers.dev';
-
-async function factCheckAll() {
-  const pending = aiQuestions.filter(q => q._status !== 'rejected');
-  if (!pending.length) return;
-
-  const btn = document.getElementById('ai-fc-btn');
-  btn.innerHTML = '<span class="spinner"></span> Checking…';
-  btn.disabled = true;
-
-  // Show checking state on all cards
-  pending.forEach((q, _) => {
-    const idx = aiQuestions.indexOf(q);
-    const statusEl = document.getElementById('aiq-status-' + idx);
-    if (statusEl) { statusEl.className = 'ai-status'; statusEl.innerHTML = '<span class="fc-badge fc-checking">⏳ Checking…</span>'; }
-  });
-
-  try {
-    const res = await fetch(FACT_CHECK_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questions: pending.map(q => ({ q: q.q, a: q.a, category: q.category, difficulty: q.difficulty })) })
-    });
-    const data = await res.json();
-    if (!data.results) throw new Error(data.error || 'No results');
-
-    // Apply results back to questions
-    data.results.forEach((r, i) => {
-      const q = pending[i];
-      const idx = aiQuestions.indexOf(q);
-      q._fc = r;
-
-      // Update the card
-      const card = document.getElementById('aiq-' + idx);
-      const statusEl = document.getElementById('aiq-status-' + idx);
-      if (!card) return;
-
-      const vcls = r.verdict === 'PASS' ? 'fc-pass' : r.verdict === 'EDIT' ? 'fc-edit' : 'fc-fail';
-      const vemoji = r.verdict === 'PASS' ? '✓' : r.verdict === 'EDIT' ? '⚠' : '✗';
-
-      // Build quality pips
-      const score = r.quality_score || 0;
-      const pips = Array.from({length:10}, (_,i) =>
-        `<div class="quality-pip ${i < score ? 'filled ' + (score < 5 ? 'low' : score < 7 ? 'mid' : '') : ''}"></div>`).join('');
-
-      // Insert FC result below meta row
-      const existing = card.querySelector('.fc-detail');
-      if (existing) existing.remove();
-
-      const detail = document.createElement('div');
-      detail.className = 'fc-detail';
-      detail.style.cssText = 'margin-top:8px;padding-top:8px;border-top:1px solid var(--border)';
-      detail.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="fc-badge ${vcls}">${vemoji} ${r.verdict}</span>
-          <div style="display:flex;align-items:center;gap:6px">
-            <span style="font-size:11px;color:var(--muted)">Quality ${score}/10</span>
-            <div class="quality-bar">${pips}</div>
-          </div>
-          <span style="font-size:12px;color:var(--muted)">${r.fact_status} · ${r.verdict_reason}</span>
+function renderAI(){
+  document.getElementById('ai-results').innerHTML=aiQs.map((q,i)=>`
+    <div class="ai-card ${q._s||''}" id="aiq-${i}">
+      <div class="ai-q">${i+1}. ${q.q}</div>
+      <div class="ai-a">✓ ${q.a}</div>
+      ${q.fun_fact?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">💡 ${q.fun_fact}</div>`:''}
+      <div class="ai-meta">
+        <span class="badge bgr">${q.category||'General'}</span>
+        <span class="badge ${q.difficulty==='hard'?'br':q.difficulty==='easy'?'bg':'by'}">${q.difficulty||'medium'}</span>
+        <span class="ai-status as-w" id="aiq-st-${i}">⏳ Pending</span>
+        <div class="ai-actions">
+          <button class="btn btn-green btn-sm" onclick="aiApprove(${i})">✓</button>
+          <button class="btn btn-ghost btn-sm" onclick="aiReject(${i})">✗</button>
         </div>
-        ${r.fact_notes ? `<div style="font-size:12px;color:var(--muted);margin-top:4px">🔍 ${r.fact_notes}</div>` : ''}
-        ${r.corrected_answer ? `<div style="font-size:12px;color:var(--red);margin-top:4px">❌ Correct answer: <strong>${r.corrected_answer}</strong></div>` : ''}
-        ${r.suggested_rewrite ? `<div style="font-size:12px;color:var(--blue);margin-top:4px">✏️ Suggested: <em>${r.suggested_rewrite}</em></div>` : ''}
-      `;
-      card.appendChild(detail);
-
-      // Auto-approve PASSed, mark FAILed
-      if (r.verdict === 'PASS' && !q._status) approveQ(idx);
-      if (r.verdict === 'FAIL') rejectQ(idx);
+      </div>
+      <div id="aiq-fc-${i}"></div>
+    </div>`).join('');
+}
+function aiApprove(i){aiQs[i]._s='approved';document.getElementById('aiq-'+i).className='ai-card approved';document.getElementById('aiq-st-'+i).className='ai-status as-p';document.getElementById('aiq-st-'+i).textContent='✓ Approved';}
+function aiReject(i){aiQs[i]._s='rejected';document.getElementById('aiq-'+i).className='ai-card rejected';document.getElementById('aiq-st-'+i).className='ai-status as-r';document.getElementById('aiq-st-'+i).textContent='✗ Skipped';}
+function aiApproveAll(){aiQs.forEach((_,i)=>{if(!aiQs[i]._s||aiQs[i]._s==='pending')aiApprove(i);});}
+async function aiFCAll(){
+  const btn=document.getElementById('ai-fc-btn');
+  btn.disabled=true;btn.textContent='Checking…';
+  try{
+    const r=await fetch(FC_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questions:aiQs})});
+    const data=await r.json();
+    data.results?.forEach((fc,i)=>{
+      const vcls=fc.verdict==='PASS'?'fc-pass':fc.verdict==='EDIT'?'fc-edit':'fc-fail';
+      const score=fc.quality_score||0;
+      const pips=Array.from({length:10},(_,j)=>`<div class="pip on${score<5?' lo':score<7?' mid':''}" style="${j>=score?'background:var(--border)':''}"></div>`).join('');
+      document.getElementById('aiq-fc-'+i).innerHTML=`
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="${vcls}">${fc.verdict}</span>
+          <div class="q-pips">${pips}</div>
+          <span style="font-size:11px;color:var(--muted)">${fc.fact_status} · ${fc.verdict_reason}</span>
+          ${fc.corrected_answer?`<span style="color:#dc2626;font-size:11px">Fix: ${fc.corrected_answer}</span>`:''}
+        </div>`;
+      if(fc.verdict==='PASS'&&!aiQs[i]._s)aiApprove(i);
+      if(fc.verdict==='FAIL')aiReject(i);
     });
-
-    const s = data.summary;
-    document.getElementById('ai-status-msg').textContent =
-      `Fact check: ${s.pass} pass · ${s.edit} needs edit · ${s.fail} failed`;
-
-  } catch(e) {
-    document.getElementById('ai-status-msg').textContent = '❌ Fact check error: ' + e.message;
-  }
-
-  btn.innerHTML = '🔍 Fact Check All';
-  btn.disabled = false;
+    const s=data.summary;btn.textContent=`${s?.pass}✓ ${s?.edit}⚠ ${s?.fail}✗`;
+  }catch(e){btn.textContent='Error';}
+  btn.disabled=false;
+}
+async function aiSave(){
+  const approved=aiQs.filter(q=>q._s==='approved');
+  if(!approved.length){alert('No approved questions');return;}
+  const btn=document.getElementById('ai-save-btn');btn.disabled=true;btn.textContent='Saving…';
+  const r=await fetch(SB+'/questions',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(approved.map(q=>({source:'ai',question:q.q,answer:q.a,category:q.category||'General Knowledge',difficulty:q.difficulty||'medium',fun_fact:q.fun_fact||null,question_type:'standard',status:'active',points:1})))});
+  if(r.ok){btn.textContent=`✓ Saved ${approved.length}`;btn.style.background='var(--green)';btn.style.color='#fff';setTimeout(()=>{btn.textContent='Save to DB';btn.disabled=false;btn.style='';},3000);}
+  else{btn.textContent='Error';btn.disabled=false;}
 }
 
-async function factCheckDraftBatch() {
-  const rows = document.querySelectorAll('#dr-table tbody tr[id^="dr-row-"]');
-  if (!rows.length) return;
-
-  const btn = document.getElementById('dr-fc-btn');
-  btn.innerHTML = '<span class="spinner"></span> Checking…';
-  btn.disabled = true;
-
-  // Collect questions from table
-  const qs = [];
-  rows.forEach(row => {
-    const cells = row.querySelectorAll('td');
-    qs.push({
-      id: row.id.replace('dr-row-', ''),
-      q: cells[1]?.textContent?.trim(),
-      a: cells[2]?.textContent?.trim(),
-      category: cells[3]?.textContent?.trim()
-    });
-  });
-
-  try {
-    const res = await fetch(FACT_CHECK_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ questions: qs })
-    });
-    const data = await res.json();
-
-    data.results.forEach((r, i) => {
-      const q = qs[i];
-      const row = document.getElementById('dr-row-' + q.id);
-      if (!row) return;
-
-      const vcls = r.verdict === 'PASS' ? 'fc-pass' : r.verdict === 'EDIT' ? 'fc-edit' : 'fc-fail';
-
-      // Insert detail row
-      const detail = row.nextSibling;
-      const detailRow = document.createElement('tr');
-      detailRow.className = 'fc-row';
-      detailRow.id = 'fc-row-' + q.id;
-      detailRow.innerHTML = `<td colspan="7">
-        <span class="fc-badge ${vcls}">${r.verdict}</span>
-        <span style="margin-left:8px">Q:${r.quality_score}/10 · ${r.fact_status}</span>
-        <span style="margin-left:8px;color:var(--muted)">${r.verdict_reason}</span>
-        ${r.corrected_answer ? `<span style="margin-left:8px;color:var(--red)">→ Fix: ${r.corrected_answer}</span>` : ''}
-        ${r.suggested_rewrite ? `<span style="margin-left:8px;color:var(--blue)">✏️ ${r.suggested_rewrite}</span>` : ''}
-      </td>`;
-      row.after(detailRow);
-
-      // Auto-reject FAILs
-      if (r.verdict === 'FAIL') {
-        row.style.opacity = '0.4';
-        row.querySelectorAll('button')[0].disabled = true;
-      }
-    });
-
-    const s = data.summary;
-    btn.innerHTML = `✓ ${s.pass} pass · ${s.edit} edit · ${s.fail} fail`;
-  } catch(e) {
-    btn.innerHTML = '❌ Error';
-    console.error(e);
-  }
-  btn.disabled = false;
+// ── BULK UPLOAD ──────────────────────────────────────────────────────
+async function handleCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const text=await file.text();
+  const lines=text.trim().split('
+');const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+  const rows=lines.slice(1).map(l=>{const cols=l.split(',');const obj={};headers.forEach((h,i)=>{obj[h]=(cols[i]||'').trim().replace(/"/g,'');});return obj;});
+  document.getElementById('csv-preview').innerHTML=`<p style="font-size:12px;margin-bottom:8px">${rows.length} rows found</p>
+    <table class="tbl"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,5).map(r=>`<tr>${headers.map(h=>`<td>${r[h]||''}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <button class="btn btn-blue" style="margin-top:10px" onclick="uploadCSV(${JSON.stringify(rows).replace(/"/g,'&quot;')})">Upload ${rows.length} questions</button>`;
+}
+async function uploadCSV(rows){
+  const mapped=rows.map(r=>({source:'bulk',question:r.question||r.q,answer:r.answer||r.a,category:r.category||'General Knowledge',difficulty:r.difficulty||'medium',fun_fact:r.fun_fact||r.funfact||null,question_type:'standard',status:'active',points:1})).filter(r=>r.question&&r.answer);
+  const r=await fetch(SB+'/questions',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(mapped)});
+  alert(r.ok?`✓ Uploaded ${mapped.length} questions`:'Error uploading');
 }
 
-// ── BOOT ───────────────────────────────────────────────────────────
-
-
-
-function toggleSidebar() {
-  document.querySelector('.sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('show');
+// ── DRAFT REVIEW ─────────────────────────────────────────────────────
+async function loadDrafts(){
+  document.getElementById('dr-table').innerHTML='<div class="loading"><span class="spinner"></span></div>';
+  const rows=await db('/questions?status=eq.draft&order=id.desc&limit=100&select=id,question,answer,category,difficulty,fun_fact');
+  document.getElementById('dr-count').textContent=`(${rows.length} pending)`;
+  document.getElementById('draft-badge').textContent=rows.length||'';
+  if(!rows.length){document.getElementById('dr-table').innerHTML='<div class="empty" style="padding:20px">No drafts. Pipeline runs daily at 6am AEST.</div>';return;}
+  document.getElementById('dr-table').innerHTML=`<table class="tbl">
+    <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Cat</th><th>Diff</th><th></th></tr></thead>
+    <tbody>${rows.map(q=>`<tr id="dr-r-${q.id}">
+      <td style="color:var(--muted)">${q.id}</td>
+      <td>${q.question.substring(0,65)}…</td>
+      <td style="color:var(--blue);font-weight:600">${q.answer}</td>
+      <td><span class="badge bgr">${q.category||'—'}</span></td>
+      <td>${q.difficulty||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-green btn-sm" onclick="drApprove(${q.id})" style="margin-right:4px">✓</button>
+        <button class="btn btn-red btn-sm" onclick="drReject(${q.id})">✗</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
 }
-function closeSidebar() {
-  document.querySelector('.sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('show');
+async function drApprove(id){await fetch(SB+`/questions?id=eq.${id}`,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({status:'active'})});document.getElementById('dr-r-'+id)?.remove();}
+async function drReject(id){await fetch(SB+`/questions?id=eq.${id}`,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({status:'rejected'})});document.getElementById('dr-r-'+id)?.remove();}
+async function drApproveAll(){if(!confirm('Approve all drafts?'))return;await fetch(SB+'/questions?status=eq.draft',{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({status:'active'})});document.getElementById('draft-badge').textContent='';loadDrafts();}
+async function drFCAll(){
+  const btn=document.getElementById('dr-fc-btn');btn.disabled=true;btn.textContent='Checking…';
+  const rows=[...document.querySelectorAll('#dr-table tbody tr[id^="dr-r-"]')];
+  const qs=rows.map(r=>{const cells=r.querySelectorAll('td');return{id:r.id.replace('dr-r-',''),q:cells[1]?.textContent,a:cells[2]?.textContent,category:cells[3]?.textContent};});
+  try{
+    const r=await fetch(FC_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questions:qs})});
+    const data=await r.json();
+    data.results?.forEach((fc,i)=>{
+      const row=document.getElementById('dr-r-'+qs[i]?.id);if(!row)return;
+      const vcls=fc.verdict==='PASS'?'fc-pass':fc.verdict==='EDIT'?'fc-edit':'fc-fail';
+      const detail=document.createElement('tr');
+      detail.innerHTML=`<td colspan="6" style="padding:4px 10px 10px;font-size:11px;color:var(--muted)"><span class="${vcls}">${fc.verdict}</span> ${fc.verdict_reason}${fc.corrected_answer?` · Fix: <strong>${fc.corrected_answer}</strong>`:''}</td>`;
+      row.after(detail);
+      if(fc.verdict==='FAIL')row.style.opacity='.4';
+    });
+    const s=data.summary;btn.textContent=`${s?.pass}✓ ${s?.edit}⚠ ${s?.fail}✗`;
+  }catch(e){btn.textContent='Error';}
+  btn.disabled=false;
 }
-// Close sidebar when nav item clicked on mobile
-document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => {
-  if (window.innerWidth <= 768) closeSidebar();
-}));
 
-loadDashboard();
-loaded['dashboard'] = true;
-// Load draft badge count on boot
-db('/questions?status=eq.draft&select=id').then(r => {
-  if (r.length) document.getElementById('draft-badge').textContent = r.length;
-});
+// ── LOCATIONS ────────────────────────────────────────────────────────
+async function loadLocations(){
+  const locs=await db('/kbt_loc?order=id&select=id,loc_fullname,loc_nickname,loc_town,loc_status');
+  document.getElementById('loc-tbl').innerHTML=`<table class="tbl"><thead><tr><th>Name</th><th>Nickname</th><th>Town</th><th>Status</th></tr></thead>
+    <tbody>${locs.map(l=>`<tr><td style="font-weight:500">${l.loc_fullname||'—'}</td><td style="color:var(--blue)">${l.loc_nickname||'—'}</td><td>${l.loc_town||'—'}</td><td><span class="badge ${l.loc_status==='active'?'bg':'bgr'}">${l.loc_status||'—'}</span></td></tr>`).join('')}</tbody></table>`;
+}
 
+// ── HOSTS ─────────────────────────────────────────────────────────────
+async function loadHosts(){
+  const hosts=await db('/kbt_host?order=id&select=id,host_firstname,host_lastname,host_displayname,host_email,is_active');
+  document.getElementById('hosts-tbl').innerHTML=`<table class="tbl"><thead><tr><th>Name</th><th>Display</th><th>Email</th><th>Status</th></tr></thead>
+    <tbody>${hosts.map(h=>`<tr><td style="font-weight:500">${h.host_firstname||''} ${h.host_lastname||''}</td><td style="color:var(--blue)">${h.host_displayname||'—'}</td><td style="color:var(--muted)">${h.host_email||'—'}</td><td><span class="badge ${h.is_active?'bg':'bgr'}">${h.is_active?'Active':'Inactive'}</span></td></tr>`).join('')}</tbody></table>`;
+}
+
+// ── TEAMS ─────────────────────────────────────────────────────────────
+async function loadTeams(){
+  const teams=await db('/kbt_team?order=id.desc&limit=100&select=id,created_at,team_email,team_prevname');
+  document.getElementById('teams-tbl').innerHTML=`<table class="tbl"><thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Joined</th></tr></thead>
+    <tbody>${teams.map(t=>`<tr><td style="color:var(--muted);font-size:11px">${(t.id||'').substring(0,10)}…</td><td>${t.team_email||'—'}</td><td>${t.team_prevname||'—'}</td><td style="color:var(--muted)">${t.created_at?t.created_at.substring(0,10):'—'}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// ── EVENTS ─────────────────────────────────────────────────────────────
+async function loadEvents(){
+  const events=await db('/kbt_event?order=id.desc&limit=50&select=id,event_date,event_status,event_code,event_description');
+  document.getElementById('events-tbl').innerHTML=`<table class="tbl"><thead><tr><th>Date</th><th>Event</th><th>Status</th></tr></thead>
+    <tbody>${events.map(e=>`<tr><td>${e.event_date?e.event_date.substring(0,10):'—'}</td><td style="font-size:12px;color:var(--blue)">${e.event_code||(e.event_description||'').substring(0,40)||'—'}</td><td><span class="badge ${e.event_status==='active'?'bg':'bgr'}">${e.event_status||'—'}</span></td></tr>`).join('')}</tbody></table>`;
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────────
+// Load draft count for badge
+dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('draft-badge').textContent=n;});
 </script>
 </body>
 </html>
