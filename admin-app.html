@@ -2012,7 +2012,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
           res(r.access_token);
         },
       });
-      gTokenClient.requestAccessToken({prompt:''});
+      gTokenClient.requestAccessToken({prompt:'consent'});
     });
   }
 
