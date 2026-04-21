@@ -2,6 +2,14 @@
   "version": 2,
   "routes": [
     {
+      "src": "/join",
+      "dest": "/join.html"
+    },
+    {
+      "src": "/join/",
+      "dest": "/join.html"
+    },
+    {
       "src": "/",
       "dest": "/index.html"
     },
