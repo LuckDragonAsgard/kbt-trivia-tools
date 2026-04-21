@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Know Brainer — Live Scoring</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--blue:#2c94c2;--yellow:#fbc500;--charcoal:#383737;--bg:#f8fafc;--border:#e5e7eb;--green:#008e5e;--red:#fb4141}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--charcoal);min-height:100vh}
+.topbar{background:var(--charcoal);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50}
+.logo{font-family:'Fira Sans Condensed',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.logo span{color:var(--yellow)}
+.event-info{font-size:12px;color:rgba(255,255,255,.6);flex:1}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;display:inline-block;margin-right:6px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);background:#fff;padding:0 20px}
+.tab{padding:12px 16px;font-size:13px;font-weight:600;color:#666;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.content{padding:20px;max-width:1100px;margin:0 auto}
+/* Scoring grid */
+.score-grid{display:grid;grid-template-columns:180px repeat(4,1fr) 80px 80px;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+.sg-head{background:var(--charcoal);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;display:contents}
+.sg-head div{background:var(--charcoal);color:#fff;padding:10px 8px;font-size:11px;font-weight:700;text-transform:uppercase}
+.sg-row{display:contents}
+.sg-row div{padding:10px 8px;border-bottom:1px solid var(--border);font-size:13px;display:flex;align-items:center}
+.sg-row:last-child div{border-bottom:none}
+.sg-row:hover div{background:#f9fafb}
+.team-name-cell{font-weight:600;gap:6px}
+.score-input{width:50px;border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:13px;text-align:center;font-family:inherit}
+.score-input:focus{outline:none;border-color:var(--blue)}
+.total-cell{font-family:'Fira Sans Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--blue)}
+.rank-cell{font-family:'Fira Sans Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--charcoal)}
+.rank-1{color:var(--yellow)}
+/* Buttons */
+.btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#2271a3}
+.btn-ghost{background:#fff;color:var(--charcoal);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg)}
+.btn-green{background:var(--green);color:#fff}
+.btn-yellow{background:var(--yellow);color:var(--charcoal)}
+.btn-sm{padding:5px 10px;font-size:12px}
+/* Submissions panel */
+.sub-card{background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.sub-head{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:#fafafa}
+.sub-team{font-weight:700;font-size:14px;flex:1}
+.sub-round{font-size:11px;font-weight:600;background:var(--blue);color:#fff;padding:2px 8px;border-radius:10px}
+.sub-answers{padding:12px 16px}
+.sub-ans-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.sub-ans-row:last-child{border-bottom:none}
+.sub-q-num{font-size:11px;font-weight:700;color:var(--blue);width:40px;flex-shrink:0}
+.sub-ans-text{flex:1}
+.correct-answer{font-size:11px;color:var(--green);font-style:italic}
+.mark-btn{width:28px;height:28px;border-radius:4px;border:none;cursor:pointer;font-size:14px;flex-shrink:0}
+.mark-correct{background:var(--green);color:#fff}
+.mark-wrong{background:var(--red);color:#fff}
+.mark-neutral{background:#f0f0f0;color:#666}
+/* Ladder */
+.ladder-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.ladder-pos{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;width:40px;flex-shrink:0;color:var(--charcoal)}
+.ladder-pos.p1{color:var(--yellow)}
+.ladder-pos.p2{color:#9ca3af}
+.ladder-pos.p3{color:#b45309}
+.ladder-emoji{font-size:22px}
+.ladder-name{font-weight:700;font-size:15px;flex:1}
+.ladder-rounds{display:flex;gap:6px}
+.ladder-r{font-size:11px;padding:2px 6px;background:var(--bg);border-radius:3px;color:#666}
+.ladder-total{font-family:'Fira Sans Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--blue)}
+/* Runsheet */
+.rs-section{margin-bottom:20px}
+.rs-section h3{font-family:'Fira Sans Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--blue);margin-bottom:8px;border-bottom:2px solid var(--border);padding-bottom:4px}
+.rs-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px;align-items:flex-start}
+.rs-slot{font-family:monospace;font-size:11px;font-weight:700;color:var(--blue);width:55px;flex-shrink:0}
+.rs-type{width:130px;flex-shrink:0}
+.rs-q{flex:1;color:var(--charcoal)}
+.rs-a{font-weight:700;color:var(--green);width:140px;flex-shrink:0}
+.rs-pts{font-weight:700;width:30px;flex-shrink:0;text-align:right;color:var(--charcoal)}
+/* panel */
+.panel{background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:16px}
+.panel-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:13px;font-weight:700}
+.panel-body{padding:16px}
+.empty{padding:24px;text-align:center;color:#9ca3af;font-size:13px}
+.loading{padding:20px;text-align:center;color:#9ca3af;font-size:12px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #e5e7eb;border-top-color:var(--blue);border-radius:50%;animation:spin .5s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700}
+.bg{background:#d1fae5;color:#008e5e}
+.br{background:#fee2e2;color:#dc2626}
+.by{background:#fef9c3;color:#a16207}
+.bb{background:#e8f4fb;color:var(--blue)}
+.round-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.round-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff}
+.round-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+@media(max-width:700px){
+  .score-grid{grid-template-columns:130px repeat(3,1fr) 60px}
+  .content{padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">KNOW<span>BRAINER</span></div>
+  <div class="event-info">
+    <span class="live-dot"></span>
+    <span id="event-name">Loading…</span>
+  </div>
+  <button class="btn btn-yellow btn-sm" onclick="go('runsheet')">📋 Run Sheet</button>
+  <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="window.open('/presentation?code='+eventCode,'_blank')">🎬 Slides</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('scoring')">📊 Scoring</div>
+  <div class="tab" onclick="switchTab('submissions')">📬 Submissions</div>
+  <div class="tab" onclick="switchTab('ladder')">🏆 Ladder</div>
+  <div class="tab" onclick="switchTab('runsheet')">📋 Run Sheet</div>
+</div>
+
+<!-- SCORING TAB -->
+<div class="content" id="tab-scoring">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="round-tabs" id="round-tabs"></div>
+    <button class="btn btn-blue btn-sm" onclick="saveAllScores()" style="margin-left:auto">💾 Save Scores</button>
+    <button class="btn btn-ghost btn-sm" onclick="loadScoring()">↻</button>
+  </div>
+  <div id="scoring-body"><div class="loading"><span class="spinner"></span>Loading teams…</div></div>
+</div>
+
+<!-- SUBMISSIONS TAB -->
+<div class="content" id="tab-submissions" style="display:none">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <div class="round-tabs" id="sub-round-tabs"></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadSubmissions()" style="margin-left:auto">↻ Refresh</button>
+  </div>
+  <div id="submissions-body"><div class="loading"><span class="spinner"></span></div></div>
+</div>
+
+<!-- LADDER TAB -->
+<div class="content" id="tab-ladder" style="display:none">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <h2 style="font-family:'Fira Sans Condensed',sans-serif;font-size:20px;font-weight:900">Live Ladder</h2>
+    <button class="btn btn-ghost btn-sm" onclick="loadLadder()" style="margin-left:auto">↻ Refresh</button>
+    <button class="btn btn-blue btn-sm" onclick="window.open('/presentation?code='+eventCode+'#leaderboard','_blank')">📺 Show on screen</button>
+  </div>
+  <div id="ladder-body"><div class="loading"><span class="spinner"></span></div></div>
+</div>
+
+<!-- RUNSHEET TAB -->
+<div class="content" id="tab-runsheet" style="display:none">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+    <h2 style="font-family:'Fira Sans Condensed',sans-serif;font-size:20px;font-weight:900">Run Sheet</h2>
+    <button class="btn btn-ghost btn-sm" onclick="window.print()" style="margin-left:auto">🖨 Print</button>
+  </div>
+  <div id="runsheet-body"><div class="loading"><span class="spinner"></span></div></div>
+</div>
+
+<script>
+const SB='https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+const H={apikey:KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+
+const params=new URLSearchParams(location.search);
+const eventId=params.get('id')||location.pathname.split('/').pop();
+const eventCode=params.get('code')||localStorage.getItem('kbt_event_code')||'';
+
+let eventData=null, teams=[], quizSlots=[], scores={}, currentRound=1;
+
+async function db(p,opts){
+  const r=await fetch(SB+p,{headers:H,...opts});
+  return opts?.method?r:r.json();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+async function init(){
+  // Load event
+  const idNum=parseInt(eventId);
+  let evs;
+  if(!isNaN(idNum)){
+    evs=await db(`/kbt_event?id=eq.${idNum}&limit=1&select=id,event_code,event_date,event_description,event_location_id`);
+  } else if(eventCode){
+    evs=await db(`/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=id,event_code,event_date,event_description,event_location_id`);
+  }
+  eventData=evs?.[0];
+  if(!eventData){document.getElementById('event-name').textContent='Event not found';return;}
+  document.getElementById('event-name').textContent=eventData.event_description||(eventData.event_date?.substring(0,10))||'Live Event';
+  localStorage.setItem('kbt_event_code',eventData.event_code||'');
+
+  // Load teams registered for this event
+  const t=await db(`/kbt_teams?event_code=eq.${encodeURIComponent(eventData.event_code||'')}&order=created_at.asc&select=id,team_name,display_name,team_emoji`);
+  teams=t.map(tm=>({id:tm.id,name:tm.display_name||tm.team_name||'Team',emoji:tm.team_emoji||'🧠'}));
+
+  // Load quiz slots
+  const qs=await db(`/kbt_quiz?quiz_event_id=eq.${eventData.id}&order=quiz_item_round.asc,quiz_item_order.asc&select=id,quiz_item_round,quiz_item_number,quiz_points,quiz_qtype,quiz_question_id`);
+  quizSlots=qs;
+
+  // Load question details for run sheet
+  const qids=[...new Set(qs.map(q=>q.quiz_question_id).filter(Boolean))];
+  if(qids.length){
+    const qd=await db(`/kbt_question?id=in.(${qids.join(',')})&select=id,question_question_text,question_answer_text,question_fun_fact`);
+    const qMap={};qd.forEach(q=>qMap[q.id]=q);
+    quizSlots=quizSlots.map(s=>({...s,qd:qMap[s.quiz_question_id]||{}}));
+  }
+
+  // Load existing scores
+  const sc=await db(`/kbt_round_scores?event_id=eq.${eventData.id}&select=team_id,round,score,bonus,gambler_wager,gambler_correct`);
+  sc.forEach(s=>{
+    if(!scores[s.team_id])scores[s.team_id]={};
+    scores[s.team_id][s.round]={score:s.score,bonus:s.bonus||0,gambler_wager:s.gambler_wager||0,gambler_correct:s.gambler_correct||false};
+  });
+
+  buildRoundTabs();
+  loadScoring();
+  loadRunsheet();
+}
+
+function buildRoundTabs(){
+  const rounds=[1,2,3];
+  const tabHtml=rounds.map(r=>`<div class="round-tab ${r===1?'active':''}" onclick="setRound(${r})">Round ${r}</div>`).join('');
+  document.getElementById('round-tabs').innerHTML=tabHtml;
+  document.getElementById('sub-round-tabs').innerHTML=tabHtml.replace(/setRound/g,'setSubRound');
+}
+
+function setRound(r){currentRound=r;document.querySelectorAll('#round-tabs .round-tab').forEach((t,i)=>t.classList.toggle('active',i+1===r));loadScoring();}
+function setSubRound(r){currentRound=r;document.querySelectorAll('#sub-round-tabs .round-tab').forEach((t,i)=>t.classList.toggle('active',i+1===r));loadSubmissions();}
+
+// ── SCORING ────────────────────────────────────────────────────────────
+function loadScoring(){
+  if(!teams.length){document.getElementById('scoring-body').innerHTML='<div class="empty">No teams registered yet. <a href="/player-app?code='+encodeURIComponent(eventData?.event_code||'')+'">QR link</a></div>';return;}
+  const r=currentRound;
+  const isBonus=r<=2;
+  const isGambler=r===3;
+
+  let html=`<div class="score-grid">
+    <div class="sg-head"><div>Team</div><div>R${r} Score</div><div>Bonus</div>${isGambler?'<div>Wager</div><div>Won?</div>':'<div></div><div></div>'}<div>Total</div><div>Rank</div></div>`;
+  
+  const totals=teams.map(t=>{
+    let tot=0;
+    for(let i=1;i<=3;i++){const s=scores[t.id]?.[i]||{};tot+=(s.score||0)+(s.bonus||0)+(s.gambler_correct?(s.gambler_wager||0):0);}
+    return{...t,total:tot};
+  }).sort((a,b)=>b.total-a.total);
+
+  totals.forEach((t,idx)=>{
+    const sc=scores[t.id]?.[r]||{};
+    html+=`<div class="sg-row">
+      <div class="team-name-cell">${t.emoji} ${t.name}</div>
+      <div><input class="score-input" id="sc-${t.id}-${r}" value="${sc.score||0}" type="number" min="0" max="10" onchange="updateScore('${t.id}',${r})"></div>
+      <div><input class="score-input" id="bn-${t.id}-${r}" value="${sc.bonus||0}" type="number" min="0" max="3" onchange="updateScore('${t.id}',${r})" style="width:40px"></div>
+      ${isGambler?`
+      <div><input class="score-input" id="gw-${t.id}" value="${sc.gambler_wager||0}" type="number" min="0" max="40" onchange="updateScore('${t.id}',3)" style="width:50px"></div>
+      <div><input type="checkbox" id="gc-${t.id}" ${sc.gambler_correct?'checked':''} onchange="updateScore('${t.id}',3)" style="width:18px;height:18px;cursor:pointer"></div>`
+      :`<div></div><div></div>`}
+      <div class="total-cell">${t.total}</div>
+      <div class="rank-cell ${idx===0?'rank-1':''}">${idx+1}</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('scoring-body').innerHTML=html;
+}
+
+function updateScore(teamId,round){
+  if(!scores[teamId])scores[teamId]={};
+  const sc=parseInt(document.getElementById(`sc-${teamId}-${round}`)?.value)||0;
+  const bn=parseInt(document.getElementById(`bn-${teamId}-${round}`)?.value)||0;
+  const gw=parseInt(document.getElementById(`gw-${teamId}`)?.value)||0;
+  const gc=document.getElementById(`gc-${teamId}`)?.checked||false;
+  scores[teamId][round]={score:sc,bonus:bn,gambler_wager:gw,gambler_correct:gc};
+  // Refresh totals
+  loadScoring();
+}
+
+async function saveAllScores(){
+  if(!eventData)return;
+  const rows=[];
+  for(const team of teams){
+    for(let r=1;r<=3;r++){
+      const s=scores[team.id]?.[r];
+      if(s!==undefined){
+        rows.push({event_id:eventData.id,team_id:team.id,team_name:team.name,round:r,score:s.score||0,bonus:s.bonus||0,gambler_wager:s.gambler_wager||0,gambler_correct:s.gambler_correct||false});
+      }
+    }
+  }
+  await fetch(SB+'/kbt_round_scores',{method:'POST',headers:{...H,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify(rows)});
+  alert(`✓ Scores saved for ${rows.length} round/team combos`);
+  loadLadder();
+}
+
+// ── SUBMISSIONS ─────────────────────────────────────────────────────────
+async function loadSubmissions(){
+  if(!eventData){document.getElementById('submissions-body').innerHTML='<div class="empty">No event loaded</div>';return;}
+  const subs=await db(`/kbt_answer_submissions?event_id=eq.${eventData.id}&round=eq.${currentRound}&order=submitted_at.desc&select=id,team_id,team_name,round,answers,submitted_at`);
+  if(!subs.length){document.getElementById('submissions-body').innerHTML=`<div class="empty">No submissions for Round ${currentRound} yet</div>`;return;}
+
+  // Get quiz questions for this round to show correct answers
+  const roundSlots=quizSlots.filter(s=>s.quiz_item_round===currentRound);
+
+  let html='';
+  for(const sub of subs){
+    const teamName=sub.team_name||teams.find(t=>t.id===sub.team_id)?.name||sub.team_id;
+    const answers=sub.answers||{};
+    html+=`<div class="sub-card">
+      <div class="sub-head">
+        <div class="sub-team">${teamName}</div>
+        <span class="sub-round">Round ${sub.round}</span>
+        <span style="font-size:11px;color:#9ca3af;margin-left:8px">${new Date(sub.submitted_at).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="sub-answers">
+        ${roundSlots.map(slot=>{
+          const ans=answers['Q'+slot.quiz_item_number]||'—';
+          const correct=slot.qd?.question_answer_text||'';
+          return `<div class="sub-ans-row">
+            <div class="sub-q-num">Q${slot.quiz_item_number}</div>
+            <div class="sub-ans-text">${ans}</div>
+            ${correct?`<div class="correct-answer">✓ ${correct}</div>`:''}
+          </div>`;
+        }).join('')}
+        ${Object.keys(answers).filter(k=>!k.startsWith('Q')).map(k=>`
+          <div class="sub-ans-row"><div class="sub-q-num">${k}</div><div class="sub-ans-text">${answers[k]}</div></div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+  document.getElementById('submissions-body').innerHTML=html;
+}
+
+// ── LADDER ─────────────────────────────────────────────────────────────
+async function loadLadder(){
+  const sc=await db(`/kbt_round_scores?event_id=eq.${eventData?.id}&select=team_id,team_name,round,score,bonus,gambler_wager,gambler_correct`);
+  const totals={};
+  const roundScores={};
+  sc.forEach(s=>{
+    if(!totals[s.team_id])totals[s.team_id]={name:s.team_name,rounds:{},emoji:teams.find(t=>t.id===s.team_id)?.emoji||'🧠'};
+    const pts=(s.score||0)+(s.bonus||0)+(s.gambler_correct?(s.gambler_wager||0):0);
+    totals[s.team_id].rounds[s.round]=pts;
+  });
+
+  // Merge with teams that may have 0 scores
+  teams.forEach(t=>{if(!totals[t.id])totals[t.id]={name:t.name,rounds:{},emoji:t.emoji};});
+
+  const sorted=Object.entries(totals).map(([id,d])=>({id,...d,total:Object.values(d.rounds).reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);
+  const medals=['🥇','🥈','🥉'];
+
+  document.getElementById('ladder-body').innerHTML=sorted.map((t,i)=>`
+    <div class="ladder-row">
+      <div class="ladder-pos ${i===0?'p1':i===1?'p2':i===2?'p3':''}">${medals[i]||i+1}</div>
+      <div class="ladder-emoji">${t.emoji}</div>
+      <div class="ladder-name">${t.name}</div>
+      <div class="ladder-rounds">
+        ${[1,2,3].map(r=>`<div class="ladder-r">R${r}: ${t.rounds[r]||0}</div>`).join('')}
+      </div>
+      <div class="ladder-total">${t.total}</div>
+    </div>`).join('') || '<div class="empty">No scores yet</div>';
+}
+
+// ── RUN SHEET ────────────────────────────────────────────────────────────
+function loadRunsheet(){
+  if(!quizSlots.length){document.getElementById('runsheet-body').innerHTML='<div class="empty">No quiz loaded for this event</div>';return;}
+  const byRound={1:[],2:[],3:[]};
+  quizSlots.forEach(s=>(byRound[s.quiz_item_round]||[]).push(s));
+
+  const rNames=['Round One','Round Two','Round Three'];
+  let html='';
+  [1,2,3].forEach(r=>{
+    html+=`<div class="rs-section"><h3>${rNames[r-1]}</h3>`;
+    (byRound[r]||[]).forEach(s=>{
+      const q=s.qd||{};
+      const isBonus=s.quiz_qtype==='bonus_1'||s.quiz_qtype==='bonus_ht';
+      const isGambler=s.quiz_qtype==='gambler';
+      html+=`<div class="rs-row ${isBonus?'style="background:#f0fdf4"':isGambler?'style="background:#fef2f2"':''}">
+        <div class="rs-slot">R${r}Q${s.quiz_item_number}</div>
+        <div class="rs-type"><span class="badge ${isBonus?'bg':isGambler?'br':'bb'}">${(s.quiz_qtype||'classic').replace(/_/g,' ')}</span></div>
+        <div class="rs-q">${q.question_question_text||'—'}${q.question_fun_fact?`<div style="font-size:11px;color:#9ca3af;margin-top:2px">💡 ${q.question_fun_fact}</div>`:''}</div>
+        <div class="rs-a">${q.question_answer_text||'—'}</div>
+        <div class="rs-pts">${isGambler?'wager':s.quiz_points||1}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('runsheet-body').innerHTML=html;
+}
+
+// ── TAB NAV ─────────────────────────────────────────────────────────────
+function switchTab(t){
+  ['scoring','submissions','ladder','runsheet'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display=id===t?'block':'none';
+    document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['scoring','submissions','ladder','runsheet'][i]===t));
+  });
+  if(t==='submissions')loadSubmissions();
+  if(t==='ladder')loadLadder();
+}
+
+function go(t){switchTab(t);}
+
+// Auto-refresh scoring every 30s
+setInterval(()=>{if(document.getElementById('tab-scoring').style.display!=='none')loadScoring();},30000);
+
+init();
+</script>
+</body>
+</html>
