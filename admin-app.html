@@ -2072,9 +2072,38 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
       const token = await getGToken();
       btn.textContent = '⏳ Fetching event data...';
 
-      // 2. Event data
-      const [event] = await dbFetch(`kbt_event?event_code=eq.${encodeURIComponent(code)}&limit=1&select=id,event_date,event_description,event_location_id`);
-      if (!event) throw new Error('Event not found: ' + code);
+      // 2. Event data — try event_code first, then numeric ID, then description search
+      let event = null;
+      const isNumeric = /^\d+$/.test(code);
+
+      if (isNumeric) {
+        // Direct ID lookup
+        const byId = await dbFetch(`kbt_event?id=eq.${code}&limit=1&select=id,event_date,event_description,event_location_id`);
+        if (byId.length) event = byId[0];
+      }
+
+      if (!event) {
+        // Try event_code field
+        const byCode = await dbFetch(`kbt_event?event_code=eq.${encodeURIComponent(code)}&limit=1&select=id,event_date,event_description,event_location_id`);
+        if (byCode.length) event = byCode[0];
+      }
+
+      if (!event) {
+        // Fuzzy description match (case-insensitive contains)
+        const byDesc = await dbFetch(`kbt_event?event_description=ilike.*${encodeURIComponent(code)}*&order=event_date.desc&limit=1&select=id,event_date,event_description,event_location_id`);
+        if (byDesc.length) event = byDesc[0];
+      }
+
+      if (!event) {
+        // Last resort: date match YYYY-MM-DD
+        const dateMatch = code.match(/(\d{4}-\d{2}-\d{2})/);
+        if (dateMatch) {
+          const byDate = await dbFetch(`kbt_event?event_date=eq.${dateMatch[1]}&order=id.desc&limit=1&select=id,event_date,event_description,event_location_id`);
+          if (byDate.length) event = byDate[0];
+        }
+      }
+
+      if (!event) throw new Error(`No event found for: "${code}" — try the event ID number`);
 
       let venue = event.event_description || 'KBT Trivia';
       let timeStr = '7:00 PM';
