@@ -183,6 +183,12 @@ textarea{resize:vertical;min-height:60px}
   .main{padding:16px}
   .tools{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
 }
+
+.tpl-card{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:14px;cursor:pointer;transition:.15s;text-align:left}
+.tpl-card:hover{border-color:var(--blue);background:var(--blue-light);transform:translateY(-1px)}
+.tpl-icon{font-size:24px;margin-bottom:6px}
+.tpl-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.tpl-desc{font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -342,21 +348,93 @@ textarea{resize:vertical;min-height:60px}
 <!-- QUIZ GEN -->
 <div class="section" id="sec-quiz-gen">
   <div class="page-head"><h1>Quiz Gen</h1></div>
+
+  <!-- TEMPLATES -->
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-hd"><span class="panel-title">Templates</span><span style="font-size:11px;color:var(--muted)">Click to load</span></div>
+    <div class="panel-body" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+      <div class="tpl-card" onclick="loadTemplate('standard')">
+        <div class="tpl-icon">🍺</div>
+        <div class="tpl-name">Standard Pub Night</div>
+        <div class="tpl-desc">6 rounds · 5 Qs · Mixed categories</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('movies')">
+        <div class="tpl-icon">🎬</div>
+        <div class="tpl-name">Movies Night</div>
+        <div class="tpl-desc">Movies-heavy · 6 rounds · Fun facts</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('music')">
+        <div class="tpl-icon">🎵</div>
+        <div class="tpl-name">Music Night</div>
+        <div class="tpl-desc">Music-heavy · 6 rounds + SoundMash</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('sport')">
+        <div class="tpl-icon">🏉</div>
+        <div class="tpl-name">Sport Special</div>
+        <div class="tpl-desc">Sport + Australiana · AFL/NRL bias</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('corporate')">
+        <div class="tpl-icon">💼</div>
+        <div class="tpl-name">Corporate Event</div>
+        <div class="tpl-desc">8 rounds · Accessible · No sport</div>
+      </div>
+      <div class="tpl-card" onclick="loadTemplate('short')">
+        <div class="tpl-icon">⚡</div>
+        <div class="tpl-name">Quick Fire</div>
+        <div class="tpl-desc">3 rounds · 8 Qs · Fast paced</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM BUILD -->
   <div class="panel">
-    <div class="panel-hd"><span class="panel-title">Build a Quiz</span></div>
+    <div class="panel-hd"><span class="panel-title">Custom Quiz</span></div>
     <div class="panel-body">
       <div class="form-row">
         <div class="fg" style="flex:2"><label>Quiz Name</label><input id="qg-name" placeholder="e.g. Tuesday Night — Spotswood"></div>
-        <div class="fg" style="flex:0 0 100px"><label>Rounds</label><input type="number" id="qg-rounds" value="6" min="1" max="12"></div>
-        <div class="fg" style="flex:0 0 100px"><label>Qs / Round</label><input type="number" id="qg-per" value="5" min="3" max="10"></div>
+        <div class="fg" style="flex:0 0 90px"><label>Rounds</label><input type="number" id="qg-rounds" value="6" min="1" max="12"></div>
+        <div class="fg" style="flex:0 0 90px"><label>Qs / Round</label><input type="number" id="qg-per" value="5" min="3" max="10"></div>
       </div>
       <div class="form-row">
-        <div class="fg" style="flex:2"><label>Categories</label><select id="qg-cats" multiple style="height:80px"><option selected>Movies</option><option selected>Music</option><option selected>Sport</option><option selected>Geography & Travel</option><option selected>History & Politics</option><option selected>Science & Nature</option><option>Entertainment</option><option>Food & Beverages</option><option>General Knowledge</option><option>Australiana</option></select></div>
-        <div class="fg" style="flex:1"><label>Multimedia?</label><select id="qg-mm"><option value="yes">Yes — include</option><option value="no">Standard only</option></select></div>
+        <div class="fg" style="flex:2">
+          <label>Categories (hold Ctrl/Cmd to select multiple)</label>
+          <select id="qg-cats" multiple style="height:100px">
+            <option selected>Movies</option>
+            <option selected>Music</option>
+            <option selected>Sport</option>
+            <option selected>Geography & Travel</option>
+            <option selected>History & Politics</option>
+            <option selected>Science & Nature</option>
+            <option>Entertainment</option>
+            <option>Business & Brands</option>
+            <option>Puzzles & Logic</option>
+            <option>General Knowledge</option>
+            <option>Language & Wordplay</option>
+            <option>Games & Leisure</option>
+            <option>Literature</option>
+            <option>Technology & Digital</option>
+            <option>Human Body & Medicine</option>
+            <option>Food & Beverages</option>
+            <option>Art & Stage</option>
+            <option>Australiana</option>
+          </select>
+        </div>
+        <div class="fg" style="flex:1">
+          <label>Multimedia round?</label>
+          <select id="qg-mm"><option value="yes">Yes — add multimedia round</option><option value="no">Standard only</option></select>
+          <label style="margin-top:12px">Difficulty mix</label>
+          <select id="qg-diff"><option value="mixed">Mixed (40/40/20)</option><option value="easy">Easy-heavy</option><option value="hard">Hard-heavy</option></select>
+          <label style="margin-top:12px">Save to event?</label>
+          <input id="qg-event-code" placeholder="Event code (optional)">
+        </div>
       </div>
-      <button class="btn btn-blue" onclick="generateQuiz()">Generate Quiz</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="generateQuiz()">⚡ Generate Quiz</button>
+        <span id="qg-msg" style="font-size:12px;color:var(--muted)"></span>
+      </div>
     </div>
   </div>
+
   <div id="qg-result"></div>
 </div>
 
@@ -709,32 +787,125 @@ function qrPage(d){qrOff=Math.max(0,qrOff+d*QR_LIM);loadQR(false);}
 function debQR(){clearTimeout(qrTimer);qrTimer=setTimeout(()=>loadQR(true),400);}
 
 // ── QUIZ GEN ─────────────────────────────────────────────────────────
+const TEMPLATES = {
+  standard: { name:'Standard Pub Night', rounds:6, perRound:5, cats:['Movies','Music','Sport','Geography & Travel','History & Politics','Science & Nature'], mm:true, diff:'mixed' },
+  movies:   { name:'Movies Night', rounds:6, perRound:5, cats:['Movies','Movies','Movies','Entertainment','Music','General Knowledge'], mm:true, diff:'mixed' },
+  music:    { name:'Music Night', rounds:6, perRound:5, cats:['Music','Music','Music','Entertainment','Movies','General Knowledge'], mm:true, diff:'mixed' },
+  sport:    { name:'Sport Special', rounds:6, perRound:5, cats:['Sport','Sport','Australiana','Movies','Music','General Knowledge'], mm:false, diff:'mixed' },
+  corporate:{ name:'Corporate Event', rounds:8, perRound:5, cats:['Movies','Music','Geography & Travel','History & Politics','Science & Nature','Entertainment','General Knowledge','Language & Wordplay'], mm:false, diff:'easy' },
+  short:    { name:'Quick Fire', rounds:3, perRound:8, cats:['Movies','Music','General Knowledge'], mm:false, diff:'mixed' },
+};
+
+function loadTemplate(key) {
+  const t = TEMPLATES[key];
+  if (!t) return;
+  document.getElementById('qg-name').value = t.name;
+  document.getElementById('qg-rounds').value = t.rounds;
+  document.getElementById('qg-per').value = t.perRound;
+  document.getElementById('qg-mm').value = t.mm ? 'yes' : 'no';
+  document.getElementById('qg-diff').value = t.diff;
+  // Select matching categories
+  const sel = document.getElementById('qg-cats');
+  const unique = [...new Set(t.cats)];
+  for (const opt of sel.options) opt.selected = unique.includes(opt.value);
+  document.getElementById('qg-msg').textContent = `Template loaded: ${t.name}`;
+  generateQuiz();
+}
+
 async function generateQuiz(){
-  const name=document.getElementById('qg-name').value||'New Quiz';
-  const rounds=parseInt(document.getElementById('qg-rounds').value)||6;
-  const perRound=parseInt(document.getElementById('qg-per').value)||5;
-  const cats=[...document.getElementById('qg-cats').selectedOptions].map(o=>o.value);
-  const incMM=document.getElementById('qg-mm').value==='yes';
-  document.getElementById('qg-result').innerHTML='<div class="loading"><span class="spinner"></span>Building quiz…</div>';
-  const allQ=[];
-  for(const cat of cats){
-    const qs=await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=${Math.ceil(rounds*perRound/cats.length)+2}&order=random()`);
-    allQ.push(...qs);
-    if(allQ.length>=rounds*perRound)break;
+  const name = document.getElementById('qg-name').value || 'New Quiz';
+  const rounds = parseInt(document.getElementById('qg-rounds').value) || 6;
+  const perRound = parseInt(document.getElementById('qg-per').value) || 5;
+  const selectedCats = [...document.getElementById('qg-cats').selectedOptions].map(o=>o.value);
+  const incMM = document.getElementById('qg-mm').value === 'yes';
+  const eventCode = document.getElementById('qg-event-code')?.value?.trim();
+
+  if (!selectedCats.length) { alert('Select at least one category'); return; }
+
+  document.getElementById('qg-result').innerHTML = '<div class="loading"><span class="spinner"></span>Generating quiz…</div>';
+  document.getElementById('qg-msg').textContent = '';
+
+  try {
+    const quiz = [];
+    // Distribute categories across rounds
+    for (let r = 0; r < rounds; r++) {
+      const cat = selectedCats[r % selectedCats.length];
+      const needed = perRound + 2; // extra buffer for dedup
+      const qs = await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=${needed}&order=random()&select=id,question,answer,category,fun_fact,difficulty`);
+      quiz.push({ round: r+1, cat, qs: qs.slice(0, perRound) });
+    }
+
+    // Add multimedia round if requested
+    if (incMM) {
+      const mmQ = await db('/questions?status=eq.active&question_type=neq.standard&limit=5&select=id,question,answer,category,question_type');
+      if (mmQ.length) quiz.push({ round: rounds+1, cat:'Multimedia', qs:mmQ, mm:true });
+    }
+
+    const total = quiz.reduce((s,r) => s+r.qs.length, 0);
+
+    // Save to DB if event code provided
+    let savedMsg = '';
+    if (eventCode) {
+      savedMsg = await saveQuizToEvent(quiz, eventCode);
+    }
+
+    document.getElementById('qg-result').innerHTML = `
+      <div class="panel">
+        <div class="panel-hd">
+          <span class="panel-title">📋 ${name} — ${total} questions</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openPresentation()">🎬 Present</button>
+            <button class="btn btn-blue btn-sm" onclick="window.print()">🖨 Print</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          ${savedMsg ? `<div style="background:var(--green-bg);color:var(--green);border-radius:6px;padding:8px 12px;margin-bottom:12px;font-size:12px">${savedMsg}</div>` : ''}
+          ${quiz.map(r => `
+            <div style="margin-bottom:20px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <span style="font-family:'Fira Sans Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--blue)">Round ${r.round}${r.mm ? ' 🎬 Multimedia':''}</span>
+                <span class="badge bgr">${r.cat}</span>
+              </div>
+              <table class="tbl">
+                <thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Diff</th><th>Fun Fact</th></tr></thead>
+                <tbody>${r.qs.map((q,i) => `<tr>
+                  <td style="color:var(--muted);width:30px">${i+1}</td>
+                  <td>${q.question}</td>
+                  <td style="color:var(--blue);font-weight:600;white-space:nowrap">${q.answer}</td>
+                  <td><span class="badge ${q.difficulty==='hard'?'br':q.difficulty==='easy'?'bg':'by'}">${q.difficulty||'med'}</span></td>
+                  <td style="color:var(--muted);font-size:11px">${(q.fun_fact||'').substring(0,50)}</td>
+                </tr>`).join('')}</tbody>
+              </table>
+            </div>`).join('')}
+        </div>
+      </div>`;
+
+    document.getElementById('qg-msg').textContent = `✓ ${total} questions generated`;
+  } catch(e) {
+    document.getElementById('qg-result').innerHTML = `<div class="panel"><div class="panel-body" style="color:var(--red)">${e.message}</div></div>`;
   }
-  const quiz=[];let qi=0;
-  for(let r=0;r<rounds;r++){const round={round:r+1,qs:[]};for(let q=0;q<perRound;q++){if(allQ[qi])round.qs.push(allQ[qi++]);}quiz.push(round);}
-  if(incMM){const mmQ=await db('/questions?status=eq.active&question_type=neq.standard&limit=5');if(mmQ.length)quiz.push({round:rounds+1,qs:mmQ,mm:true});}
-  const total=quiz.reduce((s,r)=>s+r.qs.length,0);
-  document.getElementById('qg-result').innerHTML=`<div class="panel">
-    <div class="panel-hd"><span class="panel-title">📋 ${name} — ${total} questions</span></div>
-    <div class="panel-body">${quiz.map(r=>`
-      <div style="margin-bottom:16px">
-        <div style="font-weight:600;font-size:12px;color:var(--blue);margin-bottom:6px">Round ${r.round}${r.mm?' 🎬':''}</div>
-        <table class="tbl"><thead><tr><th>#</th><th>Question</th><th>Answer</th><th>Cat</th></tr></thead>
-        <tbody>${r.qs.map((q,i)=>`<tr><td style="color:var(--muted)">${i+1}</td><td>${q.question}</td><td style="color:var(--blue);font-weight:600">${q.answer}</td><td><span class="badge bgr">${q.category||'—'}</span></td></tr>`).join('')}</tbody></table>
-      </div>`).join('')}
-    </div></div>`;
+}
+
+async function saveQuizToEvent(quiz, eventCode) {
+  // Find event ID
+  const evs = await db(`/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=id`);
+  if (!evs.length) return `⚠ Event ${eventCode} not found`;
+  const eventId = evs[0].id;
+
+  // Insert quiz items
+  const rows = [];
+  quiz.forEach(r => {
+    r.qs.forEach((q, i) => {
+      rows.push({ quiz_event_id: eventId, quiz_question_id: q.id, quiz_item_round: r.round,
+        quiz_item_number: i+1, quiz_item_order: (r.round-1)*100 + i+1, quiz_points: 1, quiz_qtype: q.question_type || 'standard' });
+    });
+  });
+
+  const res = await fetch(SB+'/kbt_quiz', {
+    method:'POST', headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
+    body: JSON.stringify(rows)
+  });
+  return res.ok ? `✓ Saved ${rows.length} questions to event ${eventCode}` : '⚠ Could not save to event';
 }
 
 // ── AI FINDER ────────────────────────────────────────────────────────
