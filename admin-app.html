@@ -333,6 +333,9 @@ textarea{resize:vertical;min-height:60px}
 <!-- LIVE SCORING -->
 <div class="section" id="sec-live-scoring">
   <div class="page-head"><h1>Live Scoring</h1></div>
+  <div style="display:flex;gap:10px;margin-bottom:16px">
+    <button class="btn btn-blue" onclick="go('qr-slide');document.getElementById('qr-code-input').value=localStorage.getItem('kbt_event_code')||'';openPresentation()">🎬 Start Tonight's Presentation</button>
+  </div>
   <div class="panel"><div class="panel-body" id="ls-body"><div class="loading"><span class="spinner"></span>Loading…</div></div></div>
 </div>
 
@@ -511,8 +514,9 @@ textarea{resize:vertical;min-height:60px}
       <div class="form-row">
         <div class="fg" style="flex:1"><label>Event Code</label><input id="qr-code-input" placeholder="e.g. TUE-SPOTS-001" oninput="updateQRPreview()"></div>
       </div>
-      <div style="display:flex;gap:10px;margin-bottom:20px">
-        <button class="btn btn-blue" onclick="openQRSlide()">🖥 Open Full Screen Slide</button>
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="btn btn-blue" onclick="openPresentation()">🎬 Open Full Presentation</button>
+        <button class="btn btn-ghost" onclick="openQRSlide()">📱 QR Slide Only</button>
         <button class="btn btn-ghost" onclick="copyQRLink()">📋 Copy Join Link</button>
       </div>
       <div id="qr-preview" style="background:#0d1117;border-radius:12px;padding:32px;text-align:center;max-width:380px">
@@ -930,6 +934,10 @@ async function updateQRPreview() {
   loadRegistrations();
 }
 
+function openPresentation() {
+  const code = document.getElementById('qr-code-input').value.trim() || 'TONIGHT';
+  window.open(`/presentation?code=${encodeURIComponent(code)}`, '_blank');
+}
 function openQRSlide() {
   const code = document.getElementById('qr-code-input').value.trim() || 'TONIGHT';
   window.open(`/join?code=${encodeURIComponent(code)}`, '_blank');
