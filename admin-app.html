@@ -422,9 +422,7 @@ textarea{resize:vertical;min-height:60px}
         <div class="fg" style="flex:1">
           <label>Multimedia round?</label>
           <select id="qg-mm"><option value="yes">Yes — add multimedia round</option><option value="no">Standard only</option></select>
-          <label style="margin-top:12px">Difficulty mix</label>
-          <select id="qg-diff"><option value="mixed">Mixed (40/40/20)</option><option value="easy">Easy-heavy</option><option value="hard">Hard-heavy</option></select>
-          <label style="margin-top:12px">Save to event?</label>
+<label style="margin-top:12px">Save to event?</label>
           <input id="qg-event-code" placeholder="Event code (optional)">
         </div>
       </div>
@@ -814,203 +812,218 @@ function loadTemplate(key) {
 
 
 // ── KBT QUIZ FORMAT ─────────────────────────────────────────────────
-// 32 questions: 3 rounds
-// R1: Q1-Q10 standard + Q11 Bonus 1
-// R2: Q1-Q10 standard + Q11 Bonus Heads & Tails
-// R3: Q1-Q9 standard + Q10 Gambler (teams wager)
-// R1 Q1 = Facebook Freebie (same at every venue each week)
-// Zero venue repeats, balanced categories
+// EXACT format from real KBT presentation (5074 - Ascot Vale Hotel)
+// 32 questions total: 10 + Bonus | 10 + Bonus | 10 (Gambler last)
+// Always out of ~40 points depending on Bonus/Gambler
 
-const KBT_SLOT_TYPES = {
-  // Round 1
-  'R1_Q1':  { label:'Facebook Freebie', type:'freebie', pts:1, cat:'General Knowledge', note:'Same at all venues this week. Easy, shareable.' },
-  'R1_Q2':  { label:'50/50', type:'multi_choice', pts:1, note:'Two choices, pick one' },
-  'R1_Q3':  { label:'Multiple Choice', type:'multi_choice', pts:1 },
-  'R1_Q4':  { label:'Name The Brain', type:'brain', pts:1, note:'Top of head reveal' },
-  'R1_Q5':  { label:'Maths', type:'standard', pts:1, note:'Number-based answer' },
-  'R1_Q6':  { label:'Classic', type:'standard', pts:1 },
-  'R1_Q7':  { label:'Wheel of Fortune', type:'standard', pts:1, note:'Letter reveal' },
-  'R1_Q8':  { label:'Classic', type:'standard', pts:1 },
-  'R1_Q9':  { label:'Brands', type:'brand', pts:1 },
-  'R1_Q10': { label:'Classic', type:'standard', pts:1 },
-  'R1_Q11': { label:'Bonus 1', type:'bonus', pts:3, note:'Bonus question — all or nothing, 3 pts' },
-  // Round 2
-  'R2_Q1':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q2':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q3':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q4':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q5':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q6':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q7':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q8':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q9':  { label:'Classic', type:'standard', pts:1 },
-  'R2_Q10': { label:'Classic', type:'standard', pts:1 },
-  'R2_Q11': { label:'Bonus — Heads & Tails', type:'bonus', pts:3, note:'Heads & Tails elimination bonus — 3 pts' },
-  // Round 3
-  'R3_Q1':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q2':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q3':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q4':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q5':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q6':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q7':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q8':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q9':  { label:'Classic', type:'standard', pts:1 },
-  'R3_Q10': { label:'Gambler Pairs', type:'gambler', pts:'wager', note:'Teams wager their current score. Final question.' },
+const KBT_PACK = [
+  // ROUND 1
+  { r:1, q:1,  label:'Follower Freebie', type:'follower_freebie', pts:2, note:'Multi-part. Same question at ALL venues this week. Posted on socials.' },
+  { r:1, q:2,  label:'50-50',            type:'fifty_fifty',      pts:1, note:'Two options, one correct.' },
+  { r:1, q:3,  label:'Multiple Choice',  type:'multi_choice',     pts:1, note:'4 options A/B/C/D.' },
+  { r:1, q:4,  label:'Name The Brain',   type:'brain',            pts:1, note:'Top-of-head image reveal.' },
+  { r:1, q:5,  label:'Maths',            type:'maths',            pts:1, note:'Number answer.' },
+  { r:1, q:6,  label:'Classic',          type:'standard',         pts:1 },
+  { r:1, q:7,  label:'Word Puzzle',      type:'word_puzzle',      pts:1, note:'Anagram or word fill.' },
+  { r:1, q:8,  label:'Classic',          type:'standard',         pts:1 },
+  { r:1, q:9,  label:'Brands',           type:'brand',            pts:1, note:'Logo/image identification.' },
+  { r:1, q:10, label:'Classic',          type:'standard',         pts:1 },
+  { r:1, q:'B',label:'Bonus 1',          type:'bonus_1',          pts:'?', note:'Closest without going over.' },
+  // ROUND 2
+  { r:2, q:1,  label:'Anagram',          type:'anagram',          pts:1, note:'Unscramble movie/show title.' },
+  { r:2, q:2,  label:'Multiple Choice',  type:'multi_choice',     pts:1 },
+  { r:2, q:3,  label:'Song Lyrics',      type:'song_lyrics',      pts:1, note:'Name the song from lyrics.' },
+  { r:2, q:4,  label:'Classic',          type:'standard',         pts:1 },
+  { r:2, q:5,  label:'Face Morph',       type:'face_morph',       pts:1, note:'Two faces blended — name both.' },
+  { r:2, q:6,  label:'50-50',            type:'fifty_fifty',      pts:1 },
+  { r:2, q:7,  label:'Classic',          type:'standard',         pts:1 },
+  { r:2, q:8,  label:'Map Pins',         type:'map_pins',         pts:1, note:'Location on a map.' },
+  { r:2, q:9,  label:'Classic',          type:'standard',         pts:1 },
+  { r:2, q:10, label:'SoundMash',        type:'soundmash',        pts:2, note:'Name 2 songs from short clips.' },
+  { r:2, q:'B',label:'Bonus H&T',        type:'bonus_ht',         pts:'?', note:'Heads & Tails elimination.' },
+  // ROUND 3
+  { r:3, q:1,  label:'Linked Pics',      type:'linked_pics',      pts:1, note:'4 images, one connection.' },
+  { r:3, q:2,  label:'Classic',          type:'standard',         pts:1 },
+  { r:3, q:3,  label:'Crack The Code',   type:'crack_code',       pts:1, note:'Decode the rebus/cipher.' },
+  { r:3, q:4,  label:'Guess The Year',   type:'guess_year',       pts:1, note:'Closest year wins.' },
+  { r:3, q:5,  label:'Ghost Actors',     type:'ghost_actors',     pts:1, note:'Actors removed from a still.' },
+  { r:3, q:6,  label:'Classic',          type:'standard',         pts:1 },
+  { r:3, q:7,  label:'Classic',          type:'standard',         pts:1 },
+  { r:3, q:8,  label:'Classic',          type:'standard',         pts:1 },
+  { r:3, q:9,  label:'Multiple Choice',  type:'multi_choice',     pts:1 },
+  { r:3, q:10, label:'Gambler Pairs',    type:'gambler',          pts:'wager', note:'Teams wager their total score. FINAL question.' },
+];
+
+// Type → DB question_type mapping
+const TYPE_TO_DB = {
+  standard:'standard', follower_freebie:'standard', fifty_fifty:'standard',
+  multi_choice:'standard', maths:'standard', word_puzzle:'standard',
+  song_lyrics:'standard', anagram:'standard', map_pins:'standard',
+  brain:'brain', brand:'brand', face_morph:'face_morph',
+  soundmash:'soundmash', crack_code:'crack_code', linked_pics:'linked_pics',
+  guess_year:'guess_year', ghost_actors:'ghost_actors',
+  gambler:'standard', bonus_1:'standard', bonus_ht:'standard',
 };
 
 const TEMPLATES = {
-  standard: { name:'Standard Pub Night', cats:['Movies','Music','Sport','Geography & Travel','History & Politics','Science & Nature','Entertainment','Business & Brands','General Knowledge','Language & Wordplay'] },
-  movies:   { name:'Movies Heavy', cats:['Movies','Movies','Movies','Entertainment','Music','Sport','History & Politics','Science & Nature','General Knowledge','Business & Brands'] },
-  music:    { name:'Music Heavy', cats:['Music','Music','Music','Entertainment','Movies','Sport','History & Politics','Science & Nature','General Knowledge','Language & Wordplay'] },
-  sport:    { name:'Sport Special', cats:['Sport','Sport','Australiana','Movies','Music','Geography & Travel','History & Politics','Entertainment','General Knowledge','Science & Nature'] },
-  corporate:{ name:'Corporate Event', cats:['Movies','Music','Geography & Travel','History & Politics','Science & Nature','Entertainment','General Knowledge','Language & Wordplay','Business & Brands','Puzzles & Logic'] },
-  short:    { name:'Quick Fire (20 Qs)', cats:['Movies','Music','Sport','Geography & Travel','Entertainment','General Knowledge','History & Politics','Science & Nature','Business & Brands','General Knowledge'] },
+  standard: { name:'Standard Pub Night' },
+  movies:   { name:'Movies Heavy' },
+  music:    { name:'Music Heavy' },
+  sport:    { name:'Sport Special' },
+  corporate:{ name:'Corporate / Private Event' },
 };
 
 function loadTemplate(key) {
-  const t = TEMPLATES[key];
-  if (!t) return;
-  document.getElementById('qg-name').value = t.name;
-  document.getElementById('qg-msg').textContent = `Template: ${t.name} — 32 questions, 3 rounds`;
-  window._qg_template_cats = t.cats;
-  generateQuiz(t.cats);
+  document.getElementById('qg-name').value = TEMPLATES[key]?.name || 'Quiz';
+  document.getElementById('qg-msg').textContent = `Template: ${TEMPLATES[key]?.name} — 32 questions`;
+  generateQuiz(key);
 }
 
-async function generateQuiz(templateCats) {
+async function generateQuiz(templateKey) {
   const name = document.getElementById('qg-name').value || 'New Quiz';
+  const venueCode = document.getElementById('qg-venue-code')?.value?.trim();
   const eventCode = document.getElementById('qg-event-code')?.value?.trim();
-  const cats = templateCats || [...document.getElementById('qg-cats').selectedOptions].map(o=>o.value);
-  if (!cats.length) { alert('Select at least one category'); return; }
 
-  document.getElementById('qg-result').innerHTML = '<div class="loading"><span class="spinner"></span>Building 32-question KBT pack…</div>';
+  document.getElementById('qg-result').innerHTML = '<div class="loading"><span class="spinner"></span>Building KBT pack (32 questions)…</div>';
   document.getElementById('qg-msg').textContent = '';
 
   try {
-    // Pull questions per category — need ~20 per cat for variety
-    const qPool = {};
-    const uniqueCats = [...new Set(cats)];
-    for (const cat of uniqueCats) {
-      const qs = await db(`/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&question_type=eq.standard&limit=30&order=random()&select=id,question,answer,category,fun_fact,difficulty`);
-      qPool[cat] = qs;
+    // Category preferences per template
+    const catPrefs = {
+      movies:    ['Movies','Movies','Movies','Entertainment','Music','Sport','History & Politics','Science & Nature'],
+      music:     ['Music','Music','Music','Entertainment','Movies','Sport','History & Politics','Science & Nature'],
+      sport:     ['Sport','Sport','Movies','Music','Geography & Travel','History & Politics','Entertainment','Science & Nature'],
+      corporate: ['Movies','Music','Geography & Travel','History & Politics','Science & Nature','Entertainment','General Knowledge','Language & Wordplay'],
+    };
+    const cats = catPrefs[templateKey] || ['Movies','Music','Sport','Geography & Travel','History & Politics','Science & Nature','Entertainment','General Knowledge'];
+
+    // Get venue's used question IDs (venue repeat rule)
+    let usedAtVenue = new Set();
+    if (venueCode) {
+      const usageRes = await db(`/kbt_question_venue_usage?venue_code=eq.${encodeURIComponent(venueCode)}&select=question_id`);
+      usageRes.forEach(r => usedAtVenue.add(r.question_id));
+      document.getElementById('qg-msg').textContent = `${usedAtVenue.size} questions already used at ${venueCode}`;
     }
 
-    // Also get specialty questions
-    const brainQs = await db('/questions?status=eq.active&question_type=eq.brain&limit=5&order=random()&select=id,question,answer,category,fun_fact');
-    const brandQs = await db('/questions?status=eq.active&(category=eq.Business & Brands,category=eq.Brands)&question_type=eq.standard&limit=5&order=random()&select=id,question,answer,category,fun_fact');
+    // Pre-fetch question pools per type
+    const pools = {};
+    async function getPool(dbType, extra) {
+      const key = dbType + (extra||'');
+      if (pools[key]) return pools[key];
+      let url = `/questions?status=eq.active&question_type=eq.${dbType}&limit=50&order=random()&select=id,question,answer,category,fun_fact,difficulty,question_type`;
+      if (extra) url += extra;
+      pools[key] = await db(url);
+      return pools[key];
+    }
 
-    // Build the 32-slot pack following KBT rules
-    const pack = [];
-    const used = new Set();
-
-    function pickQ(cat, preferType) {
-      const pool = qPool[cat] || qPool[cats[0]] || [];
-      for (const q of pool) {
-        if (!used.has(q.id)) { used.add(q.id); return q; }
+    // Standard questions by category
+    const catPools = {};
+    let catIdx = 0;
+    async function getStandardQ(preferCat) {
+      const cat = preferCat || cats[catIdx % cats.length];
+      catIdx++;
+      if (!catPools[cat]) {
+        catPools[cat] = await db(`/questions?status=eq.active&question_type=eq.standard&category=eq.${encodeURIComponent(cat)}&limit=30&order=random()&select=id,question,answer,category,fun_fact,difficulty`);
       }
-      // Fallback to any available cat
-      for (const c of uniqueCats) {
-        const fb = qPool[c] || [];
-        for (const q of fb) {
-          if (!used.has(q.id)) { used.add(q.id); return q; }
-        }
-      }
+      const pool = catPools[cat];
+      const q = pool.find(q => !used.has(q.id) && !usedAtVenue.has(q.id));
+      if (q) { used.add(q.id); return q; }
+      // Fallback: any unused standard
+      const any = await db(`/questions?status=eq.active&question_type=eq.standard&limit=20&order=random()&select=id,question,answer,category,fun_fact,difficulty`);
+      const fallback = any.find(q => !used.has(q.id));
+      if (fallback) { used.add(fallback.id); return fallback; }
       return null;
     }
 
-    // Assign categories to classic slots (balanced)
-    const catAssign = [];
-    let ci = 0;
-    for (let i = 0; i < 28; i++) { catAssign.push(cats[ci % cats.length]); ci++; }
+    const used = new Set();
 
-    let ci2 = 0;
-    for (const [slotKey, slot] of Object.entries(KBT_SLOT_TYPES)) {
-      const [r, q] = slotKey.split('_');
-      const round = parseInt(r.replace('R',''));
-      const qNum = parseInt(q.replace('Q',''));
+    // Build pack slot by slot
+    const pack = [];
+    for (const slot of KBT_PACK) {
+      let q = null;
+      const dbType = TYPE_TO_DB[slot.type];
 
-      let question = null;
-      let note = slot.note || '';
-
-      if (slot.type === 'freebie') {
-        // R1 Q1 — Facebook Freebie: easy, general knowledge
-        question = await db('/questions?status=eq.active&difficulty=eq.easy&question_type=eq.standard&limit=5&order=random()&select=id,question,answer,category,fun_fact').then(qs => { for(const q of qs){if(!used.has(q.id)){used.add(q.id);return q;}} return null; });
-        if (!question) question = pickQ('General Knowledge');
-      } else if (slot.type === 'brain') {
-        question = brainQs.find(q => !used.has(q.id));
-        if (question) used.add(question.id);
-        else question = pickQ(catAssign[ci2]);
-      } else if (slot.type === 'brand') {
-        question = brandQs.find(q => !used.has(q.id));
-        if (question) used.add(question.id);
-        else question = pickQ('Business & Brands');
-      } else if (slot.type === 'bonus') {
-        // Bonus questions — slightly harder
-        const bonusQ = await db(`/questions?status=eq.active&question_type=eq.standard&difficulty=neq.easy&limit=10&order=random()&select=id,question,answer,category,fun_fact`).then(qs => { for(const q of qs){if(!used.has(q.id)){used.add(q.id);return q;}} return null; });
-        question = bonusQ || pickQ(cats[ci2 % cats.length]);
+      if (['bonus_1','bonus_ht'].includes(slot.type)) {
+        // Bonus: tricky, no venue repeat rule
+        const bPool = await getPool('standard', '&difficulty=eq.hard');
+        q = bPool.find(x => !used.has(x.id)) || null;
+        if (q) used.add(q.id);
       } else if (slot.type === 'gambler') {
-        // Gambler — crowd-pleasing, well-known answer
-        const gamblerQ = await db(`/questions?status=eq.active&question_type=eq.standard&difficulty=eq.medium&limit=10&order=random()&select=id,question,answer,category,fun_fact`).then(qs => { for(const q of qs){if(!used.has(q.id)){used.add(q.id);return q;}} return null; });
-        question = gamblerQ || pickQ(cats[ci2 % cats.length]);
+        // Gambler: well-known, medium difficulty
+        const gPool = await getPool('standard', '&difficulty=eq.medium');
+        q = gPool.find(x => !used.has(x.id) && !usedAtVenue.has(x.id)) || null;
+        if (q) used.add(q.id);
+      } else if (dbType === 'standard') {
+        q = await getStandardQ();
       } else {
-        // Standard classic slot — assign from category rotation
-        question = pickQ(catAssign[ci2 % catAssign.length]);
-        ci2++;
+        // Specialty type (brain, brand, face_morph etc)
+        const sp = await getPool(dbType);
+        q = sp.find(x => !used.has(x.id) && !usedAtVenue.has(x.id)) || sp.find(x => !used.has(x.id));
+        if (q) used.add(q.id);
       }
 
-      pack.push({
-        slotKey, round, qNum,
-        slotLabel: slot.label,
-        type: slot.type,
-        pts: slot.pts,
-        note,
-        q: question || { question: '⚠ No question available for this slot', answer: '—', category: '—' }
-      });
+      pack.push({ ...slot, q: q || { question:'⚠ No question available', answer:'—', category:'—', fun_fact:'' } });
     }
 
-    // Group by round for display
-    const rounds = {};
-    pack.forEach(s => {
-      if (!rounds[s.round]) rounds[s.round] = [];
-      rounds[s.round].push(s);
-    });
+    // Save to event if code provided
+    let savedMsg = '';
+    if (eventCode) savedMsg = await savePackToEvent(pack, eventCode);
 
-    const totalStandard = pack.filter(s => s.type !== 'bonus' && s.type !== 'gambler').length;
-    const savedMsg = eventCode ? await savePackToEvent(pack, eventCode) : '';
+    // Record venue usage
+    if (venueCode) {
+      const newUsage = pack.filter(s => s.q.id && s.type !== 'gambler').map(s => ({ venue_code: venueCode, question_id: s.q.id }));
+      if (newUsage.length) {
+        await fetch(SB+'/kbt_question_venue_usage', {
+          method:'POST', headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body: JSON.stringify(newUsage)
+        }).catch(()=>{});
+      }
+    }
 
-    const roundNames = ['Round One','Round Two','Round Three'];
+    // Render
+    const byRound = {1:[],2:[],3:[]};
+    pack.forEach(s => { if(byRound[s.r]) byRound[s.r].push(s); });
+
+    const roundNames = {1:'Round One',2:'Round Two',3:'Round Three'};
+    const typeBadge = s => {
+      if (s.type==='follower_freebie') return 'by';
+      if (s.type==='gambler') return 'br';
+      if (['bonus_1','bonus_ht'].includes(s.type)) return 'bg';
+      if (s.type==='standard') return 'bgr';
+      return 'bb';
+    };
+
     document.getElementById('qg-result').innerHTML = `
       <div class="panel">
         <div class="panel-hd">
-          <span class="panel-title">📋 ${name} — 32 questions (3 rounds)</span>
+          <span class="panel-title">📋 ${name} — 32 questions${venueCode?' · '+venueCode:''}</span>
           <div style="display:flex;gap:6px">
-            ${eventCode ? `<button class="btn btn-blue btn-sm" onclick="window.open('/presentation?code=${eventCode}','_blank')">🎬 Present</button>` : ''}
+            ${eventCode?`<button class="btn btn-blue btn-sm" onclick="window.open('/presentation?code=${eventCode}','_blank')">🎬 Present</button>`:''}
             <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
           </div>
         </div>
-        ${savedMsg ? `<div style="background:var(--green-bg);color:var(--green);padding:8px 16px;font-size:12px">${savedMsg}</div>` : ''}
+        ${savedMsg?`<div style="background:var(--green-bg);color:var(--green);padding:8px 16px;font-size:12px">${savedMsg}</div>`:''}
         <div class="panel-body">
-          ${[1,2,3].map(r => `
-            <div style="margin-bottom:24px">
-              <div style="font-family:'Fira Sans Condensed',sans-serif;font-size:16px;font-weight:700;color:var(--blue);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--blue-light)">${roundNames[r-1]}</div>
-              <table class="tbl">
-                <thead><tr><th>Slot</th><th>Type</th><th>Question</th><th>Answer</th><th>Cat</th><th>Pts</th><th>Note</th></tr></thead>
-                <tbody>${(rounds[r]||[]).map(s => `<tr style="${s.type==='freebie'?'background:#fffbeb':s.type==='gambler'?'background:#fef2f2':s.type==='bonus'?'background:#f0fdf4':''}">
-                  <td style="font-weight:700;color:var(--muted);white-space:nowrap">R${s.round} Q${s.qNum}</td>
-                  <td><span class="badge ${s.type==='freebie'?'by':s.type==='bonus'||s.type==='gambler'?'bg':s.type==='brain'||s.type==='brand'?'bb':'bgr'}" style="white-space:nowrap">${s.slotLabel}</span></td>
-                  <td>${s.q.question}</td>
-                  <td style="color:var(--blue);font-weight:600;white-space:nowrap">${s.q.answer}</td>
-                  <td style="white-space:nowrap"><span class="badge bgr">${s.q.category||'—'}</span></td>
-                  <td style="white-space:nowrap;font-weight:700">${s.pts}</td>
-                  <td style="font-size:11px;color:var(--muted)">${s.note}</td>
-                </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>`).join('')}
+        ${[1,2,3].map(r=>`
+          <div style="margin-bottom:24px">
+            <div style="font-family:'Fira Sans Condensed',sans-serif;font-size:15px;font-weight:700;color:var(--blue);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--blue-light)">${roundNames[r]}</div>
+            <table class="tbl">
+              <thead><tr><th>Slot</th><th>Type</th><th>Question</th><th>Answer</th><th>Cat</th><th>Pts</th><th>Note</th></tr></thead>
+              <tbody>${byRound[r].map(s=>`<tr style="${s.type==='follower_freebie'?'background:#fffbeb':s.type==='gambler'?'background:#fef2f2':['bonus_1','bonus_ht'].includes(s.type)?'background:#f0fdf4':''}">
+                <td style="font-weight:700;color:var(--muted);white-space:nowrap">R${s.r}${s.q==='B'?'B':'Q'+s.q}</td>
+                <td style="white-space:nowrap"><span class="badge ${typeBadge(s)}">${s.label}</span></td>
+                <td style="max-width:280px">${s.q.question||'—'}</td>
+                <td style="color:var(--blue);font-weight:600;white-space:nowrap">${s.q.answer||'—'}</td>
+                <td style="white-space:nowrap"><span class="badge bgr">${s.q.category||'—'}</span></td>
+                <td style="white-space:nowrap;font-weight:700;color:${s.pts==='wager'?'var(--red)':s.pts>1?'var(--green)':'inherit'}">${s.pts}</td>
+                <td style="font-size:11px;color:var(--muted)">${s.note||''}</td>
+              </tr>`).join('')}</tbody>
+            </table>
+          </div>`).join('')}
         </div>
       </div>`;
 
-    document.getElementById('qg-msg').textContent = '✓ 32-question pack generated';
+    document.getElementById('qg-msg').textContent = `✓ 32-question pack generated${usedAtVenue.size?' ('+usedAtVenue.size+' venue exclusions applied)':''}`;
 
   } catch(e) {
     document.getElementById('qg-result').innerHTML = `<div class="panel"><div class="panel-body" style="color:var(--red)">Error: ${e.message}</div></div>`;
@@ -1022,23 +1035,15 @@ async function savePackToEvent(pack, eventCode) {
   const evs = await db(`/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=id`);
   if (!evs.length) return `⚠ Event "${eventCode}" not found`;
   const eventId = evs[0].id;
-
-  const rows = pack.filter(s => s.q.id).map(s => ({
-    quiz_event_id: eventId,
-    quiz_question_id: s.q.id,
-    quiz_item_round: s.round,
-    quiz_item_number: s.qNum,
-    quiz_item_order: (s.round-1)*100 + s.qNum,
-    quiz_points: s.pts === 'wager' ? 0 : (s.pts || 1),
-    quiz_qtype: s.type,
+  const rows = pack.filter(s=>s.q.id).map(s=>({
+    quiz_event_id:eventId, quiz_question_id:s.q.id,
+    quiz_item_round:s.r, quiz_item_number:typeof s.q==='string'?11:s.q,
+    quiz_item_order:(s.r-1)*100+(typeof s.q==='number'?s.q:99),
+    quiz_points:s.pts==='wager'?0:(typeof s.pts==='number'?s.pts:3),
+    quiz_qtype:s.type,
   }));
-
-  const r = await fetch(SB+'/kbt_quiz', {
-    method:'POST',
-    headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
-    body:JSON.stringify(rows)
-  });
-  return r.ok ? `✓ Saved 32-question pack to event "${eventCode}"` : '⚠ Save failed';
+  const r = await fetch(SB+'/kbt_quiz',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(rows)});
+  return r.ok?`✓ Saved to event "${eventCode}"`:'⚠ Save failed';
 }
 
 // ── AI FINDER ────────────────────────────────────────────────────────
