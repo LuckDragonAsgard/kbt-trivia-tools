@@ -1685,26 +1685,153 @@ async function sendHostEmail(eventId, eventCode, hostEmail) {
 }
 
 
-// ── SLIDE GEN ─────────────────────────────────────────────────────────
+// ── SLIDE GEN (client-side PptxGenJS) ────────────────────────────────
+async function loadPptxLib() {
+  if (window.PptxGenJS) return;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
 async function generatePPTX() {
   const code = document.getElementById('sg-event-code').value.trim();
   if (!code) { alert('Enter an event code'); return; }
   const btn = document.getElementById('sg-btn');
-  btn.disabled = true; btn.textContent = '⏳ Generating…';
-  document.getElementById('sg-msg').textContent = 'Building slides…';
+  btn.disabled = true; btn.textContent = '⏳ Loading…';
+  document.getElementById('sg-msg').textContent = 'Loading PptxGenJS…';
+
   try {
-    const r = await fetch('/api/generate-pptx', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventCode: code })
-    });
-    if (!r.ok) throw new Error(await r.text());
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `KBT_${code}.pptx`; a.click();
-    document.getElementById('sg-msg').textContent = '✓ Downloaded!';
+    await loadPptxLib();
+    btn.textContent = '⏳ Fetching data…';
+    document.getElementById('sg-msg').textContent = 'Fetching quiz data…';
+
+    // Load event
+    const evs = await db(`/kbt_event?event_code=eq.${encodeURIComponent(code)}&limit=1&select=id,event_code,event_date,event_description,event_location_id`);
+    const ev = evs[0];
+    if (!ev) throw new Error(`Event "${code}" not found`);
+
+    // Load location
+    let venue = ev.event_description || code;
+    if (ev.event_location_id) {
+      const locs = await db(`/kbt_loc?id=eq.${ev.event_location_id}&limit=1&select=loc_fullname`);
+      if (locs[0]) venue = locs[0].loc_fullname;
+    }
+
+    // Load quiz slots
+    const qs = await db(`/kbt_quiz?quiz_event_id=eq.${ev.id}&order=quiz_item_round.asc,quiz_item_order.asc&select=quiz_item_round,quiz_item_number,quiz_points,quiz_qtype,quiz_question_id`);
+    let slots = qs;
+    if (slots.length) {
+      const qids = [...new Set(slots.map(s=>s.quiz_question_id).filter(Boolean))];
+      if (qids.length) {
+        const qd = await db(`/kbt_question?id=in.(${qids.join(',')})&select=id,question_question_text,question_answer_text,question_fun_fact`);
+        const qMap = {}; qd.forEach(q => qMap[q.id]=q);
+        slots = slots.map(s => ({...s, qd: qMap[s.quiz_question_id]||{}}));
+      }
+    }
+
+    btn.textContent = '⏳ Building slides…';
+    document.getElementById('sg-msg').textContent = `Building ${slots.length * 2 + 15} slides…`;
+
+    const prs = new PptxGenJS();
+    prs.layout = 'LAYOUT_WIDE';
+    prs.title = `KBT — ${venue} — ${code}`;
+
+    const BLUE='2c94c2', YELLOW='fbc500', CHARCOAL='383737', WHITE='FFFFFF', DARK='0f0f1a';
+    const date = ev.event_date ? new Date(ev.event_date).toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '';
+
+    function addBg(prs, color=DARK) {
+      const s = prs.addSlide();
+      s.background = { color };
+      return s;
+    }
+    function kbtLogo(s, x=0.4, y=0.15) {
+      s.addText([{text:'KNOW',options:{color:WHITE}},{text:'BRAINER',options:{color:YELLOW}}], {x,y,w:4,h:0.5,fontSize:24,bold:true,fontFace:'Arial Black',charSpacing:2});
+    }
+
+    // S1: Welcome
+    const s1 = addBg(prs);
+    kbtLogo(s1, 3.2, 1.3);
+    s1.addText('Trivia. But Better.', {x:1,y:2.0,w:11,h:0.4,fontSize:16,color:'888888',italic:true,align:'center'});
+    s1.addText(venue, {x:1,y:3.0,w:11,h:0.8,fontSize:38,bold:true,color:YELLOW,fontFace:'Arial Black',align:'center'});
+    s1.addText(date, {x:1,y:3.9,w:11,h:0.4,fontSize:16,color:'666666',align:'center'});
+
+    // S2: QR Register
+    const s2 = addBg(prs);
+    kbtLogo(s2);
+    s2.addText('Register Your Team', {x:0.5,y:1.2,w:5.5,h:1.1,fontSize:42,bold:true,color:WHITE,fontFace:'Arial Black'});
+    s2.addText('1  Scan the QR code with your phone', {x:0.5,y:2.5,w:5.5,h:0.45,fontSize:16,color:'bbbbbb'});
+    s2.addText('2  Enter your team name', {x:0.5,y:3.0,w:5.5,h:0.45,fontSize:16,color:'bbbbbb'});
+    s2.addText("3  You're in — answers go through your phone", {x:0.5,y:3.5,w:5.5,h:0.45,fontSize:16,color:'bbbbbb'});
+    s2.addText(`kbt-trial.vercel.app/player-app?code=${code}`, {x:0.5,y:6.5,w:12,h:0.35,fontSize:11,color:'444444',align:'center'});
+
+    const byRound = {1:[],2:[],3:[]};
+    slots.forEach(s => (byRound[s.quiz_item_round]||[]).push(s));
+    const rNames = ['Round One','Round Two','Round Three'];
+
+    for (const r of [1,2,3]) {
+      const rSlots = byRound[r] || [];
+
+      // Round intro
+      const ri = addBg(prs, '1a0a2e');
+      ri.addText(String(r), {x:0,y:0,w:13.33,h:7.5,fontSize:300,bold:true,color:'ffffff06',fontFace:'Arial Black',align:'center',valign:'middle'});
+      ri.addText('ROUND', {x:1,y:2.4,w:11,h:0.5,fontSize:16,bold:true,color:BLUE,align:'center',charSpacing:10});
+      ri.addText(rNames[r-1].toUpperCase(), {x:1,y:2.9,w:11,h:1.3,fontSize:80,bold:true,color:WHITE,fontFace:'Arial Black',align:'center'});
+
+      for (const slot of rSlots) {
+        const q = slot.qd || {};
+        const qText = q.question_question_text || '';
+        const aText = q.question_answer_text || '';
+        const funFact = q.question_fun_fact || '';
+        const type = slot.quiz_qtype || 'standard';
+        const isBonus = type==='bonus_1'||type==='bonus_ht';
+        const isGambler = type==='gambler';
+        const pts = slot.quiz_points || 1;
+
+        // Question slide
+        const sq = addBg(prs, '0f1520');
+        sq.addText(`R${r}Q${slot.quiz_item_number}`, {x:0.4,y:0.15,w:3,h:0.35,fontSize:13,bold:true,color:'555555'});
+        sq.addText(type.replace(/_/g,' ').toUpperCase(), {x:9,y:0.15,w:4,h:0.35,fontSize:11,bold:true,color:BLUE,align:'right'});
+        sq.addText(isGambler?'WAGER':`${pts} pt${pts>1?'s':''}`, {x:9,y:0.5,w:4,h:0.3,fontSize:11,bold:true,color:YELLOW,align:'right'});
+        if (qText) sq.addText(qText, {x:0.5,y:1.1,w:12.3,h:5.0,fontSize:qText.length>130?24:qText.length>80?30:38,bold:true,color:WHITE,fontFace:'Arial',valign:'middle',wrap:true});
+        if (isGambler) sq.addText('Place your wagers now!', {x:0.5,y:6.5,w:12,h:0.5,fontSize:16,color:YELLOW,italic:true,align:'center'});
+
+        // Answer slide
+        const sa = addBg(prs, '0f1520');
+        sa.addText(`R${r}Q${slot.quiz_item_number} — ANSWER`, {x:0.4,y:0.15,w:8,h:0.35,fontSize:12,bold:true,color:'555555'});
+        if (qText) sa.addText(qText, {x:0.5,y:0.6,w:12.3,h:1.0,fontSize:15,color:'777777',wrap:true});
+        if (aText) {
+          sa.addShape(prs.ShapeType.rect, {x:1.5,y:1.9,w:10.3,h:2.2,fill:{color:YELLOW},line:{color:YELLOW}});
+          sa.addText(aText, {x:1.5,y:1.9,w:10.3,h:2.2,fontSize:aText.length>50?28:aText.length>30?38:52,bold:true,color:CHARCOAL,fontFace:'Arial Black',align:'center',valign:'middle'});
+        }
+        if (funFact) sa.addText('💡 '+funFact, {x:0.5,y:5.8,w:12.3,h:0.8,fontSize:13,color:'666666',italic:true,wrap:true});
+      }
+
+      // Submit slide
+      const ss = addBg(prs, '0a1a0a');
+      ss.addText(`End of Round ${r}`, {x:1,y:2.4,w:11,h:0.9,fontSize:48,bold:true,color:WHITE,fontFace:'Arial Black',align:'center'});
+      ss.addText('Hit Submit in your email now', {x:1,y:3.4,w:11,h:0.6,fontSize:22,color:'22c55e',align:'center'});
+
+      // Ladder slide
+      const sl = addBg(prs);
+      sl.addText('🏆 Leaderboard', {x:1,y:1.8,w:11,h:1.2,fontSize:60,bold:true,color:WHITE,fontFace:'Arial Black',align:'center'});
+      sl.addText('(updating live)', {x:1,y:3.1,w:11,h:0.4,fontSize:14,color:'666666',italic:true,align:'center'});
+    }
+
+    // Final
+    const sf = addBg(prs);
+    kbtLogo(sf, 3.5, 2.8);
+    sf.addText('Thanks for playing!', {x:1,y:3.8,w:11,h:0.6,fontSize:22,color:'888888',italic:true,align:'center'});
+
+    btn.textContent = '⏳ Downloading…';
+    await prs.writeFile({ fileName: `KBT_${code}_${new Date().toISOString().split('T')[0]}.pptx` });
+    document.getElementById('sg-msg').textContent = `✓ Downloaded — ${slots.length * 2 + 12} slides`;
+
   } catch(e) {
-    document.getElementById('sg-msg').textContent = '✗ Error: ' + e.message;
+    document.getElementById('sg-msg').textContent = '✗ ' + e.message;
+    console.error(e);
   }
   btn.disabled = false; btn.textContent = '📥 Download PPTX';
 }
