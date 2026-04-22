@@ -1419,8 +1419,7 @@ async function aiSave(){
 async function handleCSV(e){
   const file=e.target.files[0];if(!file)return;
   const text=await file.text();
-  const lines=text.trim().split('
-');const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+  const lines=text.trim().split('\n');const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
   const rows=lines.slice(1).map(l=>{const cols=l.split(',');const obj={};headers.forEach((h,i)=>{obj[h]=(cols[i]||'').trim().replace(/"/g,'');});return obj;});
   document.getElementById('csv-preview').innerHTML=`<p style="font-size:12px;margin-bottom:8px">${rows.length} rows found</p>
     <table class="tbl"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
