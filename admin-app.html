@@ -904,32 +904,6 @@ function qrPage(d){qrOff=Math.max(0,qrOff+d*QR_LIM);loadQR(false);}
 function debQR(){clearTimeout(qrTimer);qrTimer=setTimeout(()=>loadQR(true),400);}
 
 // ── QUIZ GEN ─────────────────────────────────────────────────────────
-const TEMPLATES = {
-  standard: { name:'Standard Pub Night', rounds:6, perRound:5, cats:['Movies','Music','Sport','Geography & Travel','History & Politics','Science & Nature'], mm:true, diff:'mixed' },
-  movies:   { name:'Movies Night', rounds:6, perRound:5, cats:['Movies','Movies','Movies','Entertainment','Music','General Knowledge'], mm:true, diff:'mixed' },
-  music:    { name:'Music Night', rounds:6, perRound:5, cats:['Music','Music','Music','Entertainment','Movies','General Knowledge'], mm:true, diff:'mixed' },
-  sport:    { name:'Sport Special', rounds:6, perRound:5, cats:['Sport','Sport','Australiana','Movies','Music','General Knowledge'], mm:false, diff:'mixed' },
-  corporate:{ name:'Corporate Event', rounds:8, perRound:5, cats:['Movies','Music','Geography & Travel','History & Politics','Science & Nature','Entertainment','General Knowledge','Language & Wordplay'], mm:false, diff:'easy' },
-  short:    { name:'Quick Fire', rounds:3, perRound:8, cats:['Movies','Music','General Knowledge'], mm:false, diff:'mixed' },
-};
-
-function loadTemplate(key) {
-  const t = TEMPLATES[key];
-  if (!t) return;
-  document.getElementById('qg-name').value = t.name;
-  document.getElementById('qg-rounds').value = t.rounds;
-  document.getElementById('qg-per').value = t.perRound;
-  document.getElementById('qg-mm').value = t.mm ? 'yes' : 'no';
-  document.getElementById('qg-diff').value = t.diff;
-  // Select matching categories
-  const sel = document.getElementById('qg-cats');
-  const unique = [...new Set(t.cats)];
-  for (const opt of sel.options) opt.selected = unique.includes(opt.value);
-  document.getElementById('qg-msg').textContent = `Template loaded: ${t.name}`;
-  generateQuiz();
-}
-
-
 
 // ── KBT QUIZ FORMAT (from real PPTX) ────────────────────────────────
 // 32 slots across 3 rounds. 28×1pt + SoundMash 2pt + Bonus1 3pt + BonusH&T 3pt + Gambler(wager)
