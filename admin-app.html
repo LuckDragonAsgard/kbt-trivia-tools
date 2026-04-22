@@ -2000,7 +2000,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     const id = mkId();
     return [
       {createShape:{objectId:id,shapeType:'RECTANGLE',elementProperties:{pageObjectId:slideId,size:{width:{magnitude:w,unit:'EMU'},height:{magnitude:h,unit:'EMU'}},transform:{scaleX:1,scaleY:1,translateX:x,translateY:y,unit:'EMU'}}}},
-      {updateShapeProperties:{objectId:id,shapeProperties:{shapeBackgroundFill:{solidFill:{color:{rgbColor:color}}},outline:{outlineFill:{solidFill:{color:{rgbColor:color}}},weight:{magnitude:0,unit:'PT'}}},fields:'shapeBackgroundFill,outline'}}
+      {updateShapeProperties:{objectId:id,shapeProperties:{shapeBackgroundFill:{solidFill:{color:{rgbColor:color}}},outline:{outlineFill:{solidFill:{color:{rgbColor:color}}},weight:{magnitude:1,unit:'PT'}}},fields:'shapeBackgroundFill,outline'}}
     ];
   }
 
@@ -2200,7 +2200,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
           const ansBoxId = mkId();
           const ansColor = (accent===KC.YELLOW||accent===KC.ORANGE) ? KC.DARK : KC.WHITE;
           requests.push({createShape:{objectId:ansBoxId,shapeType:'RECTANGLE',elementProperties:{pageObjectId:sa,size:{width:{magnitude:7500000,unit:'EMU'},height:{magnitude:1800000,unit:'EMU'}},transform:{scaleX:1,scaleY:1,translateX:822000,translateY:1900000,unit:'EMU'}}}});
-          requests.push({updateShapeProperties:{objectId:ansBoxId,shapeProperties:{shapeBackgroundFill:{solidFill:{color:{rgbColor:isBonus?KC.YELLOW:accent}}},outline:{outlineFill:{solidFill:{color:{rgbColor:isBonus?KC.YELLOW:accent}}},weight:{magnitude:0,unit:'PT'}}},fields:'shapeBackgroundFill,outline'}});
+          requests.push({updateShapeProperties:{objectId:ansBoxId,shapeProperties:{shapeBackgroundFill:{solidFill:{color:{rgbColor:isBonus?KC.YELLOW:accent}}},outline:{outlineFill:{solidFill:{color:{rgbColor:isBonus?KC.YELLOW:accent}}},weight:{magnitude:1,unit:'PT'}}},fields:'shapeBackgroundFill,outline'}});
           const afs = qa.length>60?16:qa.length>30?28:44;
           add(txt(sa,qa,922000,1950000,7300000,1650000,afs,ansColor,true));
           if (qf) add(txt(sa,`💡 ${qf}`,280000,4100000,SW-560000,600000,14,{red:0.6,green:0.6,blue:0.6},false));
