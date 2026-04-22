@@ -1896,7 +1896,7 @@ async function autoGenerateFreebiePost() {
   btn.disabled = true; btn.textContent = '✨ Generating…';
   const rows = await db('/kbt_facebook_freebies?order=week_of.desc&limit=1&select=question,answer,fun_fact');
   const fb = rows[0];
-  if (!fb) { alert('Set this week's freebie first'); btn.disabled=false; btn.textContent='✨ Auto-Generate Freebie Post'; return; }
+  if (!fb) { alert('Set this week\'s freebie first'); btn.disabled=false; btn.textContent='✨ Auto-Generate Freebie Post'; return; }
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: {'Content-Type':'application/json'},
