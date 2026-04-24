@@ -1974,12 +1974,13 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         client_id: GSLIDES_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/presentations https://www.googleapis.com/auth/drive',
         callback: (r) => {
-          if (r.error) return rej(r.error);
+          if (r.error) return rej(new Error(typeof r.error === 'string' ? r.error : (r.error_description || JSON.stringify(r.error))));
           gAccessToken = r.access_token;
           res(r.access_token);
         },
       });
-      gTokenClient.requestAccessToken({prompt:'consent'});
+      // prompt:'' = silent if already authorized; popup only when needed
+      gTokenClient.requestAccessToken({prompt:''});
     });
   }
 
@@ -2304,8 +2305,8 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
       msg.textContent = `${locName} \u00B7 ${event.event_date}`;
 
     } catch(e) {
-      console.error('[SlideGen] Error:', e);
-      alert('Slide Gen error: ' + e.message);
+      console.error('[SlideGen] Error:', e?.message || String(e), e);
+      alert('Slide Gen error: ' + (e?.message || String(e)));
       btn.textContent = '🎯 Generate Google Slides';
     }
   }
