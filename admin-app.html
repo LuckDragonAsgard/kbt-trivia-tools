@@ -2137,6 +2137,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     if (!code) return alert('Enter an event code first');
     const btn = document.getElementById('sg-gslides-btn');
     const msg = document.getElementById('sg-msg');
+    console.log('[SlideGen] START — TEMPLATE_LIBRARY_ID:', TEMPLATE_LIBRARY_ID);
     btn.disabled = true;
     msg.textContent = '';
 
@@ -2230,6 +2231,11 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
       if (firstQAIndex === -1) firstQAIndex = 0;
       const allTypeIds = new Set([...Object.values(typeQSlide), ...Object.values(typeASlide)]);
       console.log('[SlideGen] Types found:', Object.keys(typeQSlide), '| firstQAIndex:', firstQAIndex);
+      // DEBUG: log first 3 slides raw to diagnose tag parsing
+      tpl.slides.slice(0,3).forEach((s,i) => {
+        const t = slideText(s);
+        console.log('[SlideGen][DEBUG] slide'+i+' objectId='+s.objectId+' pageElements='+JSON.stringify((s.pageElements||[]).map(e=>({id:e.objectId,hasShape:!!e.shape,hasText:!!e.shape?.text,text:e.shape?.text?.paragraphs?.[0]?.elements?.[0]?.textRun?.content}))));
+      });
 
       // ── 5. Clone template library ────────────────────────────────────────
       btn.textContent = '\u23F3 Cloning template...';
