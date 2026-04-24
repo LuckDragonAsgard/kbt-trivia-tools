@@ -1987,7 +1987,9 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
       headers: {apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`}
     });
-    return r.json();
+    const data = await r.json();
+    if (!r.ok) throw new Error(`DB error on ${path.split('?')[0]}: ${data?.message || JSON.stringify(data)}`);
+    return data;
   }
 
   function mkId() { return 'obj_' + Math.random().toString(36).slice(2,10); }
@@ -2086,7 +2088,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
       if (qids.length) {
         const qs = await dbFetch(
           `kbt_question?id=in.(${qids.join(',')})` +
-          `&select=id,question_question_text,question_answer_text,question_supporttext,question_answer_supporttext`
+          `&select=id,question_question_text,question_answer_text,question_fun_fact`
         );
         qs.forEach(q => qMap[q.id] = q);
       }
@@ -2256,10 +2258,10 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
 
       for (const { qId, aId, slot } of newSlidesPairs) {
         const q = qMap[slot.quiz_question_id] || {};
-        const qText   = q.question_question_text        || '';
-        const aText   = q.question_answer_text          || '';
-        const qSup    = q.question_supporttext          || '';
-        const aSup    = q.question_answer_supporttext   || '';
+        const qText   = q.question_question_text || '';
+        const aText   = q.question_answer_text  || '';
+        const qSup    = q.question_fun_fact      || '';  // support text — maps to fun fact for now
+        const aSup    = '';
         const rd      = String(slot.quiz_item_round     || '');
         const qn      = String(slot.quiz_item_number    || '');
 
@@ -2304,11 +2306,4 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     } catch(e) {
       console.error('[SlideGen] Error:', e);
       alert('Slide Gen error: ' + e.message);
-      btn.textContent = '\uD83C\uDFAF Generate Google Slides';
-      btn.disabled = false;
-      gAccessToken = null;
-    }
-  }
-</script>
-</body>
-</html>
+      btn.textContent = '\uD83C\uDFAF Generate Google Sl
