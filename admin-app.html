@@ -2112,9 +2112,10 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         const sp = el.shape.shapeProperties;
         if (sp) {
           const fields = [], props = {};
-          if (sp.shapeBackgroundFill) { props.shapeBackgroundFill = sp.shapeBackgroundFill; fields.push('shapeBackgroundFill'); }
-          if (sp.outline) { props.outline = sp.outline; fields.push('outline'); }
-          if (sp.shadow) { props.shadow = sp.shadow; fields.push('shadow'); }
+          // Skip INHERIT propertyState — new shapes have no placeholder parent to inherit from
+          if (sp.shapeBackgroundFill && sp.shapeBackgroundFill.propertyState !== 'INHERIT') { props.shapeBackgroundFill = sp.shapeBackgroundFill; fields.push('shapeBackgroundFill'); }
+          if (sp.outline && sp.outline.propertyState !== 'INHERIT') { props.outline = sp.outline; fields.push('outline'); }
+          if (sp.shadow && sp.shadow.propertyState !== 'INHERIT') { props.shadow = sp.shadow; fields.push('shadow'); }
           if (fields.length) reqs.push({ updateShapeProperties: { objectId: newId, shapeProperties: props, fields: fields.join(',') } });
         }
       }
