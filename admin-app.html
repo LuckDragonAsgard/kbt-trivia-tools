@@ -2029,11 +2029,99 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     return rect(slideId, 0, 0, SW, 80000, color);
   }
 
-  // ── Slide Gen: Type-Library Assembly ────────────────────────────────────────
-  // Template library in Drive — each question type has its own Q+A slide pair
-  // tagged with [type:question[TypeName]] and [type:answer[TypeName]].
-  // This function dynamically assembles a full KBT deck from those type slides.
-  let TEMPLATE_LIBRARY_ID = '1udEn0SBra8_bYI7JZinV5622X5bthJJPti0KbRhwW8k';
+  // ── Slide Gen: Direct-clone pipeline ────────────────────────────────────────
+  // For each quiz slot we clone elements directly from Paddy's real type
+  // presentations (no combined template library needed).
+  let TEMPLATE_LIBRARY_ID = '1udEn0SBra8_bYI7JZinV5622X5bthJJPti0KbRhwW8k'; // legacy
+
+  // Map from quiz_qtype value → source presentation ID (Paddy's real templates)
+  const KBT_SOURCE_MAP = {
+    'Classic':          '1xeZFkP-Wj5FChgV1BZhWWtMFaEsitZReK-DzwrE9fFc',
+    'Multiple Choice':  '1elJ6IGGBxlaVnxRVagPsxZTNmRjVHLgah3ywtHTUKWM',
+    'Bonus H&T':        '1Q4XZAUlp86GJYH4ElO4UstEKr4eP0cBpFHjkX_tRy1o',
+    'Bonus 1':          '177Vr-Xn56EwoLbWA-9e7yNlPUnZOg-sGjnFPsTxFxFU',
+    'Bonus Target':     '1fFM579k_8zVrJAZ4aJY5ppCk-9ldTHZC40C8vmCcc84',
+    'Follower Freebie': '1StMdxEehBHwXuV3cp69eL0hiGVELS1r7m92pL6DaD5E',
+    'Name The Brain':   '1uzpruAnMF1mJYw2c1RpDqWdKUY0XQlla3UQ8U_iggNA',
+    'Maths':            '1j_y5gN-g6ih-kOV-tqo6y2H1ZOKiezmaNxejcU0Esms',
+    'Song Lyrics':      '1FEVMsdzOF7BpLYFxxLQCBNSRyuqG_37JKiktRbfY5EM',
+    'Anagram':          '1W7MqnKFzAtv1HdukX7hUgUInfPmBuvkb3P_N3RS-lp0',
+    'Brands':           '1yflas-JIMvFmvtvQMoF2TtfppvSFikOUbokd9au7zf4',
+    'Face Morph':       '1IWlPj_W7v3VLR16SKvu-uNMlZIrlrYhjqc_gXa0vP9Y',
+    'Ghost Actors':     '1cdlW7ficxVl0BcL4sr2Rg6y5eHUFUjJVmFrk685jcOQ',
+    'Guess The Year':   '1ryc9ItbJNpI8ELtJRmEYY-O5wA9qgHs90MMLBhHVLlo',
+    'Crack The Code':   '1KJeHdU63-xBy8xZvkWiXXkPssHWv0g5AS4oU45z4RpM',
+    'Linked Pics':      '1ztKsPmndHve6foaVFpEJYjuTZKXban-R2iYa5UDOyzk',
+    'SoundMash':        '1plIUTS-q0iKT5NkVlQVb57wBeHoR7HMf4WXPOYmiSJw',
+    'Gambler Pairs':    '1y-qKpfRqWWlBvWpGOQYIz-xPLUfvPUcd05U7_6k_B7s',
+    'WordSmash':        '1itAw1Enb0s5LP8HVi4N5bnqL9h0Z8yH5O6GEqWK-aLo',
+    'Willywood':        '1V2WaBxzY3QQSw8MZyUd-nUrGcUHKlmvqWmzir6Xyrh4',
+    'Wheel Of Fortune': '1ag7zz9u-VbdB2w-XNOsI_AmLFfymwT53PFmIt-8bymo',
+    'Ditloid':          '1J4RqVeaFGQDGVyj26u1Pr1uGtTiLYZwqoXjWD5fpKqI',
+    'Bot2Bot':          '17rTJPutshdw711ngofxGJvm8m8N8BB2I2l3i2tHINhg',
+    'Carmen Sandiego':  '1k_5LjM-ijXDM8RpeD1aFXdfAyLLMFrlRZRqn43RDwKI',
+  };
+
+  // Extract plain text from a Slides text object
+  function extractSlideText(textObj) {
+    if (!textObj?.textElements) return '';
+    let out = '';
+    for (const te of textObj.textElements) {
+      if (te.textRun?.content) out += te.textRun.content;
+    }
+    return out;
+  }
+
+  // Build batchUpdate requests to clone all elements of srcSlide into a new
+  // slide (tgtSlideId) that already exists in tgtPresId. idPrefix must be
+  // unique per slide to avoid object-ID collisions.
+  function buildCloneRequests(srcSlide, tgtSlideId, idPrefix) {
+    const reqs = [];
+    let cnt = 0;
+
+    // Slide background
+    const bgFill = srcSlide.pageProperties?.pageBackgroundFill;
+    if (bgFill) {
+      reqs.push({
+        updatePageProperties: {
+          objectId: tgtSlideId,
+          pageProperties: { pageBackgroundFill: bgFill },
+          fields: 'pageBackgroundFill'
+        }
+      });
+    }
+
+    for (const el of (srcSlide.pageElements || [])) {
+      const newId = idPrefix + '_' + (cnt++);
+      const elemProps = {
+        pageObjectId: tgtSlideId,
+        size: el.size,
+        transform: el.transform
+      };
+
+      if (el.image) {
+        const url = el.image.contentUrl || el.image.sourceUrl;
+        if (url) reqs.push({ createImage: { objectId: newId, elementProperties: elemProps, url } });
+
+      } else if (el.shape) {
+        reqs.push({ createShape: { objectId: newId, shapeType: el.shape.shapeType || 'RECTANGLE', elementProperties: elemProps } });
+
+        const text = extractSlideText(el.shape.text);
+        if (text) reqs.push({ insertText: { objectId: newId, insertionIndex: 0, text } });
+
+        const sp = el.shape.shapeProperties;
+        if (sp) {
+          const fields = [], props = {};
+          if (sp.shapeBackgroundFill) { props.shapeBackgroundFill = sp.shapeBackgroundFill; fields.push('shapeBackgroundFill'); }
+          if (sp.outline) { props.outline = sp.outline; fields.push('outline'); }
+          if (sp.shadow) { props.shadow = sp.shadow; fields.push('shadow'); }
+          if (fields.length) reqs.push({ updateShapeProperties: { objectId: newId, shapeProperties: props, fields: fields.join(',') } });
+        }
+      }
+      // lines, tables etc. skipped — not present in KBT type slides
+    }
+    return reqs;
+  }
 
   async function createTemplateLibrary() {
     const btn = document.getElementById('sg-setup-btn');
@@ -2137,7 +2225,6 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
     if (!code) return alert('Enter an event code first');
     const btn = document.getElementById('sg-gslides-btn');
     const msg = document.getElementById('sg-msg');
-    console.log('[SlideGen] START — TEMPLATE_LIBRARY_ID:', TEMPLATE_LIBRARY_ID);
     btn.disabled = true;
     msg.textContent = '';
 
@@ -2183,6 +2270,8 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         `&order=quiz_item_round.asc,quiz_item_order.asc` +
         `&select=quiz_item_round,quiz_item_number,quiz_item_order,quiz_qtype,quiz_question_id`
       );
+      if (!quiz.length) throw new Error('No quiz slots found for event ' + event.id);
+
       const qids = [...new Set(quiz.map(s => s.quiz_question_id).filter(Boolean))];
       const qMap = {};
       if (qids.length) {
@@ -2193,130 +2282,90 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         qs.forEach(q => qMap[q.id] = q);
       }
 
-      // ── 4. Read template library — build type → slideId maps ────────────
-      btn.textContent = '\u23F3 Reading template library...';
-      const tplRes = await fetch(`https://slides.googleapis.com/v1/presentations/${TEMPLATE_LIBRARY_ID}`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      if (!tplRes.ok) throw new Error('Template read failed: ' + await tplRes.text());
-      const tpl = await tplRes.json();
-
-      const typeQSlide = {};   // typeName → template slideObjectId (question)
-      const typeASlide = {};   // typeName → template slideObjectId (answer)
-      let firstQAIndex = -1;  // index of first type-tagged slide in template
-
-      function slideText(slide) {
-        let t = '';
-        for (const el of (slide.pageElements || [])) {
-          // Slides REST API returns textElements[], not paragraphs[]
-          for (const te of (el.shape?.text?.textElements || [])) {
-            t += te.textRun?.content || '';
-          }
-        }
-        return t;
-      }
-
-      tpl.slides.forEach((slide, idx) => {
-        const text = slideText(slide);
-        const qm = text.match(/\[type:question\[([^\]]+)\]\]/);
-        const am = text.match(/\[type:answer\[([^\]]+)\]\]/);
-        if (qm) {
-          typeQSlide[qm[1]] = slide.objectId;
-          if (firstQAIndex === -1) firstQAIndex = idx;
-        } else if (am) {
-          typeASlide[am[1]] = slide.objectId;
-          if (firstQAIndex === -1) firstQAIndex = idx;
-        }
-      });
-
-      if (firstQAIndex === -1) firstQAIndex = 0;
-      const allTypeIds = new Set([...Object.values(typeQSlide), ...Object.values(typeASlide)]);
-      console.log('[SlideGen] Types found:', Object.keys(typeQSlide), '| firstQAIndex:', firstQAIndex);
-      // DEBUG: log first 3 slides raw to diagnose tag parsing
-      tpl.slides.slice(0,3).forEach((s,i) => {
-        const t = slideText(s);
-        console.log('[SlideGen][DEBUG] slide'+i+' objectId='+s.objectId+' pageElements='+JSON.stringify((s.pageElements||[]).map(e=>({id:e.objectId,hasShape:!!e.shape,hasText:!!e.shape?.text,text:e.shape?.text?.textElements?.[0]?.textRun?.content}))));
-      });
-
-      // ── 5. Clone template library ────────────────────────────────────────
-      btn.textContent = '\u23F3 Cloning template...';
-      const copyRes = await fetch(`https://www.googleapis.com/drive/v3/files/${TEMPLATE_LIBRARY_ID}/copy`, {
+      // ── 4. Create blank event presentation ─────────────────────────────
+      btn.textContent = '\u23F3 Creating deck...';
+      const createRes = await fetch('https://slides.googleapis.com/v1/presentations', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: `KBT \u2014 ${locName} (${event.event_date})` })
+        body: JSON.stringify({ title: `KBT \u2014 ${locName} (${event.event_date})` })
       });
-      if (!copyRes.ok) throw new Error('Clone failed: ' + await copyRes.text());
-      const cloned = await copyRes.json();
-      const presId = cloned.id;
+      if (!createRes.ok) throw new Error('Create deck failed: ' + await createRes.text());
+      const presData = await createRes.json();
+      const presId = presData.presentationId;
+      const defaultSlideId = presData.slides[0].objectId;
 
-      // ── 6. Read cloned presentation — map old IDs → new IDs ─────────────
-      btn.textContent = '\u23F3 Mapping cloned slides...';
-      const clRes = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}`, {
-        headers: { 'Authorization': 'Bearer ' + token }
+      // ── 5. Create blank Q+A slide stubs for all slots ──────────────────
+      btn.textContent = '\u23F3 Building slide structure...';
+      const slideStubs = quiz.map((slot, i) => ({
+        qId: 'sq' + i + 'r' + (slot.quiz_item_round || 0) + 'o' + (slot.quiz_item_order || i),
+        aId: 'sa' + i + 'r' + (slot.quiz_item_round || 0) + 'o' + (slot.quiz_item_order || i),
+        slot
+      }));
+
+      const createSlidesReqs = [];
+      for (let i = 0; i < slideStubs.length; i++) {
+        createSlidesReqs.push({ createSlide: { objectId: slideStubs[i].qId, insertionIndex: i * 2 + 1, slideLayoutReference: { predefinedLayout: 'BLANK' } } });
+        createSlidesReqs.push({ createSlide: { objectId: slideStubs[i].aId, insertionIndex: i * 2 + 2, slideLayoutReference: { predefinedLayout: 'BLANK' } } });
+      }
+
+      const stubRes = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: createSlidesReqs })
       });
-      if (!clRes.ok) throw new Error('Read clone failed: ' + await clRes.text());
-      const clPres = await clRes.json();
+      if (!stubRes.ok) throw new Error('Create slides failed: ' + await stubRes.text());
 
-      // Slides are in same order after copy, just with new object IDs
-      const oldToNew = {};
-      tpl.slides.forEach((s, i) => { oldToNew[s.objectId] = clPres.slides[i]?.objectId; });
+      // ── 6. Fetch source presentations (one per unique type, cached) ─────
+      btn.textContent = '\u23F3 Loading templates...';
+      const srcCache = {};
+      const uniqueTypes = [...new Set(quiz.map(s => s.quiz_qtype || 'Classic'))];
+      for (const type of uniqueTypes) {
+        const srcId = KBT_SOURCE_MAP[type] || KBT_SOURCE_MAP['Classic'];
+        const r = await fetch(`https://slides.googleapis.com/v1/presentations/${srcId}`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!r.ok) { console.warn('[SlideGen] Template fetch failed for', type, '— using Classic'); continue; }
+        const pres = await r.json();
+        srcCache[type] = { qSlide: pres.slides[0], aSlide: pres.slides[1] };
+        if (!srcCache['Classic'] && type !== 'Classic') {
+          // ensure Classic fallback is loaded
+          const cr = await fetch(`https://slides.googleapis.com/v1/presentations/${KBT_SOURCE_MAP['Classic']}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (cr.ok) { const cp = await cr.json(); srcCache['Classic'] = { qSlide: cp.slides[0], aSlide: cp.slides[1] }; }
+        }
+      }
 
-      const clTypeQSlide = {};
-      const clTypeASlide = {};
-      for (const [t, id] of Object.entries(typeQSlide)) clTypeQSlide[t] = oldToNew[id];
-      for (const [t, id] of Object.entries(typeASlide)) clTypeASlide[t] = oldToNew[id];
-      const clOriginalTypeIds = [...allTypeIds].map(id => oldToNew[id]).filter(Boolean);
-
-      // ── 7. Duplicate Q+A slides for each quiz slot ──────────────────────
-      btn.textContent = '\u23F3 Building quiz slides...';
-      const dupReqs = [];
-      const slotMeta = [];
-
-      for (const slot of quiz) {
+      // ── 7. Clone source elements into every slide ───────────────────────
+      btn.textContent = '\u23F3 Cloning designs...';
+      const allCloneReqs = [];
+      for (let i = 0; i < slideStubs.length; i++) {
+        const { qId, aId, slot } = slideStubs[i];
         const type = slot.quiz_qtype || 'Classic';
-        const qId = clTypeQSlide[type] || clTypeQSlide['Classic'];
-        const aId = clTypeASlide[type] || clTypeASlide['Classic'];
-        if (!qId || !aId) { console.warn('[SlideGen] No slide for type:', type); continue; }
-        dupReqs.push({ duplicateObject: { objectId: qId } });
-        dupReqs.push({ duplicateObject: { objectId: aId } });
-        slotMeta.push(slot);
+        const src = srcCache[type] || srcCache['Classic'];
+        if (!src) continue;
+        allCloneReqs.push(...buildCloneRequests(src.qSlide, qId, 'c' + i + 'q'));
+        allCloneReqs.push(...buildCloneRequests(src.aSlide, aId, 'c' + i + 'a'));
       }
 
-      if (!dupReqs.length) throw new Error('No type slides found in template library — click Setup to create one, then retry.');
-
-      const dupBatchRes = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requests: dupReqs })
-      });
-      if (!dupBatchRes.ok) throw new Error('Duplicate failed: ' + await dupBatchRes.text());
-      const dupData = await dupBatchRes.json();
-      const dupReplies = dupData.replies || [];
-
-      // Pair up new slide IDs: reply[i*2] = Q-new, reply[i*2+1] = A-new
-      const newSlidesPairs = [];
-      for (let i = 0; i < slotMeta.length; i++) {
-        const qNewId = dupReplies[i * 2]?.duplicateObject?.objectId;
-        const aNewId = dupReplies[i * 2 + 1]?.duplicateObject?.objectId;
-        if (qNewId && aNewId) newSlidesPairs.push({ qId: qNewId, aId: aNewId, slot: slotMeta[i] });
-      }
-
-      // ── 8. Reposition new slides + delete originals ──────────────────────
-      btn.textContent = '\u23F3 Assembling deck...';
-
-      // Delete original type template slides (fill is scoped by pageObjectIds so order doesn't matter)
-      const arrangeBatch = clOriginalTypeIds.map(id => ({ deleteObject: { objectId: id } }));
-
-      if (arrangeBatch.length > 0) {
-        const arrangeRes = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
+      const CHUNK = 500;
+      for (let i = 0; i < allCloneReqs.length; i += CHUNK) {
+        const r = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: arrangeBatch })
+          body: JSON.stringify({ requests: allCloneReqs.slice(i, i + CHUNK) })
         });
-        if (!arrangeRes.ok) throw new Error('Arrange failed: ' + await arrangeRes.text());
+        if (!r.ok) throw new Error('Clone failed (chunk ' + Math.floor(i / CHUNK) + '): ' + await r.text());
       }
 
-      // ── 9. Fill placeholders ─────────────────────────────────────────────
+      // ── 8. Delete the default blank slide ──────────────────────────────
+      await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests: [{ deleteObject: { objectId: defaultSlideId } }] })
+      });
+
+      // ── 9. Fill placeholders ────────────────────────────────────────────
       btn.textContent = '\u23F3 Filling content...';
 
       const dateGen = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -2324,7 +2373,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         ? new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
         : '';
 
-      // Global: structural slide tokens (no pageObjectIds scope = whole deck)
+      // Global tokens — applied deck-wide (no pageObjectIds scope)
       const globalReqs = [
         '[event_location_name]', '[event_date]', '[loc_time]',
         '[loc_nickname]', '[loc_prizes]', '[location_id]', '[event_id]', '[date_generated]'
@@ -2344,7 +2393,7 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         }
       }));
 
-      // Per-slide: Q+A tokens scoped to each individual slide
+      // Per-slide tokens scoped to each slide's objectId
       const perSlideReqs = [];
       const repl = (pageIds, tok, val) => perSlideReqs.push({
         replaceAllText: {
@@ -2354,65 +2403,17 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         }
       });
 
-      for (const { qId, aId, slot } of newSlidesPairs) {
+      for (const { qId, aId, slot } of slideStubs) {
         const q = qMap[slot.quiz_question_id] || {};
-        const qText   = q.question_question_text || '';
-        const aText   = q.question_answer_text  || '';
-        const qSup    = q.question_fun_fact      || '';  // support text — maps to fun fact for now
-        const aSup    = '';
-        const rd      = String(slot.quiz_item_round     || '');
-        const qn      = String(slot.quiz_item_number    || '');
+        const qText = q.question_question_text || '';
+        const aText = q.question_answer_text   || '';
+        const qSup  = q.question_fun_fact       || '';
+        const rd    = String(slot.quiz_item_round  || '');
+        const qn    = String(slot.quiz_item_number || '');
 
         // Question slide
         repl([qId], '[question_text]',        qText);
         repl([qId], '[question_supporttext]', qSup);
         repl([qId], '[q]',                    qn);
         repl([qId], '[rd]',                   rd);
-        repl([qId], '[event_location_name]',  locName);
-        repl([qId], '[event_date]',           eventDateFmt);
-        repl([qId], '[loc_time]',             locTime);
-
-        // Answer slide
-        repl([aId], '[answer_text]',          aText);
-        repl([aId], '[answer_supporttext]',   aSup);
-        repl([aId], '[q]',                    qn);
-        repl([aId], '[rd]',                   rd);
-        repl([aId], '[event_location_name]',  locName);
-        repl([aId], '[event_date]',           eventDateFmt);
-        repl([aId], '[loc_time]',             locTime);
-      }
-
-      // Send fill requests — chunk at 500 to stay inside API limits
-      const fillReqs = [...globalReqs, ...perSlideReqs];
-      const CHUNK = 500;
-      for (let i = 0; i < fillReqs.length; i += CHUNK) {
-        const fillRes = await fetch(`https://slides.googleapis.com/v1/presentations/${presId}:batchUpdate`, {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ requests: fillReqs.slice(i, i + CHUNK) })
-        });
-        if (!fillRes.ok) throw new Error('Fill failed (chunk ' + Math.floor(i / CHUNK) + '): ' + await fillRes.text());
-      }
-
-      // ── 10. Show result links ────────────────────────────────────────────
-      document.getElementById('gslides-present-link').href = `https://docs.google.com/presentation/d/${presId}/present`;
-      document.getElementById('gslides-edit-link').href   = `https://docs.google.com/presentation/d/${presId}/edit`;
-      document.getElementById('gslides-result').style.display = 'block';
-      btn.textContent = `\u2705 Done \u2014 ${newSlidesPairs.length} Q+A slides assembled`;
-      msg.textContent = `${locName} \u00B7 ${event.event_date}`;
-
-    } catch(e) {
-      console.error('[SlideGen] Error:', e?.message || String(e), e);
-      alert('Slide Gen error: ' + (e?.message || String(e)));
-      btn.textContent = '🎯 Generate Google Slides';
-    }
-  }
-
-  // On load: activate section from URL hash (e.g. #slide-gen -> go('slide-gen'))
-  (function() {
-    const h = location.hash.replace(/^#/, '');
-    if (h && document.getElementById('sec-' + h)) go(h);
-  })();
-</script>
-</body>
-</html>                                                                                                                                                                                                                                                                                                       
+        repl([qId], '[event_location_name]',  l
