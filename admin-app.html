@@ -2112,10 +2112,11 @@ dbCount('/questions?status=eq.draft').then(n=>{if(n>0)document.getElementById('d
         const sp = el.shape.shapeProperties;
         if (sp) {
           const fields = [], props = {};
-          // Skip INHERIT propertyState — new shapes have no placeholder parent to inherit from
-          if (sp.shapeBackgroundFill && sp.shapeBackgroundFill.propertyState !== 'INHERIT') { props.shapeBackgroundFill = sp.shapeBackgroundFill; fields.push('shapeBackgroundFill'); }
-          if (sp.outline && sp.outline.propertyState !== 'INHERIT') { props.outline = sp.outline; fields.push('outline'); }
-          if (sp.shadow && sp.shadow.propertyState !== 'INHERIT') { props.shadow = sp.shadow; fields.push('shadow'); }
+          // Only copy fills that have concrete values — INHERIT/empty shapeBackgroundFill causes
+          // 400 "propertyState INHERIT not supported for shape with no placeholder parent"
+          if (sp.shapeBackgroundFill?.solidFill || sp.shapeBackgroundFill?.stretchedPictureFill) { props.shapeBackgroundFill = sp.shapeBackgroundFill; fields.push('shapeBackgroundFill'); }
+          if (sp.outline?.outlineFill && sp.outline.propertyState !== 'INHERIT') { props.outline = sp.outline; fields.push('outline'); }
+          if (sp.shadow?.transform && sp.shadow.propertyState !== 'INHERIT') { props.shadow = sp.shadow; fields.push('shadow'); }
           if (fields.length) reqs.push({ updateShapeProperties: { objectId: newId, shapeProperties: props, fields: fields.join(',') } });
         }
       }
