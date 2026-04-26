@@ -1462,6 +1462,7 @@
 
 </style>
     <script src="kbt-data.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -2709,5 +2710,15 @@ function launchDemo() {
 loadRecentEvents();
 
 </script>
+<script src="slides-export.js"></script>
+<div id="kbt-slides-fab" style="position:fixed;bottom:24px;right:24px;z-index:9999">
+  <button id="btn-export-slides" onclick="exportLeaderboardToSlides()"
+    title="Export leaderboard to Google Slides"
+    style="background:#4285f4;color:#fff;border:none;border-radius:28px;
+           padding:12px 22px;font-size:15px;font-weight:600;cursor:pointer;
+           box-shadow:0 4px 12px rgba(0,0,0,.35)">
+    Export to Slides
+  </button>
+</div>
 </body>
 </html>
