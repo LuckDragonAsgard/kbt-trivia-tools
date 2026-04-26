@@ -5,7 +5,7 @@
 (function(){
   const SUPABASE_URL  = 'https://huvfgenbcaiicatvtxak.supabase.co';
   const REAL_ANON     = ['eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9','eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0','uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc'].join('.');
-  const TARGET_EVENT_CODE = localStorage.getItem('kbt_event_code') || 'TEST-NIGHT-001';
+  const TARGET_EVENT_CODE = localStorage.getItem('kbt_event_code') || 'TEST-001';
 
   const MODE_KEY = 'kbtDataMode';
   function getMode(){
@@ -184,8 +184,8 @@
       localStorage.setItem('kbtTeams', JSON.stringify(teams));
       return entry;
     },
-    async getAnswersForEvent(){ return []; }
-    async getRoundScores(code){ return []; },,
+    async getAnswersForEvent(){ return []; },
+    async getRoundScores(code){ return []; },
     async submitRoundScore(eventCode, teamName, round, points){
       let scores = {};
       try { scores = JSON.parse(localStorage.getItem('kbtScores') || '{}'); } catch(e){}
@@ -229,7 +229,7 @@
     async getAnswersForEvent(eid){ return (getMode()==='live' ? live : offline).getAnswersForEvent(eid); },
 
     shapeQuestion(row){
-      const q = row.question || {};
+      const q = row.kbt_question || {};
       return {
         id: row.id,
         round: row.quiz_item_round,
