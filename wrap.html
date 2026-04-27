@@ -154,20 +154,42 @@ function fmtRank(n) {
     const [ev, allTeams, allScores, members] = await Promise.all([
       sb('kbt_event', { select: 'event_code,event_description,event_date', event_code: 'eq.' + (team.event_code || eventCode), limit: 1 }).then(r=>r[0]),
       sb('kbt_teams', { select: 'id,team_name,display_name,team_emoji,team_captain,team_code', event_code: 'eq.' + (team.event_code || eventCode) }),
-      sb('trial_scores', { select: 'team_name,round,points', event_code: 'eq.' + (team.event_code || eventCode), question_number: 'eq.0' }),
+      sb('trial_scores', { select: 'team_name,round,question_number,points', event_code: 'eq.' + (team.event_code || eventCode) }),
       sb('kbt_team_member', { select: 'player_name,is_captain,player_code,team_id', team_id: 'eq.' + team.id, order: 'is_captain.desc,created_at.asc' })
     ]);
 
     // 3. Build leaderboard + per-round
+    // Split out round totals (question_number=0) from per-question rows (question_number>0)
+    const roundTotalRows = allScores.filter(s => !s.question_number || s.question_number === 0);
+    const perQRows = allScores.filter(s => s.question_number && s.question_number > 0);
+
     const totals = {};
     const perRound = {};
     const rounds = new Set();
-    allScores.forEach(s => {
+    roundTotalRows.forEach(s => {
       totals[s.team_name] = (totals[s.team_name]||0) + (s.points||0);
       if (!perRound[s.team_name]) perRound[s.team_name] = {};
       perRound[s.team_name][s.round] = (perRound[s.team_name][s.round]||0) + (s.points||0);
       rounds.add(s.round);
     });
+    // If no q=0 rows for a team but we have per-q rows, derive totals from those
+    perQRows.forEach(s => {
+      if (totals[s.team_name] === undefined) totals[s.team_name] = 0;
+      if (!perRound[s.team_name]) perRound[s.team_name] = {};
+      // Only fall back to per-question sum if the round has no q=0 row
+      rounds.add(s.round);
+    });
+    // Per-team per-question correctness stats
+    const perQByTeam = {};
+    perQRows.forEach(s => {
+      if (!perQByTeam[s.team_name]) perQByTeam[s.team_name] = { right: 0, total: 0, byRound: {} };
+      perQByTeam[s.team_name].total++;
+      if ((s.points||0) > 0) perQByTeam[s.team_name].right++;
+      if (!perQByTeam[s.team_name].byRound[s.round]) perQByTeam[s.team_name].byRound[s.round] = { right: 0, total: 0 };
+      perQByTeam[s.team_name].byRound[s.round].total++;
+      if ((s.points||0) > 0) perQByTeam[s.team_name].byRound[s.round].right++;
+    });
+    const myQStats = perQByTeam[team.team_name];
     const lb = Object.entries(totals).map(([name, total]) => ({ team_name: name, total }))
       .sort((a,b) => b.total - a.total);
     const myRank = lb.findIndex(t => t.team_name === team.team_name) + 1;
@@ -209,6 +231,17 @@ function fmtRank(n) {
       <div class="big">${esc(team.team_name)}</div>
       <div class="sub">${esc(venue || '')}${dateStr?' · ' + esc(dateStr):''}</div>
     </div>`;
+
+    // SLIDE 1.5 — Per-question accuracy (if we have per-q data)
+    if (myQStats && myQStats.total > 0) {
+      const pct = Math.round((myQStats.right / myQStats.total) * 100);
+      const accentClass = pct >= 80 ? 'gold' : (pct >= 50 ? 'green' : 'magenta');
+      html += `<div class="slide ${accentClass}">
+        <h2>Questions answered correctly</h2>
+        <div class="ginormous">${myQStats.right}<span style="font-size:48px;opacity:.7">/${myQStats.total}</span></div>
+        <div class="sub"><span class="accent">${pct}%</span> of questions ${pct>=80?'— smashed it':(pct>=50?'— solid effort':'— rough night')}</div>
+      </div>`;
+    }
 
     // SLIDE 2 — Final rank (gold if 1st, blue otherwise, magenta if last)
     if (myRank > 0) {
