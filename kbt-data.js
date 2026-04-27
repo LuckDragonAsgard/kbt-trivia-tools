@@ -81,7 +81,7 @@
           order: 'created_at.asc'
         }).catch(() => []),
         pgGet('kbt_teams', {
-          select: 'id,event_code,team_name,display_name,team_color,team_emoji,team_captain,created_at',
+          select: 'id,event_code,team_name,display_name,team_color,team_emoji,team_captain,team_code,created_at',
           event_code: 'eq.' + TARGET_EVENT_CODE,
           order: 'created_at.asc'
         }).catch(() => [])
@@ -92,13 +92,14 @@
         created_at: t.created_at,
         team: {
           id: t.id,
-          team_code: t.team_name,
+          team_code: t.team_code || t.team_name,
           team_name: t.team_name,
           is_active: true
         },
         team_color: t.team_color,
         team_emoji: t.team_emoji,
         team_captain: t.team_captain,
+        team_code: t.team_code,
         _trial: true
       }));
       return [...official, ...trialShaped];
@@ -153,6 +154,23 @@
         .map(function([team_name, total]){ return { team_name: team_name, total: total }; })
         .sort(function(a, b){ return b.total - a.total; });
     }
+    async getTeamMembers(eventCode){
+      return pgGet('kbt_team_member', {
+        select: 'id,team_id,team_code,player_name,player_code,is_captain,created_at',
+        event_code: 'eq.' + (eventCode || TARGET_EVENT_CODE),
+        order: 'is_captain.desc,created_at.asc'
+      }).catch(() => []);
+    },
+    async submitWager(eventCode, teamName, round, questionNumber, wagerAmount, wasCorrect){
+      return pgPost('kbt_wager', {
+        event_code: eventCode || TARGET_EVENT_CODE,
+        team_name: teamName,
+        round: round,
+        question_number: questionNumber,
+        wager_amount: wagerAmount || 0,
+        was_correct: typeof wasCorrect === 'boolean' ? wasCorrect : null
+      }, 'resolution=merge-duplicates,return=representation');
+    },
   };
 
   const offline = {
@@ -196,7 +214,9 @@
       localStorage.setItem('kbtScores', JSON.stringify(scores));
       return { team_name: teamName, round: round, points: parseInt(points) || 0 };
     },
-    async getLeaderboard(){
+    async getTeamMembers(){ return []; },
+    async submitWager(){ return null; },
+        async getLeaderboard(){
       let scores = {};
       try { scores = JSON.parse(localStorage.getItem('kbtScores') || '{}'); } catch(e){}
       return Object.entries(scores)
@@ -229,6 +249,10 @@
       return (getMode()==='live' ? live : offline).getLeaderboard(code);
     },
     async getAnswersForEvent(eid){ return (getMode()==='live' ? live : offline).getAnswersForEvent(eid); },
+    async getTeamMembers(code){ return (getMode()==='live' ? live : offline).getTeamMembers(code); },
+    async submitWager(code, teamName, round, qNum, amount, wasCorrect){
+      return (getMode()==='live' ? live : offline).submitWager(code, teamName, round, qNum, amount, wasCorrect);
+    },
 
     shapeQuestion(row){
       const q = row.kbt_question || {};
