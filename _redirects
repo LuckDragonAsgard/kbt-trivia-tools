@@ -1,0 +1,23 @@
+# Cloudflare Pages redirects — preserve old vercel.json clean URLs
+# Format: /from /to status
+
+/live-scoring /live-scoring.html 200
+/submit /submit.html 200
+/presentation /presentation.html 200
+/join /join.html 200
+/admin-app /admin-app.html 200
+/host-app /host-app.html 200
+/player-app /player-app.html 200
+/tools /tools.html 200
+/brain-tool /brain-tool.html 200
+/brand-tool /brand-tool.html 200
+/carmen-sandiego-tool /carmen-sandiego-tool.html 200
+/crack-the-code-tool /crack-the-code-tool.html 200
+/face-morph-tool /face-morph-tool.html 200
+/ghost-actors-tool /ghost-actors-tool.html 200
+/guess-the-year-tool /guess-the-year-tool.html 200
+/host-brief-tool /host-brief-tool.html 200
+/kbt-examples /kbt-examples.html 200
+/linked-pics-tool /linked-pics-tool.html 200
+/question-dev /question-dev.html 200
+/soundmash-tool /soundmash-tool.html 200
