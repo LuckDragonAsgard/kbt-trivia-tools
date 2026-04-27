@@ -75,6 +75,13 @@
         /* Quiz question special badges */
         .badge-freebie { background: #E8A317 !important; color: #fff !important; }
         .badge-gambler { background: #ff3860 !important; color: #fff !important; }
+        .mark-panel { background: #f0f9ff; border: 2px solid #2c94c2; border-radius: 12px; padding: 14px; margin: 14px 0; }
+        .mark-panel h4 { font-family: 'VVDS Fifties', sans-serif; color: #2c94c2; margin-bottom: 10px; font-size: 15px; }
+        .mark-row { display: grid; grid-template-columns: 1fr 80px 80px; gap: 8px; align-items: center; padding: 8px; background: #fff; border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
+        .mark-row .name { font-weight: 600; }
+        .mark-row .res-btn { padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; background: #f8fafc; font-family: 'Outfit', sans-serif; }
+        .mark-row .res-btn.win { background: #d4edda; border-color: #28a745; color: #155724; font-weight: 700; }
+        .mark-row .res-btn.lose { background: #f8d7da; border-color: #dc3545; color: #721c24; font-weight: 700; }
         .wager-panel { background: #fff3cd; border: 2px solid #ff3860; border-radius: 12px; padding: 16px; margin: 16px 0; }
         .wager-panel h4 { font-family: 'VVDS Fifties', sans-serif; color: #ff3860; margin-bottom: 12px; font-size: 16px; }
         .wager-row { display: grid; grid-template-columns: 1fr 90px 70px 70px; gap: 8px; align-items: center; padding: 8px; background: #fff; border-radius: 8px; margin-bottom: 6px; font-size: 14px; }
@@ -1545,10 +1552,8 @@
                 <div class="schedule-title">Tonight's Schedule</div>
                 <table class="schedule-table">
                     <thead><tr><th>Time</th><th>Round</th><th>Type</th></tr></thead>
-                    <tbody>
-                        <tr><td>7:00 PM</td><td>Round 1</td><td>General Knowledge</td></tr>
-                        <tr><td>7:30 PM</td><td>Round 2</td><td>Theme Round</td></tr>
-                        <tr><td>8:00 PM</td><td>Round 3</td><td>Final Round</td></tr>
+                    <tbody id="scheduleBody">
+                        <tr><td>—</td><td>Round 1</td><td>Loading…</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1598,7 +1603,7 @@
             <div class="scoring-container">
                 <h2 style="margin-bottom: 24px; color: var(--navy);">Update Scores</h2>
                 <table class="score-table">
-                    <thead><tr><th>Team</th><th>R1</th><th>R2</th><th>R3</th><th>Total</th><th>Power-Ups</th></tr></thead>
+                    <thead><tr id="scoreTableHead"><th>Team</th><th>R1</th><th>R2</th><th>R3</th><th>Total</th><th>Power-Ups</th></tr></thead>
                     <tbody id="scoreTableBody"></tbody>
                 </table>
                 <button class="announce-btn" onclick="showLeaderboard()">Show Leaderboard</button>
@@ -1841,44 +1846,43 @@
         }
 
         function renderScoreTable() {
+            renderScoreTableHeader();
             const tbody = document.getElementById('scoreTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            const rounds = _activeRounds.length ? _activeRounds : [1,2,3];
             teams.forEach(team => {
-                if (!teamScores[team.id]) teamScores[team.id] = { R1: 0, R2: 0, R3: 0 };
+                if (!teamScores[team.id]) teamScores[team.id] = emptyRoundScores();
+                rounds.forEach(r => { if (typeof teamScores[team.id]['R'+r] !== 'number') teamScores[team.id]['R'+r] = 0; });
                 const s = teamScores[team.id];
-                const total = (s.R1||0) + (s.R2||0) + (s.R3||0);
+                const total = totalForTeam(team.id);
                 const powerups = (teamPowerups[team.id] || []).map(p => {
                     const labels = { 'double': '2x', '50/50': '50/50', 'extra': '⏱' };
                     return `<span class="powerup-badge">${labels[p] || p}</span>`;
                 }).join(' ');
                 const row = document.createElement('tr');
+                const roundCells = rounds.map(r => `<td><input type="number" class="score-input" value="${s['R'+r]||0}" min="0" onchange="updateTeamScore('${team.id}','R${r}',this.value)"></td>`).join('');
                 row.innerHTML = `
                     <td><span style="display:inline-flex;align-items:center;gap:8px;">
                         <span style="width:12px;height:12px;border-radius:50%;background:${team.color||'#2C94C2'};flex-shrink:0;"></span>
                         <span style="font-size:18px;">${team.mascot||'🎯'}</span>
-                        <span style="font-weight:600;">${team.name}</span>
+                        <span style="font-weight:600;">${escapeHtml(team.name)}</span>
                     </span></td>
-                    <td><input type="number" class="score-input" value="${s.R1||0}" min="0" onchange="updateTeamScore('${team.id}','R1',this.value)"></td>
-                    <td><input type="number" class="score-input" value="${s.R2||0}" min="0" onchange="updateTeamScore('${team.id}','R2',this.value)"></td>
-                    <td><input type="number" class="score-input" value="${s.R3||0}" min="0" onchange="updateTeamScore('${team.id}','R3',this.value)"></td>
+                    ${roundCells}
                     <td id="totalCell-${team.id}"><strong style="font-size:16px;color:#0369a1;">${total}</strong></td>
                     <td>${powerups || '—'}</td>
                 `;
                 tbody.appendChild(row);
             });
-            const avg = teams.length ? Math.round(teams.reduce((sum, t) => {
-                const s = teamScores[t.id] || {}; return sum + (s.R1||0) + (s.R2||0) + (s.R3||0);
-            }, 0) / teams.length) : 0;
+            const avg = teams.length ? Math.round(teams.reduce((sum, t) => sum + totalForTeam(t.id), 0) / teams.length) : 0;
             const avgEl = document.getElementById('avgScore');
             if (avgEl) avgEl.textContent = avg;
         }
 
         function updateTeamScore(teamId, round, value) {
-            if (!teamScores[teamId]) teamScores[teamId] = { R1: 0, R2: 0, R3: 0 };
+            if (!teamScores[teamId]) teamScores[teamId] = emptyRoundScores();
             teamScores[teamId][round] = parseInt(value) || 0;
-            const s = teamScores[teamId];
-            const total = (s.R1||0) + (s.R2||0) + (s.R3||0);
+            const total = totalForTeam(teamId);
             const totalCell = document.getElementById('totalCell-' + teamId);
             if (totalCell) totalCell.innerHTML = '<strong>' + total + '</strong>';
             localStorage.setItem('teamScores', JSON.stringify(teamScores));
@@ -1901,6 +1905,92 @@
             navigateTo('dashboard');
         }
 
+
+
+        // Per-question correctness — host marks each team ✓/✗ on each question
+        function renderMarkPanel(q) {
+            const panel = document.getElementById('markPanel');
+            if (!panel) return;
+            if (!teams.length) { panel.innerHTML = '<div style="color:#999;font-size:13px">No teams loaded yet</div>'; return; }
+            const round = q.round || 1;
+            const qNum = q.num || 1;
+            const stateKey = 'r' + round + 'q' + qNum;
+            if (!_questionMarks[stateKey]) _questionMarks[stateKey] = {};
+            (_perQuestionRowCache || []).forEach(row => {
+                if (row.round === round && row.question_number === qNum) {
+                    const tid = (teams.find(t => t.name === row.team_name) || {}).id;
+                    if (tid && !_questionMarks[stateKey][tid]) {
+                        _questionMarks[stateKey][tid] = (row.points && row.points > 0) ? 'right' : 'wrong';
+                    }
+                }
+            });
+            const cur = _questionMarks[stateKey];
+            panel.innerHTML = `
+                <h4>Mark Q${qNum} (Round ${round}) — ${q.points||1} pt${(q.points||1)===1?'':'s'}</h4>
+                ${teams.map(t => `
+                    <div class="mark-row" data-team="${t.id}">
+                        <div class="name">${t.mascot||'🎯'} ${escapeHtml(t.name)}</div>
+                        <button class="res-btn ${cur[t.id]==='right'?'win':''}" onclick="markQuestion('${String(t.id).replace(/'/g,"\\'")}', ${round}, ${qNum}, ${q.points||1}, true)">✓ Right</button>
+                        <button class="res-btn ${cur[t.id]==='wrong'?'lose':''}" onclick="markQuestion('${String(t.id).replace(/'/g,"\\'")}', ${round}, ${qNum}, ${q.points||1}, false)">✗ Wrong</button>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        async function markQuestion(teamId, round, qNum, qPoints, isRight) {
+            const team = teams.find(t => String(t.id) === String(teamId));
+            if (!team) return;
+            const stateKey = 'r' + round + 'q' + qNum;
+            if (!_questionMarks[stateKey]) _questionMarks[stateKey] = {};
+            _questionMarks[stateKey][team.id] = isRight ? 'right' : 'wrong';
+            const points = isRight ? (qPoints || 1) : 0;
+            const code = window.kbtData ? window.kbtData.TARGET_EVENT_CODE : null;
+            try {
+                if (window.kbtData) {
+                    await window.kbtData.submitRoundScore(code, team.name, round, points, qNum);
+                    const idx = _perQuestionRowCache.findIndex(r => r.team_name === team.name && r.round === round && r.question_number === qNum);
+                    if (idx >= 0) _perQuestionRowCache[idx] = { team_name: team.name, round, question_number: qNum, points };
+                    else _perQuestionRowCache.push({ team_name: team.name, round, question_number: qNum, points });
+                    const sum = _perQuestionRowCache
+                        .filter(r => r.team_name === team.name && r.round === round && r.question_number > 0)
+                        .reduce((s, r) => s + (r.points || 0), 0);
+                    if (!teamScores[team.id]) teamScores[team.id] = emptyRoundScores();
+                    teamScores[team.id]['R' + round] = sum;
+                    localStorage.setItem('teamScores', JSON.stringify(teamScores));
+                    await window.kbtData.submitRoundScore(code, team.name, round, sum, 0);
+                }
+            } catch(e) { console.warn('[kbt] markQuestion persist failed:', e.message); }
+            renderMarkPanel(questions[currentQuestion]);
+            if (typeof renderScoreTable === 'function') renderScoreTable();
+        }
+
+        function renderSchedule() {
+            const tbody = document.getElementById('scheduleBody');
+            if (!tbody) return;
+            if (!Array.isArray(questions) || !questions.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="color:#999;text-align:center;font-size:13px">No quiz items loaded yet</td></tr>';
+                return;
+            }
+            const byRound = {};
+            questions.forEach(q => {
+                if (!byRound[q.round]) byRound[q.round] = { count: 0, types: {} };
+                byRound[q.round].count++;
+                if (q.type) byRound[q.round].types[q.type] = (byRound[q.round].types[q.type]||0)+1;
+            });
+            const rounds = Object.keys(byRound).map(Number).sort((a,b)=>a-b);
+            const startMin = 7*60;
+            tbody.innerHTML = rounds.map((r, i) => {
+                const t = startMin + i*30;
+                const hh = Math.floor(t/60), mm = t%60;
+                const ampm = hh>=12 ? 'PM' : 'AM';
+                const displayHr = ((hh+11)%12)+1;
+                const time = `${displayHr}:${mm===0?'00':String(mm).padStart(2,'0')} ${ampm}`;
+                const types = byRound[r].types;
+                const topType = Object.entries(types).sort((a,b)=>b[1]-a[1])[0];
+                const label = topType ? topType[0] : 'Mixed';
+                return `<tr><td>${time}</td><td>Round ${r}</td><td>${escapeHtml(label)} (${byRound[r].count} qs)</td></tr>`;
+            }).join('');
+        }
 
         // Gambler wager mechanic — per-team wager + correct/incorrect, persisted to kbt_wager
         let _wagerState = {}; // teamId → { amount, result: 'win'|'lose'|null }
@@ -1954,7 +2044,7 @@
                 const w = cur[team.id];
                 if (!w || !w.result) continue;
                 const delta = (w.result === 'win' ? 1 : -1) * (w.amount || 0);
-                if (!teamScores[team.id]) teamScores[team.id] = { R1: 0, R2: 0, R3: 0 };
+                if (!teamScores[team.id]) teamScores[team.id] = emptyRoundScores();
                 const rkey = 'R' + round;
                 teamScores[team.id][rkey] = (teamScores[team.id][rkey] || 0) + delta;
                 localStorage.setItem('teamScores', JSON.stringify(teamScores));
@@ -1970,16 +2060,27 @@
             if (typeof renderScoreTable === 'function') renderScoreTable();
         }
 
-        let teams = [
-            { id: 1, name: 'The Brain Trust', mascot: '🧠', color: '#2C94C2', code: 'BRAINS24', players: [{name:'Alex',code:'P01'},{name:'Sam',code:'P02'},{name:'Jordan',code:'P03'}] },
-            { id: 2, name: 'Quiz Queens', mascot: '👑', color: '#E8A317', code: 'QUEENS22', players: [{name:'Emma',code:'P04'},{name:'Sophie',code:'P05'}] },
-            { id: 3, name: 'Trivia Titans', mascot: '⚡', color: '#7c3aed', code: 'TITANS19', players: [{name:'Mike',code:'P06'},{name:'Chris',code:'P07'},{name:'Pat',code:'P08'}] }
-        ];
-        let teamScores = {
-            1: { R1: 0, R2: 0, R3: 0 },
-            2: { R1: 0, R2: 0, R3: 0 },
-            3: { R1: 0, R2: 0, R3: 0 }
-        };
+        let teams = [];
+        let _activeRounds = [1, 2, 3];
+        let _questionMarks = {};
+        let _perQuestionRowCache = [];
+        let teamScores = {};
+
+        function emptyRoundScores() {
+            const o = {};
+            (_activeRounds.length ? _activeRounds : [1,2,3]).forEach(r => { o['R'+r] = 0; });
+            return o;
+        }
+        function totalForTeam(teamId) {
+            const s = teamScores[teamId] || {};
+            return (_activeRounds.length ? _activeRounds : [1,2,3]).reduce((sum, r) => sum + (s['R'+r]||0), 0);
+        }
+        function renderScoreTableHeader() {
+            const head = document.getElementById('scoreTableHead');
+            if (!head) return;
+            const rounds = _activeRounds.length ? _activeRounds : [1,2,3];
+            head.innerHTML = '<th>Team</th>' + rounds.map(r => `<th>R${r}</th>`).join('') + '<th>Total</th><th>Power-Ups</th>';
+        }
         let selectedMascot = '🦁';
         let selectedColor = '#2C94C2';
         let teamPowerups = {};
@@ -2375,14 +2476,14 @@
                     <div class="question-text">${q.text}</div>
                     <button type="button" class="answer-button" onclick="revealAnswer()">Show Answer</button>
                     <div id="answerBox"></div>
-                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : ''}
+                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : `<div id="markPanel" class="mark-panel"></div>`}
                     <div class="fun-fact-toggle" onclick="this.classList.toggle('expanded')">
                         💡 Fun Fact
                         <div class="fun-fact-text">${funFactText}</div>
                     </div>
                 </div>
             `;
-            if (q.type === 'Gambler') renderWagerPanel(q);
+            if (q.type === 'Gambler') renderWagerPanel(q); else renderMarkPanel(q);
             document.getElementById('currentQuestion').textContent = currentQuestion + 1;
             document.getElementById('totalQuestions').textContent = questions.length;
             document.getElementById('prevBtn').disabled = currentQuestion === 0;
@@ -2668,7 +2769,7 @@
                     rows.forEach(function(r) {
                         const id = nameToId[r.team_name];
                         if (id) {
-                            if (!teamScores[id]) teamScores[id] = { R1: 0, R2: 0, R3: 0 };
+                            if (!teamScores[id]) teamScores[id] = emptyRoundScores();
                             teamScores[id]['R' + r.round] = r.points || 0;
                         }
                     });
@@ -2810,6 +2911,22 @@ async function launchEvent() {
     console.error('launchEvent error:', e);
     await loadQuestionsFromBank();
   }
+
+  // Render Tonight's Schedule from quiz items + load per-question score cache
+  try {
+    if (questions && questions.length) {
+      const rs = [...new Set(questions.map(q => q.round))].filter(r => typeof r === 'number').sort((a,b)=>a-b);
+      if (rs.length) _activeRounds = rs;
+    }
+    if (typeof renderSchedule === 'function') renderSchedule();
+  } catch(e){}
+  try {
+    if (window.kbtData && window.kbtData.getAllScores) {
+      const code = window.kbtData.TARGET_EVENT_CODE;
+      const allScores = await window.kbtData.getAllScores(code);
+      _perQuestionRowCache = (allScores || []).filter(r => r.question_number && r.question_number > 0);
+    }
+  } catch(e) { console.warn('[kbt] per-question cache load failed:', e.message); }
 
   document.getElementById('event-info-bar').style.display = 'flex';
   document.getElementById('event-selector').style.display = 'none';
