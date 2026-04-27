@@ -128,19 +128,25 @@
         question_number: 'eq.0'
       });
     },
-    async submitRoundScore(eventCode, teamName, round, points){
+    async submitRoundScore(eventCode, teamName, round, points, questionNumber){
       const rows = await pgPost(
         'trial_scores',
         {
           event_code: eventCode || TARGET_EVENT_CODE,
           team_name: teamName,
           round: round,
-          question_number: 0,
+          question_number: (typeof questionNumber === 'number' ? questionNumber : 0),
           points: parseInt(points) || 0
         },
         'resolution=merge-duplicates,return=representation'
       );
       return rows[0] || null;
+    },
+    async getAllScores(eventCode){
+      return pgGet('trial_scores', {
+        select: 'team_name,round,question_number,points',
+        event_code: 'eq.' + (eventCode || TARGET_EVENT_CODE)
+      }).catch(() => []);
     },
     async getLeaderboard(eventCode){
       const scores = await pgGet('trial_scores', {
@@ -206,7 +212,8 @@
     },
     async getAnswersForEvent(){ return []; },
     async getRoundScores(code){ return []; },
-    async submitRoundScore(eventCode, teamName, round, points){
+    async getAllScores(){ return []; },
+    async submitRoundScore(eventCode, teamName, round, points, questionNumber){
       let scores = {};
       try { scores = JSON.parse(localStorage.getItem('kbtScores') || '{}'); } catch(e){}
       if (!scores[teamName]) scores[teamName] = {};
@@ -242,8 +249,11 @@
     async getRoundScores(code){
       return (getMode()==='live' ? live : offline).getRoundScores(code);
     },
-    async submitRoundScore(code, name, round, points){
-      return (getMode()==='live' ? live : offline).submitRoundScore(code, name, round, points);
+    async submitRoundScore(code, name, round, points, questionNumber){
+      return (getMode()==='live' ? live : offline).submitRoundScore(code, name, round, points, questionNumber);
+    },
+    async getAllScores(code){
+      return (getMode()==='live' ? live : offline).getAllScores(code);
     },
     async getLeaderboard(code){
       return (getMode()==='live' ? live : offline).getLeaderboard(code);
