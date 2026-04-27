@@ -103,6 +103,12 @@ const params = new URLSearchParams(window.location.search);
 eventCode = params.get('code') || localStorage.getItem('kbt_event_code') || '';
 document.getElementById('event-chip').textContent = eventCode || 'No Event';
 
+// Always pre-load the teams list so early-arriving players see who's already in.
+if (eventCode) {
+  loadTeamsList();
+  setInterval(loadTeamsList, 10000);
+}
+
 // Load event details
 if (eventCode) {
   fetch(`${SB}/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=event_description,event_date`, { headers: H })
@@ -118,13 +124,13 @@ if (eventCode) {
 
 // Emoji grid
 document.getElementById('emoji-grid').innerHTML = EMOJIS.map(e =>
-  `<button class="emoji-btn${e===selectedEmoji?' selected':''}" onclick="pickEmoji('${e}')">${e}</button>`
+  `<button class="emoji-btn${e===selectedEmoji?' selected':''}" onclick="pickEmoji(event,'${e}')">${e}</button>`
 ).join('');
 
-function pickEmoji(e) {
+function pickEmoji(ev, e) {
   selectedEmoji = e;
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  event.target.classList.add('selected');
+  if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
 }
 
 async function registerTeam() {
@@ -167,9 +173,8 @@ async function registerTeam() {
     localStorage.setItem('kbt_team_name', name);
     localStorage.setItem('kbt_team_emoji', selectedEmoji);
 
-    // Load all teams for live feed
+    // Live feed already polling from page init — refresh once now to include this team
     loadTeamsList();
-    setInterval(loadTeamsList, 10000);
 
   } catch(e) {
     err.textContent = e.message; err.style.display = 'block';
@@ -178,10 +183,11 @@ async function registerTeam() {
 }
 
 async function loadTeamsList() {
-  const r = await fetch(`${SB}/kbt_teams?event_code=eq.${encodeURIComponent(eventCode)}&order=created_at.asc&select=display_name,team_name,team_emoji`, { headers: H });
+  const r = await fetch(`${SB}/kbt_teams?event_code=eq.${encodeURIComponent(eventCode)}&order=created_at.asc&select=display_name,team_name,team_emoji,team_captain`, { headers: H });
   const teams = await r.json();
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   document.getElementById('teams-list').innerHTML = teams.map((t, i) =>
-    `<div class="team-item"><span class="num">${i+1}</span><span>${t.team_emoji||'🧠'}</span><span>${t.display_name||t.team_name}</span></div>`
+    `<div class="team-item"><span class="num">${i+1}</span><span>${esc(t.team_emoji||'🧠')}</span><span>${esc(t.display_name||t.team_name)}${t.team_captain?` <span style="color:#999;font-size:12px">— ${esc(t.team_captain)}</span>`:''}</span></div>`
   ).join('') || '<div style="color:#999;font-size:13px;padding:8px">No teams yet — be first!</div>';
 }
 </script>
