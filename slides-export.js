@@ -47,10 +47,7 @@
       r.push({insertSlide:{insertionIndex:1,objectId:lbSId,slideLayoutReference:{predefinedLayout:'BLANK'}}});
       r.push({updatePageProperties:{objectId:lbSId,pageProperties:{pageBackgroundFill:{solidFill:{color:{rgbColor:{red:0.07,green:0.07,blue:0.14}}}}},fields:'pageBackgroundFill'}});
       r.push({createShape:{objectId:lbBId,shapeType:'TEXT_BOX',elementProperties:{pageObjectId:lbSId,size:{height:{magnitude:310,unit:'PT'},width:{magnitude:620,unit:'PT'}},transform:{scaleX:1,scaleY:1,translateX:50,translateY:60,unit:'PT'}}}});
-      var lbText='Trophy  Final Leaderboard
-
-'+lb.map(function(t,i){return(i===0?'1st':i===1?'2nd':i===2?'3rd':(i+1)+'.')+' '+t.team_name+' - '+t.total+' pts';}).join('
-');
+      var lbText='Trophy  Final Leaderboard\n\n'+lb.map(function(t,i){return(i===0?'1st':i===1?'2nd':i===2?'3rd':(i+1)+'.')+' '+t.team_name+' - '+t.total+' pts';}).join('\n');
       r.push({insertText:{objectId:lbBId,text:lbText,insertionIndex:0}});
       r.push({updateTextStyle:{objectId:lbBId,textRange:{type:'FIXED_RANGE',startIndex:0,endIndex:20},style:{bold:true,fontSize:{magnitude:30,unit:'PT'},foregroundColor:{opaqueColor:{rgbColor:{red:1,green:.85,blue:.2}}}},fields:'bold,fontSize,foregroundColor'}});
       r.push({updateTextStyle:{objectId:lbBId,textRange:{type:'FROM_START_INDEX',startIndex:22},style:{fontSize:{magnitude:22,unit:'PT'},foregroundColor:{opaqueColor:{rgbColor:{red:1,green:1,blue:1}}}},fields:'fontSize,foregroundColor'}});
@@ -59,7 +56,6 @@
       window.open('https://docs.google.com/presentation/d/'+presId+'/edit','_blank');
       if(btn){btn.disabled=false;btn.textContent='Opened in Slides!';}
       setTimeout(function(){if(btn)btn.textContent='Export to Slides';},4000);
-    } catch(err){alert('Export failed:
-'+err.message);if(btn){btn.disabled=false;btn.textContent='Export to Slides';}}
+    } catch(err){alert('Export failed:\n'+err.message);if(btn){btn.disabled=false;btn.textContent='Export to Slides';}}
   }
 })();
