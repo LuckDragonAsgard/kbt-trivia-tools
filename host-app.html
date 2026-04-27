@@ -2681,7 +2681,7 @@ async function launchEvent() {
   document.getElementById('event-info-bar').style.display = 'flex';
   document.getElementById('event-selector').style.display = 'none';
   currentQuestion = 0;
-  updateQuestion();
+  (typeof updateQuestion === 'function' ? updateQuestion : (()=>{}))();
 }
 
 async function loadQuestionsFromBank() {
@@ -2703,7 +2703,7 @@ function launchDemo() {
   document.getElementById('info-event-code').textContent = 'DEMO MODE';
   document.getElementById('event-selector').style.display = 'none';
   currentQuestion = 0;
-  updateQuestion();
+  (typeof updateQuestion === 'function' ? updateQuestion : (()=>{}))();
 }
 
 // Load recent events on page open
