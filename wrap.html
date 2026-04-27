@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Know Brainer — Your Wrap</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:wght@700;900&family=Outfit:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--blue:#2c94c2;--yellow:#fbc500;--charcoal:#383737;--bg:#f8fafc;--magenta:#ff3860;--green:#28a745}
+html,body{font-family:'Outfit',sans-serif;background:var(--charcoal);min-height:100vh;color:#fff}
+.topbar{background:rgba(0,0,0,.4);padding:14px 20px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px)}
+.logo{font-family:'Fira Sans Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:1px;color:#fff;text-transform:uppercase}
+.logo span{color:var(--yellow)}
+.tag{background:var(--blue);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;margin-left:auto}
+.wrap{max-width:520px;margin:0 auto;padding:20px}
+.loading{text-align:center;padding:60px 20px;color:#aaa}
+.err{background:rgba(255,56,96,.15);border:1px solid var(--magenta);color:#ffb1b1;border-radius:10px;padding:16px;text-align:center;margin:20px 0}
+
+.slide{background:linear-gradient(135deg,var(--blue) 0%,#1a6e9c 100%);border-radius:20px;padding:28px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);position:relative;overflow:hidden}
+.slide.gold{background:linear-gradient(135deg,var(--yellow) 0%,#d39400 100%);color:var(--charcoal)}
+.slide.dark{background:linear-gradient(135deg,#1f1d1d 0%,var(--charcoal) 100%)}
+.slide.magenta{background:linear-gradient(135deg,var(--magenta) 0%,#a31840 100%)}
+.slide.green{background:linear-gradient(135deg,var(--green) 0%,#0d6328 100%)}
+
+.slide h2{font-family:'Fira Sans Condensed',sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.18em;font-weight:700;opacity:.7;margin-bottom:8px}
+.slide .big{font-family:'Fira Sans Condensed',sans-serif;font-size:48px;font-weight:900;line-height:1.05;margin-bottom:6px;word-break:break-word}
+.slide .huge{font-family:'Fira Sans Condensed',sans-serif;font-size:88px;font-weight:900;line-height:1;margin:6px 0}
+.slide .ginormous{font-family:'Fira Sans Condensed',sans-serif;font-size:120px;font-weight:900;line-height:1;margin:6px 0;text-shadow:0 6px 20px rgba(0,0,0,.3)}
+.slide .sub{opacity:.85;font-size:14px;line-height:1.5}
+.slide .accent{color:var(--yellow);font-weight:700}
+.slide.gold .accent{color:var(--charcoal)}
+.team-emoji-mega{font-size:80px;line-height:1;margin-bottom:8px}
+.rank-row{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.rank-row .place{font-family:'Fira Sans Condensed',sans-serif;font-size:88px;font-weight:900;line-height:.9}
+.rank-row .of{opacity:.7;font-size:18px;font-weight:600}
+
+.round-bars{display:grid;gap:10px;margin-top:16px}
+.round-bar{display:grid;grid-template-columns:80px 1fr 60px;gap:10px;align-items:center;font-size:14px}
+.round-bar .label{font-weight:700}
+.round-bar .track{background:rgba(255,255,255,.18);height:24px;border-radius:6px;overflow:hidden;position:relative}
+.round-bar .fill{height:100%;background:var(--yellow);border-radius:6px;transition:width .6s ease-out}
+.round-bar .pts{font-weight:700;text-align:right}
+.slide.gold .round-bar .track{background:rgba(0,0,0,.15)}
+.slide.gold .round-bar .fill{background:var(--charcoal)}
+
+.member-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.member-chip{background:rgba(255,255,255,.18);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600}
+.captain-chip{background:var(--yellow);color:var(--charcoal)}
+
+.share-row{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.share-btn{background:#fff;color:var(--charcoal);padding:10px 16px;border:none;border-radius:24px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;font-size:13px}
+.share-btn.ghost{background:rgba(255,255,255,.18);color:#fff}
+
+.foot{text-align:center;padding:20px;opacity:.5;font-size:12px}
+.brand{font-family:'Fira Sans Condensed',sans-serif;font-weight:900;letter-spacing:1px}
+.brand span{color:var(--yellow)}
+
+.podium-row{display:flex;align-items:end;justify-content:center;gap:6px;margin-top:14px;height:140px}
+.podium-col{display:flex;flex-direction:column;align-items:center;color:#fff}
+.podium-col .pemoji{font-size:32px;margin-bottom:4px}
+.podium-col .pname{font-size:11px;font-weight:700;text-align:center;max-width:90px;line-height:1.2;margin-bottom:4px;word-break:break-word}
+.podium-col .pblock{width:80px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'Fira Sans Condensed',sans-serif;font-weight:900;font-size:22px;border-radius:6px 6px 0 0}
+.podium-col.first .pblock{height:120px;background:var(--yellow);color:var(--charcoal)}
+.podium-col.second .pblock{height:90px;background:rgba(255,255,255,.5);color:var(--charcoal)}
+.podium-col.third .pblock{height:60px;background:rgba(255,255,255,.35);color:var(--charcoal)}
+
+.individual-banner{background:rgba(0,0,0,.25);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:10px}
+.individual-banner strong{color:var(--yellow)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">KNOW<span>BRAINER</span></div>
+  <div class="tag" id="event-tag">Loading…</div>
+</div>
+
+<div class="wrap" id="root">
+  <div class="loading">Building your wrap…</div>
+</div>
+
+<div class="foot">
+  <div class="brand">KNOW<span>BRAINER</span> TRIVIA</div>
+  <div style="margin-top:6px">Tap and hold any slide to share</div>
+</div>
+
+<script>
+const SB = 'https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+const H = { apikey: KEY, Authorization: 'Bearer ' + KEY };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const params = new URLSearchParams(location.search);
+const eventCode = (params.get('event') || params.get('code') || '').toUpperCase().trim();
+const teamCode = (params.get('team') || '').toUpperCase().trim();
+const playerCode = (params.get('player') || '').toUpperCase().trim();
+
+document.getElementById('event-tag').textContent = eventCode || '—';
+
+async function sb(path, q) {
+  const url = new URL(SB + '/' + path);
+  if (q) Object.entries(q).forEach(([k,v]) => url.searchParams.set(k, v));
+  const r = await fetch(url, { headers: H });
+  if (!r.ok) throw new Error(path + ' ' + r.status);
+  return r.json();
+}
+
+function err(msg) {
+  document.getElementById('root').innerHTML = '<div class="err">' + esc(msg) + '</div>';
+}
+
+function fmtRank(n) {
+  if (n === 1) return '1st';
+  if (n === 2) return '2nd';
+  if (n === 3) return '3rd';
+  return n + 'th';
+}
+
+(async () => {
+  try {
+    if (!eventCode) return err('No event code provided. Add ?event=YOUREVENT to the URL.');
+    if (!teamCode && !playerCode) return err('No team or player code. Add ?team=CODE or ?player=CODE.');
+
+    // 1. Resolve team — either directly or via player_code → kbt_team_member.team_id
+    let team, individualMember = null;
+    if (playerCode) {
+      const m = await sb('kbt_team_member', {
+        select: 'id,team_id,team_code,player_name,player_code,is_captain',
+        player_code: 'eq.' + playerCode,
+        limit: 1
+      });
+      if (!m.length) return err('Player code "' + playerCode + '" not found.');
+      individualMember = m[0];
+      const tt = await sb('kbt_teams', {
+        select: 'id,event_code,team_name,display_name,team_emoji,team_captain,team_code',
+        id: 'eq.' + individualMember.team_id,
+        limit: 1
+      });
+      team = tt[0];
+    } else {
+      const tt = await sb('kbt_teams', {
+        select: 'id,event_code,team_name,display_name,team_emoji,team_captain,team_code',
+        event_code: 'eq.' + eventCode,
+        team_code: 'eq.' + teamCode,
+        limit: 1
+      });
+      if (!tt.length) return err('Team code "' + teamCode + '" not found for event ' + eventCode + '.');
+      team = tt[0];
+    }
+    if (!team) return err('Team not found.');
+
+    // 2. Fetch event meta, all teams (for ranking), all scores, members
+    const [ev, allTeams, allScores, members] = await Promise.all([
+      sb('kbt_event', { select: 'event_code,event_description,event_date', event_code: 'eq.' + (team.event_code || eventCode), limit: 1 }).then(r=>r[0]),
+      sb('kbt_teams', { select: 'id,team_name,display_name,team_emoji,team_captain,team_code', event_code: 'eq.' + (team.event_code || eventCode) }),
+      sb('trial_scores', { select: 'team_name,round,points', event_code: 'eq.' + (team.event_code || eventCode), question_number: 'eq.0' }),
+      sb('kbt_team_member', { select: 'player_name,is_captain,player_code,team_id', team_id: 'eq.' + team.id, order: 'is_captain.desc,created_at.asc' })
+    ]);
+
+    // 3. Build leaderboard + per-round
+    const totals = {};
+    const perRound = {};
+    const rounds = new Set();
+    allScores.forEach(s => {
+      totals[s.team_name] = (totals[s.team_name]||0) + (s.points||0);
+      if (!perRound[s.team_name]) perRound[s.team_name] = {};
+      perRound[s.team_name][s.round] = (perRound[s.team_name][s.round]||0) + (s.points||0);
+      rounds.add(s.round);
+    });
+    const lb = Object.entries(totals).map(([name, total]) => ({ team_name: name, total }))
+      .sort((a,b) => b.total - a.total);
+    const myRank = lb.findIndex(t => t.team_name === team.team_name) + 1;
+    const myTotal = totals[team.team_name] || 0;
+    const myRounds = perRound[team.team_name] || {};
+    const roundList = Array.from(rounds).sort((a,b) => a-b);
+    const myRoundList = roundList.map(r => ({ round: r, points: myRounds[r] || 0 }));
+    const bestRound = myRoundList.slice().sort((a,b)=>b.points-a.points)[0];
+    const worstRound = myRoundList.slice().sort((a,b)=>a.points-b.points)[0];
+    const maxRoundPts = Math.max(1, ...myRoundList.map(r=>r.points));
+
+    // Field-day stat (compared to average team)
+    const avgTotal = lb.length ? lb.reduce((s,t)=>s+t.total, 0)/lb.length : 0;
+    const vsAvg = myTotal - avgTotal;
+
+    // 4. Build top 3 podium
+    const top3 = lb.slice(0, 3);
+    const teamByName = {};
+    allTeams.forEach(t => { teamByName[t.team_name] = t; });
+
+    // 5. Render slides
+    const dateStr = ev?.event_date
+      ? new Date(ev.event_date).toLocaleDateString('en-AU', {weekday:'long', day:'numeric', month:'long', year:'numeric'})
+      : '';
+    const venue = ev?.event_description || team.event_code;
+
+    const root = document.getElementById('root');
+    let html = '';
+
+    // INDIVIDUAL banner if applicable
+    if (individualMember) {
+      html += `<div class="individual-banner">Wrap for <strong>${esc(individualMember.player_name)}</strong>${individualMember.is_captain?' — captain':''} of ${esc(team.team_emoji||'🧠')} <strong>${esc(team.team_name)}</strong></div>`;
+    }
+
+    // SLIDE 1 — Hero: team identity
+    html += `<div class="slide dark">
+      <h2>Your team for the night</h2>
+      <div class="team-emoji-mega">${esc(team.team_emoji || '🧠')}</div>
+      <div class="big">${esc(team.team_name)}</div>
+      <div class="sub">${esc(venue || '')}${dateStr?' · ' + esc(dateStr):''}</div>
+    </div>`;
+
+    // SLIDE 2 — Final rank (gold if 1st, blue otherwise, magenta if last)
+    if (myRank > 0) {
+      const rankSlide = myRank === 1 ? 'gold' : (myRank === lb.length ? 'magenta' : '');
+      html += `<div class="slide ${rankSlide}">
+        <h2>Where you finished</h2>
+        <div class="rank-row">
+          <div class="place">${fmtRank(myRank)}</div>
+          <div class="of">of ${lb.length} team${lb.length===1?'':'s'}</div>
+        </div>
+        ${myRank===1?'<div class="sub">🏆 You took home the win.</div>':''}
+        ${myRank===2?'<div class="sub">So close. Silverware.</div>':''}
+        ${myRank===3?'<div class="sub">On the podium. Bronze respect.</div>':''}
+        ${myRank>3 && myRank<lb.length?'<div class="sub">Not the win — but you played the game.</div>':''}
+        ${myRank===lb.length && lb.length>1?'<div class="sub">Someone has to come last. Better luck next time.</div>':''}
+      </div>`;
+    }
+
+    // SLIDE 3 — Total points
+    html += `<div class="slide">
+      <h2>Total Points</h2>
+      <div class="ginormous">${myTotal}</div>
+      <div class="sub">${vsAvg > 0 ? `<span class="accent">+${vsAvg.toFixed(1)}</span> above the room average` : (vsAvg < 0 ? `${vsAvg.toFixed(1)} below the room average` : 'Right on the room average')}</div>
+    </div>`;
+
+    // SLIDE 4 — Per-round breakdown
+    if (myRoundList.length > 1) {
+      html += `<div class="slide green">
+        <h2>Round by round</h2>
+        <div class="big">Your run sheet</div>
+        <div class="round-bars">
+          ${myRoundList.map(r => `
+            <div class="round-bar">
+              <div class="label">Round ${r.round}</div>
+              <div class="track"><div class="fill" style="width:${(r.points/maxRoundPts)*100}%"></div></div>
+              <div class="pts">${r.points} pts</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+
+      // SLIDE 5 — Best round
+      if (bestRound && bestRound.points > 0) {
+        html += `<div class="slide gold">
+          <h2>Your peak</h2>
+          <div class="big">Round ${bestRound.round}</div>
+          <div class="huge">${bestRound.points}</div>
+          <div class="sub">Your strongest round of the night.</div>
+        </div>`;
+      }
+
+      // SLIDE 6 — Worst round
+      if (worstRound && worstRound.round !== bestRound?.round) {
+        html += `<div class="slide magenta">
+          <h2>The dip</h2>
+          <div class="big">Round ${worstRound.round}</div>
+          <div class="huge">${worstRound.points}</div>
+          <div class="sub">${worstRound.points===0?'Got nothing this round.':'Your weakest round — someone in the team owes pints.'}</div>
+        </div>`;
+      }
+    }
+
+    // SLIDE 7 — Team roster
+    if (members && members.length) {
+      html += `<div class="slide dark">
+        <h2>The team</h2>
+        <div class="big">${members.length} player${members.length===1?'':'s'}</div>
+        <div class="member-grid">
+          ${members.map(m => `<span class="member-chip ${m.is_captain?'captain-chip':''}">${m.is_captain?'👑 ':''}${esc(m.player_name)}</span>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    // SLIDE 8 — Top 3 podium
+    if (top3.length >= 1) {
+      const topShape = (i) => {
+        const t = top3[i];
+        if (!t) return '';
+        const meta = teamByName[t.team_name] || {};
+        const cls = i===0?'first':(i===1?'second':'third');
+        const order = i===0?2:(i===1?1:3); // 1st in middle, 2nd left, 3rd right
+        return `<div class="podium-col ${cls}" style="order:${order}">
+          <div class="pemoji">${esc(meta.team_emoji||'🧠')}</div>
+          <div class="pname">${esc(meta.team_name||t.team_name)}</div>
+          <div class="pblock">${t.total}</div>
+        </div>`;
+      };
+      html += `<div class="slide">
+        <h2>Tonight's top 3</h2>
+        <div class="podium-row">
+          ${topShape(0)}${topShape(1)}${topShape(2)}
+        </div>
+      </div>`;
+    }
+
+    // SLIDE 9 — Share
+    html += `<div class="slide gold">
+      <h2>Wrap. Share. Repeat.</h2>
+      <div class="big">See you next quiz?</div>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareWrap()">Share my wrap</button>
+        <button class="share-btn ghost" onclick="copyWrapLink()">Copy link</button>
+      </div>
+    </div>`;
+
+    root.innerHTML = html;
+
+    // Save share state
+    window.__wrap = { team, individualMember, myTotal, myRank, lbLen: lb.length, venue, dateStr };
+  } catch(e) {
+    err('Could not load wrap: ' + e.message);
+  }
+})();
+
+function buildWrapUrl() {
+  return location.href;
+}
+async function shareWrap() {
+  const w = window.__wrap || {};
+  const text = w.individualMember
+    ? `${w.individualMember.player_name}'s ${w.team.team_name} came ${w.myRank}/${w.lbLen} at Know Brainer Trivia · ${w.myTotal} pts`
+    : `${w.team.team_name} came ${w.myRank}/${w.lbLen} at Know Brainer Trivia · ${w.myTotal} pts`;
+  if (navigator.share) {
+    try { await navigator.share({ title: 'KBT Wrap', text, url: buildWrapUrl() }); } catch(e){}
+  } else { copyWrapLink(); }
+}
+function copyWrapLink() {
+  navigator.clipboard.writeText(buildWrapUrl());
+}
+</script>
+</body>
+</html>
