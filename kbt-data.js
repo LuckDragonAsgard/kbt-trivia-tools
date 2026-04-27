@@ -81,7 +81,7 @@
           order: 'created_at.asc'
         }).catch(() => []),
         pgGet('kbt_teams', {
-          select: 'id,event_code,team_name,display_name,team_color,team_emoji,created_at',
+          select: 'id,event_code,team_name,display_name,team_color,team_emoji,team_captain,created_at',
           event_code: 'eq.' + TARGET_EVENT_CODE,
           order: 'created_at.asc'
         }).catch(() => [])
@@ -98,17 +98,19 @@
         },
         team_color: t.team_color,
         team_emoji: t.team_emoji,
+        team_captain: t.team_captain,
         _trial: true
       }));
       return [...official, ...trialShaped];
     },
-    async registerTeam(eventCode, teamName, displayName, color, emoji){
+    async registerTeam(eventCode, teamName, displayName, color, emoji, captain){
       const rows = await pgPost('kbt_teams', {
         event_code: eventCode || TARGET_EVENT_CODE,
         team_name: teamName,
         display_name: displayName || teamName,
         team_color: color || null,
-        team_emoji: emoji || null
+        team_emoji: emoji || null,
+        team_captain: captain || null
       });
       return rows[0] || null;
     },
@@ -176,10 +178,10 @@
         team: { id: 'offline-t-' + t.code, team_code: t.code, team_name: t.name, is_active: true }
       }));
     },
-    async registerTeam(eventCode, teamName, displayName, color, emoji){
+    async registerTeam(eventCode, teamName, displayName, color, emoji, captain){
       let teams = [];
       try { teams = JSON.parse(localStorage.getItem('kbtTeams') || '[]'); } catch(e){}
-      const entry = { code: teamName, name: displayName || teamName, color, emoji, eventCode };
+      const entry = { code: teamName, name: displayName || teamName, color, emoji, captain: captain || null, eventCode };
       teams.push(entry);
       localStorage.setItem('kbtTeams', JSON.stringify(teams));
       return entry;
@@ -214,8 +216,8 @@
     async getEventLocation(id){ return (getMode()==='live' ? live : offline).getEventLocation(id); },
     async getQuizItems(eid){ return (getMode()==='live' ? live : offline).getQuizItems(eid); },
     async getRegisteredTeams(eid){ return (getMode()==='live' ? live : offline).getRegisteredTeams(eid); },
-    async registerTeam(code, name, display, color, emoji){
-      return (getMode()==='live' ? live : offline).registerTeam(code, name, display, color, emoji);
+    async registerTeam(code, name, display, color, emoji, captain){
+      return (getMode()==='live' ? live : offline).registerTeam(code, name, display, color, emoji, captain);
     },
     async getRoundScores(code){
       return (getMode()==='live' ? live : offline).getRoundScores(code);
