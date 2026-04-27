@@ -13,9 +13,8 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);min-height:100vh;color
 .logo{font-family:'Fira Sans Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:1px;color:#fff;text-transform:uppercase}
 .logo span{color:var(--yellow)}
 .event-chip{background:var(--blue);color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;margin-left:auto}
-.screen{display:none;flex-direction:column;align-items:center;padding:32px 20px;max-width:420px;margin:0 auto}
+.screen{display:none;flex-direction:column;align-items:center;padding:32px 20px;max-width:460px;margin:0 auto}
 .screen.active{display:flex}
-/* Register screen */
 .icon-big{font-size:56px;margin-bottom:16px}
 h1{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;text-align:center;margin-bottom:8px}
 .sub{font-size:14px;color:#666;text-align:center;margin-bottom:28px;line-height:1.5}
@@ -27,20 +26,31 @@ h1{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;t
 .btn-main:hover{background:var(--charcoal)}
 .btn-main:active{transform:scale(.98)}
 .btn-main:disabled{opacity:.5;cursor:not-allowed}
-/* Emoji picker */
+.btn-secondary{width:100%;padding:12px;background:#fff;color:var(--blue);border:2px solid var(--blue);border-radius:10px;font-size:14px;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;margin-top:8px}
+.btn-link{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;text-decoration:underline;font-family:'Outfit',sans-serif}
 .emoji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;width:100%;margin-bottom:20px}
 .emoji-btn{padding:10px;font-size:22px;background:#fff;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;text-align:center;transition:.1s}
 .emoji-btn.selected{border-color:var(--blue);background:rgba(44,148,194,.08)}
-/* Success screen */
-.team-card{background:#fff;border-radius:16px;padding:28px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:20px;border:2px solid var(--blue)}
-.team-emoji-big{font-size:56px;margin-bottom:12px}
-.team-name-big{font-family:'Fira Sans Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--charcoal)}
-.team-code{background:var(--bg);border-radius:8px;padding:10px;font-size:13px;color:#666;margin-top:12px}
-.live-feed{width:100%}
+.team-card{background:#fff;border-radius:16px;padding:24px;width:100%;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:16px;border:2px solid var(--blue)}
+.team-emoji-big{font-size:56px;margin-bottom:8px}
+.team-name-big{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--charcoal);word-break:break-word}
+.success-status{background:var(--bg);border-radius:8px;padding:10px;font-size:13px;color:#666;margin-top:12px}
+.team-code-box{background:#fff;border:2px dashed var(--blue);border-radius:14px;padding:18px 16px;width:100%;text-align:center;margin-bottom:16px}
+.team-code-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:8px}
+.team-code-value{font-family:'Fira Sans Condensed',sans-serif;font-size:34px;font-weight:900;letter-spacing:2px;color:var(--charcoal);margin-bottom:10px}
+.team-code-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.code-btn{padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif}
+.code-btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--blue)}
+.qr-img{display:block;margin:14px auto 4px;width:170px;height:170px;border-radius:8px;background:#fff}
+.qr-caption{font-size:11px;color:#888;margin-top:4px}
+.captain-row{display:flex;align-items:center;gap:8px;margin-top:12px;padding:10px;background:rgba(44,148,194,.06);border-radius:8px;font-size:13px;color:#444;justify-content:center;flex-wrap:wrap}
+.live-feed{width:100%;margin-top:6px}
 .live-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#666;margin-bottom:10px}
 .team-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#fff;border-radius:8px;margin-bottom:6px;border:1px solid #e5e7eb;font-size:14px}
-.team-item .num{font-weight:700;color:var(--muted);width:20px;font-size:12px;color:#999}
+.team-item .num{font-weight:700;width:20px;font-size:12px;color:#999}
+.team-item .meta{color:#999;font-size:12px;margin-left:6px}
 .error-msg{background:#fee2e2;color:#dc2626;border-radius:8px;padding:12px;font-size:13px;width:100%;text-align:center;margin-bottom:12px}
+.dim{color:#888}
 </style>
 </head>
 <body>
@@ -50,7 +60,7 @@ h1{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;t
   <div class="event-chip" id="event-chip">Loading…</div>
 </div>
 
-<!-- SCREEN 1: Register -->
+<!-- SCREEN 1: Register a NEW team (captain) -->
 <div class="screen active" id="screen-register">
   <div class="icon-big">🧠</div>
   <h1>Join Tonight's Quiz</h1>
@@ -73,19 +83,94 @@ h1{font-family:'Fira Sans Condensed',sans-serif;font-size:28px;font-weight:900;t
   </div>
 
   <button class="btn-main" onclick="registerTeam()" id="reg-btn">Register Team →</button>
+  <button class="btn-link" onclick="showJoinPrompt()" style="margin-top:14px">Have a team code? Join an existing team →</button>
 </div>
 
-<!-- SCREEN 2: Registered! -->
+<!-- SCREEN 2: Enter a team code to join an existing team -->
+<div class="screen" id="screen-join-prompt">
+  <div class="icon-big">🤝</div>
+  <h1>Join a Team</h1>
+  <p class="sub">Enter your team's code to add yourself.</p>
+
+  <div id="join-error" class="error-msg" style="display:none"></div>
+
+  <div class="input-group">
+    <label>Team Code</label>
+    <input id="join-code" type="text" placeholder="e.g. T7F9K2" maxlength="10" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px;text-align:center;font-size:20px;font-weight:700">
+  </div>
+
+  <button class="btn-main" onclick="lookupTeam()" id="join-lookup-btn">Find Team →</button>
+  <button class="btn-link" onclick="showRegister()" style="margin-top:14px">← Back to register a new team</button>
+</div>
+
+<!-- SCREEN 3: Confirm join + enter your name -->
+<div class="screen" id="screen-join-confirm">
+  <div class="team-card" style="margin-bottom:20px">
+    <div class="team-emoji-big" id="join-emoji">🧠</div>
+    <div class="team-name-big" id="join-team-name">Team</div>
+    <div class="success-status">Captain: <span id="join-captain" class="dim">—</span></div>
+  </div>
+
+  <div id="join-confirm-error" class="error-msg" style="display:none"></div>
+
+  <div class="input-group">
+    <label>Your Name</label>
+    <input id="join-player-name" type="text" placeholder="First name" maxlength="30" autocomplete="off">
+  </div>
+
+  <button class="btn-main" onclick="joinTeam()" id="join-btn">Add Me to This Team →</button>
+  <button class="btn-link" onclick="showJoinPrompt()" style="margin-top:14px">← Use a different code</button>
+</div>
+
+<!-- SCREEN 4: Registered (captain view, with team code to share) -->
 <div class="screen" id="screen-success">
   <div class="team-card">
     <div class="team-emoji-big" id="success-emoji">🧠</div>
     <div class="team-name-big" id="success-name">Team Name</div>
-    <div class="team-code">You're registered ✓ — quiz starts soon!</div>
+    <div class="success-status">You're registered ✓ — quiz starts soon!</div>
+    <div class="captain-row" id="captain-row">
+      <span>👑 Captain: <strong id="captain-display">—</strong></span>
+      <button class="btn-link" onclick="editCaptain()">edit</button>
+    </div>
+  </div>
+
+  <div class="team-code-box" id="team-code-box" style="display:none">
+    <div class="team-code-label">Team Code — share with teammates</div>
+    <div class="team-code-value" id="team-code-value">—</div>
+    <div class="team-code-actions">
+      <button class="code-btn" onclick="copyTeamCode()" id="copy-team-code">Copy code</button>
+      <button class="code-btn ghost" onclick="copyJoinLink()" id="copy-join-link">Copy join link</button>
+      <button class="code-btn ghost" onclick="shareJoinLink()" id="share-join-link">Share</button>
+    </div>
+    <img class="qr-img" id="join-qr" alt="Team join QR" />
+    <div class="qr-caption">Teammates scan this to join</div>
   </div>
 
   <div class="live-feed">
     <div class="live-title">📋 Teams registered tonight</div>
     <div id="teams-list"></div>
+  </div>
+</div>
+
+<!-- SCREEN 5: Joined (member view) -->
+<div class="screen" id="screen-joined">
+  <div class="team-card">
+    <div class="team-emoji-big" id="joined-emoji">🧠</div>
+    <div class="team-name-big" id="joined-team-name">Team</div>
+    <div class="success-status">You're on the team ✓ — good luck tonight!</div>
+    <div class="captain-row">
+      <span>👑 Captain: <strong id="joined-captain">—</strong></span>
+    </div>
+  </div>
+
+  <div class="live-feed">
+    <div class="live-title">👥 Your teammates</div>
+    <div id="member-list"></div>
+  </div>
+
+  <div class="live-feed" style="margin-top:18px">
+    <div class="live-title">📋 Teams registered tonight</div>
+    <div id="teams-list-2"></div>
   </div>
 </div>
 
@@ -97,19 +182,24 @@ const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'ap
 const EMOJIS = ['🧠','🎯','🏆','🔥','⭐','🎸','🦁','🐻','🦊','🐧','🎩','🚀','💎','🍺','🎪','🦄','🌮','🏉','🎭','🎲','🦈','🐉','🌟','🎮'];
 let selectedEmoji = '🧠';
 let eventCode = '';
+let foundTeam = null; // when joining
+let myTeam = null;    // after registering or joining
 
-// Init
 const params = new URLSearchParams(window.location.search);
 eventCode = params.get('code') || localStorage.getItem('kbt_event_code') || '';
+const joinTeamCodeFromUrl = (params.get('team') || '').toUpperCase().trim();
 document.getElementById('event-chip').textContent = eventCode || 'No Event';
 
-// Always pre-load the teams list so early-arriving players see who's already in.
-if (eventCode) {
-  loadTeamsList();
-  setInterval(loadTeamsList, 10000);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function rid(prefix, n) {
+  // Avoid 0/O and 1/I for readability
+  const alpha = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = prefix;
+  for (let i = 0; i < n; i++) s += alpha[Math.floor(Math.random()*alpha.length)];
+  return s;
 }
 
-// Load event details
 if (eventCode) {
   fetch(`${SB}/kbt_event?event_code=eq.${encodeURIComponent(eventCode)}&limit=1&select=event_description,event_date`, { headers: H })
     .then(r => r.json())
@@ -122,7 +212,6 @@ if (eventCode) {
     });
 }
 
-// Emoji grid
 document.getElementById('emoji-grid').innerHTML = EMOJIS.map(e =>
   `<button class="emoji-btn${e===selectedEmoji?' selected':''}" onclick="pickEmoji(event,'${e}')">${e}</button>`
 ).join('');
@@ -133,6 +222,27 @@ function pickEmoji(ev, e) {
   if (ev && ev.currentTarget) ev.currentTarget.classList.add('selected');
 }
 
+function showRegister() {
+  setScreen('screen-register');
+  document.getElementById('error-msg').style.display = 'none';
+}
+function showJoinPrompt() {
+  setScreen('screen-join-prompt');
+  const j = document.getElementById('join-error'); if (j) j.style.display = 'none';
+}
+function setScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// If URL provided ?team=CODE, jump straight into the join lookup
+if (joinTeamCodeFromUrl) {
+  document.getElementById('join-code').value = joinTeamCodeFromUrl;
+  setScreen('screen-join-prompt');
+  // Try lookup automatically
+  lookupTeam();
+}
+
 async function registerTeam() {
   const name = document.getElementById('team-name').value.trim();
   const player = document.getElementById('player-name').value.trim();
@@ -140,10 +250,14 @@ async function registerTeam() {
   err.style.display = 'none';
 
   if (!name) { err.textContent = 'Enter a team name'; err.style.display = 'block'; return; }
+  if (!player) { err.textContent = 'Enter your captain name'; err.style.display = 'block'; return; }
   if (!eventCode) { err.textContent = 'No event code — ask your host'; err.style.display = 'block'; return; }
 
   const btn = document.getElementById('reg-btn');
   btn.disabled = true; btn.textContent = 'Registering…';
+
+  const teamCode = rid('T', 6);
+  const playerCode = rid('P', 6);
 
   try {
     const r = await fetch(`${SB}/kbt_teams`, {
@@ -155,40 +269,203 @@ async function registerTeam() {
         display_name: name,
         name: name,
         team_emoji: selectedEmoji,
-        team_captain: player || null,
+        team_captain: player,
+        team_code: teamCode,
         event_id: null,
       })
     });
-
     if (!r.ok) {
       const e = await r.json();
       throw new Error(e.message || 'Registration failed');
     }
+    const teamRow = (await r.json())[0];
 
-    // Show success
-    document.getElementById('success-emoji').textContent = selectedEmoji;
-    document.getElementById('success-name').textContent = name;
-    document.getElementById('screen-register').classList.remove('active');
-    document.getElementById('screen-success').classList.add('active');
+    // Insert captain into kbt_team_member
+    await fetch(`${SB}/kbt_team_member`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        team_id: String(teamRow.id),
+        event_code: eventCode,
+        team_code: teamCode,
+        player_name: player,
+        player_code: playerCode,
+        is_captain: true
+      })
+    }).catch(e => console.warn('member insert failed:', e));
+
+    myTeam = { ...teamRow, team_code: teamCode, captain: player, my_player_code: playerCode };
+    localStorage.setItem('kbt_team_code', teamCode);
+    localStorage.setItem('kbt_player_code', playerCode);
     localStorage.setItem('kbt_team_name', name);
     localStorage.setItem('kbt_team_emoji', selectedEmoji);
 
-    // Live feed already polling from page init — refresh once now to include this team
-    loadTeamsList();
-
+    showSuccessAsCaptain();
   } catch(e) {
     err.textContent = e.message; err.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Register Team →';
   }
 }
 
-async function loadTeamsList() {
+function showSuccessAsCaptain() {
+  document.getElementById('success-emoji').textContent = myTeam.team_emoji || '🧠';
+  document.getElementById('success-name').textContent = myTeam.team_name || myTeam.display_name || 'Team';
+  document.getElementById('captain-display').textContent = myTeam.captain || myTeam.team_captain || '—';
+  document.getElementById('team-code-value').textContent = myTeam.team_code;
+  const joinUrl = `${location.origin}${location.pathname}?code=${encodeURIComponent(eventCode)}&team=${encodeURIComponent(myTeam.team_code)}`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&margin=0&data=${encodeURIComponent(joinUrl)}`;
+  document.getElementById('join-qr').src = qrSrc;
+  document.getElementById('team-code-box').style.display = 'block';
+  setScreen('screen-success');
+  loadTeamsList('teams-list');
+}
+
+async function lookupTeam() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  const err = document.getElementById('join-error');
+  err.style.display = 'none';
+  if (!code) { err.textContent = 'Enter a team code'; err.style.display = 'block'; return; }
+  if (!eventCode) { err.textContent = 'No event code — ask your host'; err.style.display = 'block'; return; }
+
+  const btn = document.getElementById('join-lookup-btn');
+  btn.disabled = true; btn.textContent = 'Looking up…';
+
+  try {
+    const r = await fetch(`${SB}/kbt_teams?event_code=eq.${encodeURIComponent(eventCode)}&team_code=eq.${encodeURIComponent(code)}&limit=1&select=id,team_name,display_name,team_emoji,team_captain,team_code`, { headers: H });
+    const rows = await r.json();
+    if (!rows.length) { err.textContent = 'No team with that code for tonight'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Find Team →'; return; }
+    foundTeam = rows[0];
+    document.getElementById('join-team-name').textContent = foundTeam.team_name || foundTeam.display_name || 'Team';
+    document.getElementById('join-emoji').textContent = foundTeam.team_emoji || '🧠';
+    document.getElementById('join-captain').textContent = foundTeam.team_captain || '—';
+    setScreen('screen-join-confirm');
+    btn.disabled = false; btn.textContent = 'Find Team →';
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Find Team →';
+  }
+}
+
+async function joinTeam() {
+  const player = document.getElementById('join-player-name').value.trim();
+  const err = document.getElementById('join-confirm-error');
+  err.style.display = 'none';
+  if (!player) { err.textContent = 'Enter your name'; err.style.display = 'block'; return; }
+  if (!foundTeam) { err.textContent = 'Lost team — try again'; err.style.display = 'block'; return; }
+
+  const btn = document.getElementById('join-btn');
+  btn.disabled = true; btn.textContent = 'Joining…';
+
+  const playerCode = rid('P', 6);
+
+  try {
+    const r = await fetch(`${SB}/kbt_team_member`, {
+      method: 'POST',
+      headers: { ...H, 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        team_id: String(foundTeam.id),
+        event_code: eventCode,
+        team_code: foundTeam.team_code,
+        player_name: player,
+        player_code: playerCode,
+        is_captain: false
+      })
+    });
+    if (!r.ok) {
+      const e = await r.json();
+      throw new Error(e.message || 'Join failed');
+    }
+
+    localStorage.setItem('kbt_team_code', foundTeam.team_code);
+    localStorage.setItem('kbt_player_code', playerCode);
+
+    document.getElementById('joined-emoji').textContent = foundTeam.team_emoji || '🧠';
+    document.getElementById('joined-team-name').textContent = foundTeam.team_name || foundTeam.display_name || 'Team';
+    document.getElementById('joined-captain').textContent = foundTeam.team_captain || '—';
+    setScreen('screen-joined');
+    loadMemberList(foundTeam.id);
+    loadTeamsList('teams-list-2');
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Add Me to This Team →';
+  }
+}
+
+async function editCaptain() {
+  if (!myTeam) return;
+  const next = (prompt('New captain name:', myTeam.captain || myTeam.team_captain || '') || '').trim();
+  if (!next) return;
+  try {
+    await fetch(`${SB}/kbt_teams?id=eq.${encodeURIComponent(myTeam.id)}`, {
+      method: 'PATCH',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ team_captain: next })
+    });
+    // Update captain member row too
+    await fetch(`${SB}/kbt_team_member?team_id=eq.${encodeURIComponent(String(myTeam.id))}&is_captain=eq.true`, {
+      method: 'PATCH',
+      headers: { ...H, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ player_name: next })
+    });
+    myTeam.captain = next;
+    document.getElementById('captain-display').textContent = next;
+  } catch(e) {
+    alert('Could not update captain: ' + e.message);
+  }
+}
+
+function copyTeamCode() {
+  navigator.clipboard.writeText(myTeam.team_code).then(()=> {
+    const btn = document.getElementById('copy-team-code');
+    const prev = btn.textContent; btn.textContent = 'Copied ✓';
+    setTimeout(()=> btn.textContent = prev, 1500);
+  });
+}
+function buildJoinUrl() {
+  return `${location.origin}${location.pathname}?code=${encodeURIComponent(eventCode)}&team=${encodeURIComponent(myTeam.team_code)}`;
+}
+function copyJoinLink() {
+  navigator.clipboard.writeText(buildJoinUrl()).then(()=> {
+    const btn = document.getElementById('copy-join-link');
+    const prev = btn.textContent; btn.textContent = 'Copied ✓';
+    setTimeout(()=> btn.textContent = prev, 1500);
+  });
+}
+async function shareJoinLink() {
+  const url = buildJoinUrl();
+  if (navigator.share) {
+    try { await navigator.share({ title: `Join ${myTeam.team_name} on KBT`, url }); } catch(e){}
+  } else {
+    copyJoinLink();
+  }
+}
+
+async function loadMemberList(teamId) {
+  const r = await fetch(`${SB}/kbt_team_member?team_id=eq.${encodeURIComponent(String(teamId))}&order=is_captain.desc,created_at.asc&select=player_name,is_captain`, { headers: H });
+  const members = await r.json();
+  document.getElementById('member-list').innerHTML = (Array.isArray(members) ? members : []).map((m, i) =>
+    `<div class="team-item"><span class="num">${i+1}</span><span>${m.is_captain?'👑':'•'}</span><span>${esc(m.player_name)}${m.is_captain?'<span class="meta">captain</span>':''}</span></div>`
+  ).join('') || '<div style="color:#999;font-size:13px;padding:8px">No members yet</div>';
+}
+
+async function loadTeamsList(targetId) {
   const r = await fetch(`${SB}/kbt_teams?event_code=eq.${encodeURIComponent(eventCode)}&order=created_at.asc&select=display_name,team_name,team_emoji,team_captain`, { headers: H });
   const teams = await r.json();
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  document.getElementById('teams-list').innerHTML = teams.map((t, i) =>
-    `<div class="team-item"><span class="num">${i+1}</span><span>${esc(t.team_emoji||'🧠')}</span><span>${esc(t.display_name||t.team_name)}${t.team_captain?` <span style="color:#999;font-size:12px">— ${esc(t.team_captain)}</span>`:''}</span></div>`
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  target.innerHTML = (Array.isArray(teams) ? teams : []).map((t, i) =>
+    `<div class="team-item"><span class="num">${i+1}</span><span>${esc(t.team_emoji||'🧠')}</span><span>${esc(t.display_name||t.team_name)}${t.team_captain?` <span class="meta">— ${esc(t.team_captain)}</span>`:''}</span></div>`
   ).join('') || '<div style="color:#999;font-size:13px;padding:8px">No teams yet — be first!</div>';
+}
+
+// Always pre-load the public list on register screen
+if (eventCode) {
+  loadTeamsList('teams-list');
+  setInterval(()=> {
+    if (document.getElementById('screen-success').classList.contains('active')) loadTeamsList('teams-list');
+    if (document.getElementById('screen-joined').classList.contains('active')) loadTeamsList('teams-list-2');
+  }, 10000);
 }
 </script>
 </body>
