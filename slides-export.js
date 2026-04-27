@@ -2,6 +2,7 @@
 // Requires GIS: <script src="https://accounts.google.com/gsi/client" async defer></script>
 (function() {
   var GCID = '342815819710-sugohi5jr60hs2mfv1vgi4apfp3p2bjc.apps.googleusercontent.com';
+  var LOGO_URL = 'https://luckdragonasgard.github.io/kbt-trivia-tools/assets/kb_logo_white.png';
   var SB_URL = 'https://huvfgenbcaiicatvtxak.supabase.co/rest/v1';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
   var SB_H = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
@@ -143,29 +144,27 @@
         requests.push({ deleteObject: { objectId: e.objectId } });
       });
       // Big logo "KNOWBRAINER" — split into two text boxes for color
-      var logoTopId = 'logo_top_' + Date.now();
+      var logoImgId = 'logo_img_' + Date.now();
       var logoBotId = 'logo_bot_' + Date.now();
       var dateBoxId = 'date_box_' + Date.now();
       var venueBoxId = 'venue_box_' + Date.now();
+      // Real KBT logo image — centered, white version on charcoal bg
       requests.push({
-        createShape: {
-          objectId: logoTopId, shapeType: 'TEXT_BOX',
+        createImage: {
+          objectId: logoImgId,
+          url: LOGO_URL,
           elementProperties: { pageObjectId: s0Id,
-            size: { height: { magnitude: 80, unit: 'PT' }, width: { magnitude: 600, unit: 'PT' } },
-            transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 110, unit: 'PT' } }
+            size: { height: { magnitude: 100, unit: 'PT' }, width: { magnitude: 320, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 200, translateY: 90, unit: 'PT' } }
         }
       });
-      requests.push({ insertText: { objectId: logoTopId, text: 'KNOW BRAINER', insertionIndex: 0 } });
-      requests.push({ updateTextStyle: { objectId: logoTopId, textRange: { type: 'FIXED_RANGE', startIndex: 0, endIndex: 5 }, style: { bold: true, fontSize: { magnitude: 72, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.white } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
-      requests.push({ updateTextStyle: { objectId: logoTopId, textRange: { type: 'FIXED_RANGE', startIndex: 5, endIndex: 13 }, style: { bold: true, fontSize: { magnitude: 72, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.yellow } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
-      requests.push({ updateParagraphStyle: { objectId: logoTopId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
 
       requests.push({
         createShape: {
           objectId: logoBotId, shapeType: 'TEXT_BOX',
           elementProperties: { pageObjectId: s0Id,
             size: { height: { magnitude: 50, unit: 'PT' }, width: { magnitude: 600, unit: 'PT' } },
-            transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 200, unit: 'PT' } }
+            transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 210, unit: 'PT' } }
         }
       });
       requests.push({ insertText: { objectId: logoBotId, text: 'TRIVIA NIGHT — RESULTS', insertionIndex: 0 } });
