@@ -2692,7 +2692,7 @@ async function loadQuestionsFromBank() {
     const cat = cats[(r-1) % cats.length];
     const res = await fetch(`${SB_URL}/questions?status=eq.active&category=eq.${encodeURIComponent(cat)}&order=random()&limit=5&select=id,question,answer,fun_fact,category`, { headers: SB_H });
     const rows = await res.json();
-    rows.forEach((q, i) => qs.push({ round: r, num: i+1, text: q.question, answer: q.answer, funFact: q.fun_fact || '', type: q.category }));
+    (Array.isArray(rows) ? rows : []).forEach((q, i) => qs.push({ round: r, num: i+1, text: q.question, answer: q.answer, funFact: q.fun_fact || '', type: q.category }));
   }
   questions = qs;
   document.getElementById('info-q-count').textContent = `${qs.length} questions from bank`;
