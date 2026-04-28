@@ -219,7 +219,7 @@ async function generate() {
 
   try {
     progress('Running face-swap model (8-15s)…');
-    const res = await fetch('/api/fal-faceswap', {
+    const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/fal-faceswap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
