@@ -688,7 +688,7 @@
           const panel = document.getElementById('aiConnPanel');
           btn.disabled = true; btn.textContent = '⏳ Thinking...';
           try {
-            const res = await fetch('/api/ai-text', {
+            const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
               method: 'POST',
               headers: {'Content-Type':'application/json'},
               body: JSON.stringify({ tool: 'linked-pics', subjects, connection })
