@@ -846,7 +846,7 @@ async function generateCelebHints() {
   const panel = document.getElementById('aiHintPanel');
   btn.disabled = true; btn.textContent = '⏳ Writing hints...';
   try {
-    const res = await fetch('/api/ai-text', {
+    const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ tool: 'brain-hint', celebrity })
