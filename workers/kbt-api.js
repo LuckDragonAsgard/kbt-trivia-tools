@@ -607,6 +607,7 @@ async function handleGenerateSlides(request, env) {
     body: JSON.stringify({ title: `KBT Trivia — ${venue}` }),
   });
   const pres = await createRes.json();
+  if (!pres.presentationId) return json({ error: 'Google Slides API create failed — check OAuth token', details: pres }, 500);
   const presId = pres.presentationId;
 
   const slideList = [];
