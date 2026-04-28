@@ -108,7 +108,7 @@ Spotify-style end-of-night recap. Slides: hero, rank, **accuracy** (N/M correct,
 - **Supabase project `huvfgenbcaiicatvtxak`** (region `ap-southeast-2`) — Postgres + RLS + PostgREST.
 - **Google Cloud project `bubbly-clarity-494509-g0`** — OAuth client for the Slides export. JS origin is the GH Pages domain.
 - **Anon key** is publishable, embedded in `kbt-data.js`. Reads/writes are gated by RLS policies — every KBT table has RLS enabled.
-- **No backend service** — everything runs from the browser against PostgREST + Slides API directly.
+- **Backend Worker** `kbt-api.pgallivan.workers.dev` — serves all AI tools (ai-text, fact-check, fal-morph, fal-faceswap, fal-inpaint, fal-rembg, generate-slides). Deployed 2026-04-28. Secrets set: FAL_KEY ✅ ANTHROPIC_API_KEY ✅ GOOGLE_SA_JSON ⚠️ (pending).
 
 ---
 
@@ -152,7 +152,13 @@ For Slides API changes: edit `slides-export.js`, push, deploy. Re-run "Export to
 
 ## Outstanding / next steps (what's NOT done)
 
-After the bug-fix sweep on 2026-04-28, every item from the v7 outstanding-gaps list is closed. Genuine "next steps" are now feature work, not bug-fix:
+Backend deployed 2026-04-28. **Two blockers before all tools are live:**
+
+- **⚠️ fal.ai billing** — new account (paddy@luckdragon.io) has $0 balance. Add credits at `fal.ai/dashboard/billing` → unlocks ai-text + all fal image tools.
+- **⚠️ GOOGLE_SA_JSON** — not set on kbt-api Worker. Get service account JSON from GCP project `bubbly-clarity-494509-g0`, set via CF API: `PUT /accounts/a6f47c17.../workers/scripts/kbt-api/secrets`.
+- **✅ fact-check** works now (uses ANTHROPIC_API_KEY, verified live).
+
+Feature backlog (non-blocking):
 
 - **Realtime push** instead of 3-second polling on the host's incoming-answers panel — switch to Supabase Realtime channels. Cleaner UX during fast rounds.
 - **Push question to all players** signal — currently the player-side widget lets them type the round/Q# manually. A "host pushes the question" mechanism would auto-set those fields on every player device. Needs a session/state row in `kbt_sess` that the player polls or subscribes to.
