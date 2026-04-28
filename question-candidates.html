@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KBT — Question Candidates</title>
+<style>
+  :root { --bg:#0f0f0f; --panel:#1a1a1a; --border:#2a2a2a; --text:#ececec; --muted:#888;
+    --good:#4ade80; --bad:#f87171; --warn:#facc15; --accent:#d97757; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; padding:24px; }
+  h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .filters { display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; align-items:center; }
+  .filters select, .filters button { background:var(--panel); border:1px solid var(--border); color:var(--text);
+    padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer; }
+  .filters button.primary { background:var(--accent); border-color:var(--accent); font-weight:600; }
+  .stat-row { display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+  .stat { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px 20px; }
+  .stat .n { font-size:24px; font-weight:700; }
+  .stat .l { font-size:12px; color:var(--muted); margin-top:2px; }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:14px; }
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+  .question { font-size:16px; font-weight:600; line-height:1.4; }
+  .answer { color:var(--good); font-size:15px; font-weight:700; margin:8px 0; }
+  .meta { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
+  .pill { font-size:11px; padding:3px 10px; border-radius:999px; background:#252525; color:var(--muted); }
+  .pill.good { background:rgba(74,222,128,.15); color:var(--good); }
+  .pill.warn { background:rgba(250,204,21,.15); color:var(--warn); }
+  .pill.bad  { background:rgba(248,113,113,.15); color:var(--bad); }
+  .pill.accent { background:rgba(217,119,87,.15); color:var(--accent); }
+  .scores { display:flex; gap:6px; margin:10px 0; }
+  .score-bar { flex:1; background:#252525; border-radius:4px; height:6px; overflow:hidden; }
+  .score-fill { height:100%; border-radius:4px; }
+  .fun-fact { font-size:12px; color:var(--muted); font-style:italic; margin:8px 0; border-left:3px solid var(--border); padding-left:10px; }
+  .actions { display:flex; gap:8px; margin-top:14px; }
+  .btn { padding:8px 18px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:600; }
+  .btn-approve { background:rgba(74,222,128,.2); color:var(--good); border:1px solid var(--good); }
+  .btn-approve:hover { background:var(--good); color:#000; }
+  .btn-reject  { background:rgba(248,113,113,.15); color:var(--bad); border:1px solid var(--bad); }
+  .btn-reject:hover  { background:var(--bad); color:#000; }
+  .btn-gambler { background:rgba(250,204,21,.15); color:var(--warn); border:1px solid var(--warn); font-size:11px; padding:6px 12px; }
+  .empty { text-align:center; padding:60px; color:var(--muted); }
+  .source { font-size:11px; color:var(--muted); margin-top:8px; }
+  .fc-badges { display:flex; gap:6px; }
+  #toast { position:fixed; bottom:24px; right:24px; background:var(--good); color:#000;
+    padding:12px 20px; border-radius:10px; font-weight:600; display:none; z-index:99; }
+</style>
+</head>
+<body>
+<h1>🧠 KBT Question Candidates</h1>
+<p class="sub">Auto-sourced questions pending review — approve to add to bank, reject to discard.</p>
+
+<div class="stat-row" id="stats"></div>
+
+<div class="filters">
+  <select id="statusFilter" onchange="load()">
+    <option value="pending_review">Pending Review</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+  <select id="verdictFilter" onchange="load()">
+    <option value="">All verdicts</option>
+    <option value="APPROVED">High Quality (45+)</option>
+    <option value="REVIEW">Review (35-44)</option>
+  </select>
+  <button onclick="triggerRun()" class="primary">⚡ Run Engine Now</button>
+  <button onclick="load()">↻ Refresh</button>
+  <span id="runStatus" style="color:var(--muted);font-size:12px;"></span>
+</div>
+
+<div id="list"></div>
+<div id="toast"></div>
+
+<script>
+const ENGINE = 'https://kbt-question-engine.pgallivan.workers.dev';
+const SUPA = 'https://huvfgenbcaiicatvtxak.supabase.co/rest/v1/kbt_question_candidates';
+const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1dmZnZW5iY2FpaWNhdHZ0eGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTczNjIsImV4cCI6MjA5MTE5MzM2Mn0.uTgzTKYjJnkFlRUIhGfW4ODKyV24xOdKaX7lxpDuMfc';
+
+function toast(msg, color = 'var(--good)') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.background = color; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+async function supaFetch(qs) {
+  const r = await fetch(`${SUPA}?${qs}`, { headers: { apikey: ANON, Authorization: `Bearer ${ANON}` } });
+  return r.json();
+}
+
+async function loadStats() {
+  const [pending, approved, rejected] = await Promise.all([
+    supaFetch('status=eq.pending_review&select=id'),
+    supaFetch('status=eq.approved&select=id'),
+    supaFetch('status=eq.rejected&select=id'),
+  ]);
+  const high = await supaFetch('quality_verdict=eq.APPROVED&status=eq.pending_review&select=id');
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="n" style="color:var(--warn)">${pending.length}</div><div class="l">Pending Review</div></div>
+    <div class="stat"><div class="n" style="color:var(--good)">${high.length}</div><div class="l">High Quality (45+)</div></div>
+    <div class="stat"><div class="n" style="color:var(--good)">${approved.length}</div><div class="l">Approved</div></div>
+    <div class="stat"><div class="n" style="color:var(--muted)">${rejected.length}</div><div class="l">Rejected</div></div>
+  `;
+}
+
+async function load() {
+  const status = document.getElementById('statusFilter').value;
+  const verdict = document.getElementById('verdictFilter').value;
+  let qs = `status=eq.${status}&order=quality_total.desc&limit=30`;
+  if (verdict) qs += `&quality_verdict=eq.${verdict}`;
+  const rows = await supaFetch(qs);
+  loadStats();
+  const el = document.getElementById('list');
+  if (!rows.length) { el.innerHTML = '<div class="empty">No questions in this view.</div>'; return; }
+  el.innerHTML = rows.map(r => card(r)).join('');
+}
+
+function scoreColor(s) {
+  return s >= 4 ? '#4ade80' : s >= 3 ? '#facc15' : '#f87171';
+}
+
+function card(r) {
+  const q = r.quality_total || 0;
+  const qColor = q >= 45 ? 'good' : q >= 35 ? 'warn' : 'bad';
+  const scores = (r.quality_scores || []).map((s,i) => `
+    <div title="Criteria ${i+1}: ${s}/5" style="flex:1">
+      <div class="score-bar"><div class="score-fill" style="width:${s*20}%;background:${scoreColor(s)}"></div></div>
+    </div>`).join('');
+  return `<div class="card" id="card-${r.id}">
+    <div class="card-header">
+      <div>
+        <div class="question">${r.question_text}</div>
+        <div class="answer">✓ ${r.correct_answer}</div>
+      </div>
+      <div class="fc-badges">
+        <span class="pill ${r.factcheck_1_result==='PASS'?'good':'bad'}">FC1 ${r.factcheck_1_result||'?'} ${r.factcheck_1_score||''}</span>
+        <span class="pill ${r.factcheck_2_result==='PASS'?'good':'bad'}">FC2 ${r.factcheck_2_result||'?'} ${r.factcheck_2_score||''}</span>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="pill accent">${r.question_type||'Classic'}</span>
+      ${r.category?`<span class="pill">${r.category}</span>`:''}
+      ${r.difficulty?`<span class="pill">Difficulty ${r.difficulty}/10</span>`:''}
+      <span class="pill ${qColor}">Quality ${q}/50</span>
+      ${r.gambler_eligible?'<span class="pill warn">🎲 Gambler eligible</span>':''}
+    </div>
+    ${scores ? `<div class="scores" title="10 quality criteria (left=guessable, right=category clarity)">${scores}</div>` : ''}
+    ${r.fun_fact?`<div class="fun-fact">💡 ${r.fun_fact}</div>`:''}
+    ${r.quality_reason?`<div class="source">Assessor: ${r.quality_reason}</div>`:''}
+    <div class="source">Source: ${r.source_name||'unknown'} · ${r.created_at?.slice(0,10)||''}</div>
+    ${r.status==='pending_review'?`
+    <div class="actions">
+      <button class="btn btn-approve" onclick="approve(${r.id})">✅ Approve</button>
+      <button class="btn btn-reject" onclick="reject(${r.id})">❌ Reject</button>
+      ${r.gambler_eligible?`<button class="btn btn-gambler" onclick="approve(${r.id},true)">🎲 Approve as Gambler</button>`:''}
+    </div>`:'<div class="source" style="margin-top:10px">Status: '+r.status+'</div>'}
+  </div>`;
+}
+
+async function approve(id) {
+  await fetch(`${ENGINE}/approve`, { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, reviewed_by:'host'}) });
+  document.getElementById(`card-${id}`)?.remove();
+  toast('✅ Approved!');
+  loadStats();
+}
+
+async function reject(id) {
+  await fetch(`${ENGINE}/reject`, { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id, reason:'manual rejection', reviewed_by:'host'}) });
+  document.getElementById(`card-${id}`)?.remove();
+  toast('Rejected', 'var(--muted)');
+  loadStats();
+}
+
+async function triggerRun() {
+  const el = document.getElementById('runStatus');
+  el.textContent = '⏳ Running engine…';
+  try {
+    const r = await fetch(`${ENGINE}/run`, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({max_facts: 8}) });
+    const d = await r.json();
+    const res = d.results || {};
+    el.textContent = `Done — ${res.scraped} scraped, ${res.generated} generated, ${res.saved} saved, ${res.rejected} rejected`;
+    setTimeout(() => load(), 1500);
+  } catch(e) { el.textContent = 'Error: ' + e.message; }
+}
+
+load();
+</script>
+</body>
+</html>
