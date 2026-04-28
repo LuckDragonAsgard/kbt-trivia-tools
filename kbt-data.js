@@ -177,6 +177,39 @@
         was_correct: typeof wasCorrect === 'boolean' ? wasCorrect : null
       }, 'resolution=merge-duplicates,return=representation');
     },
+    async submitPlayerAnswer(eventCode, teamName, round, questionNumber, answerText){
+      // Player-side text answer submission. Writes selected_option (answer text) and
+      // leaves is_correct null until the host grades it.
+      return pgPost('kbt_live_answers', {
+        event_code: eventCode || TARGET_EVENT_CODE,
+        team_name: teamName,
+        round: round,
+        question_number: questionNumber,
+        selected_option: String(answerText || '').slice(0, 500),
+        is_correct: null,
+        points_awarded: 0
+      }, 'return=representation').catch(function(e){
+        console.warn('[kbt] player answer write failed:', e && e.message);
+        return null;
+      });
+    },
+    async getLiveAnswers(eventCode){
+      // Host-side: pull all submitted player answers for the event, newest first
+      return pgGet('kbt_live_answers', {
+        select: 'id,team_name,round,question_number,selected_option,is_correct,points_awarded,submitted_at',
+        event_code: 'eq.' + (eventCode || TARGET_EVENT_CODE),
+        order: 'submitted_at.desc'
+      }).catch(function(){ return []; });
+    },
+    async gradeLiveAnswer(answerId, isCorrect, pointsAwarded){
+      // Host-side: grade an incoming player answer
+      var url = SUPABASE_URL + '/rest/v1/kbt_live_answers?id=eq.' + encodeURIComponent(answerId);
+      return fetch(url, {
+        method: 'PATCH',
+        headers: { ...HEADERS, Prefer: 'return=representation' },
+        body: JSON.stringify({ is_correct: !!isCorrect, points_awarded: parseInt(pointsAwarded) || 0 })
+      }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; });
+    },
     async submitLiveAnswer(eventCode, teamName, round, questionNumber, isCorrect, pointsAwarded){
       // Dual-write companion to submitRoundScore — captures host's per-question marks in the
       // canonical kbt_live_answers table (extended schema added in v7). Best-effort: never
