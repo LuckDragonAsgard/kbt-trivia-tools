@@ -300,9 +300,19 @@
       // (Skipping footer to keep deck simple for now; could add later)
 
       await _api('POST', 'https://slides.googleapis.com/v1/presentations/' + presId + ':batchUpdate', { requests: requests });
-      window.open('https://docs.google.com/presentation/d/' + presId + '/edit', '_blank');
-      if (btn) { btn.disabled = false; btn.textContent = 'Opened in Slides!'; }
-      setTimeout(function(){ if (btn) btn.textContent = 'Export to Slides'; }, 4000);
+      var _editUrl = 'https://docs.google.com/presentation/d/' + presId + '/edit';
+      var _pdfUrl  = 'https://docs.google.com/presentation/d/' + presId + '/export/pdf';
+      window.open(_editUrl, '_blank');
+      // PDF export — opens Google's server-side PDF render in a new tab (downloads directly)
+      setTimeout(function(){ window.open(_pdfUrl, '_blank'); }, 600);
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '✓ Slides + PDF opened';
+        btn.title = 'Editable deck and PDF were opened in new tabs. If popup blocker stripped one, click again.';
+        btn.dataset.pdfUrl = _pdfUrl;
+        btn.dataset.editUrl = _editUrl;
+      }
+      setTimeout(function(){ if (btn) btn.textContent = 'Export to Slides'; }, 5000);
     } catch (err) {
       alert('Export failed:\n' + err.message);
       if (btn) { btn.disabled = false; btn.textContent = 'Export to Slides'; }
