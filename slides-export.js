@@ -167,7 +167,13 @@
             transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 210, unit: 'PT' } }
         }
       });
-      requests.push({ insertText: { objectId: logoBotId, text: 'TRIVIA NIGHT — RESULTS', insertionIndex: 0 } });
+      // VVDS Fifties heading rendered as image (Slides API can't load custom WOFF2)
+      requests.push({ insertText: { objectId: logoBotId, text: ' ', insertionIndex: 0 } });
+      var subtitleImgId = 'subt_img_' + Date.now();
+      requests.push({ createImage: { objectId: subtitleImgId, url: 'https://luckdragonasgard.github.io/kbt-trivia-tools/assets/headings/h_subtitle.png',
+        elementProperties: { pageObjectId: s0Id,
+          size: { height: { magnitude: 50, unit: 'PT' }, width: { magnitude: 400, unit: 'PT' } },
+          transform: { scaleX: 1, scaleY: 1, translateX: 160, translateY: 200, unit: 'PT' } } } });
       requests.push({ updateTextStyle: { objectId: logoBotId, textRange: { type: 'ALL' }, style: { bold: true, fontSize: { magnitude: 22, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.blue } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
       requests.push({ updateParagraphStyle: { objectId: logoBotId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
 
@@ -205,8 +211,15 @@
         elementProperties: { pageObjectId: podiumSlideId,
           size: { height: { magnitude: 50, unit: 'PT' }, width: { magnitude: 700, unit: 'PT' } },
           transform: { scaleX: 1, scaleY: 1, translateX: 10, translateY: 30, unit: 'PT' } } } });
-      requests.push({ insertText: { objectId: podiumTitleId, text: '🏆 The Podium', insertionIndex: 0 } });
-      requests.push({ updateTextStyle: { objectId: podiumTitleId, textRange: { type: 'ALL' }, style: { bold: true, fontSize: { magnitude: 36, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.yellow } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
+      // VVDS Fifties heading via image; keep emoji as a separate text element next to it
+      requests.push({ insertText: { objectId: podiumTitleId, text: '🏆', insertionIndex: 0 } });
+      requests.push({ updateTextStyle: { objectId: podiumTitleId, textRange: { type: 'ALL' }, style: { fontSize: { magnitude: 36, unit: 'PT' } }, fields: 'fontSize' } });
+      requests.push({ updateParagraphStyle: { objectId: podiumTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
+      var podiumHImgId = 'pod_h_' + Date.now();
+      requests.push({ createImage: { objectId: podiumHImgId, url: 'https://luckdragonasgard.github.io/kbt-trivia-tools/assets/headings/h_podium.png',
+        elementProperties: { pageObjectId: podiumSlideId,
+          size: { height: { magnitude: 60, unit: 'PT' }, width: { magnitude: 280, unit: 'PT' } },
+          transform: { scaleX: 1, scaleY: 1, translateX: 220, translateY: 70, unit: 'PT' } } } });
       requests.push({ updateParagraphStyle: { objectId: podiumTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
 
       // 1st (centre, biggest), 2nd (left), 3rd (right)
@@ -243,8 +256,14 @@
         elementProperties: { pageObjectId: lbSlideId,
           size: { height: { magnitude: 45, unit: 'PT' }, width: { magnitude: 700, unit: 'PT' } },
           transform: { scaleX: 1, scaleY: 1, translateX: 10, translateY: 25, unit: 'PT' } } } });
-      requests.push({ insertText: { objectId: lbTitleId, text: '🏆 Final Leaderboard', insertionIndex: 0 } });
-      requests.push({ updateTextStyle: { objectId: lbTitleId, textRange: { type: 'ALL' }, style: { bold: true, fontSize: { magnitude: 32, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.charcoal } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
+      requests.push({ insertText: { objectId: lbTitleId, text: '🏆', insertionIndex: 0 } });
+      requests.push({ updateTextStyle: { objectId: lbTitleId, textRange: { type: 'ALL' }, style: { fontSize: { magnitude: 32, unit: 'PT' } }, fields: 'fontSize' } });
+      requests.push({ updateParagraphStyle: { objectId: lbTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
+      var lbHImgId = 'lb_h_' + Date.now();
+      requests.push({ createImage: { objectId: lbHImgId, url: 'https://luckdragonasgard.github.io/kbt-trivia-tools/assets/headings/h_leaderboard.png',
+        elementProperties: { pageObjectId: lbSlideId,
+          size: { height: { magnitude: 50, unit: 'PT' }, width: { magnitude: 350, unit: 'PT' } },
+          transform: { scaleX: 1, scaleY: 1, translateX: 185, translateY: 30, unit: 'PT' } } } });
       requests.push({ updateParagraphStyle: { objectId: lbTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
 
       var lbBoxId = 'lb_box_' + Date.now();
@@ -272,8 +291,14 @@
           elementProperties: { pageObjectId: prSlideId,
             size: { height: { magnitude: 45, unit: 'PT' }, width: { magnitude: 700, unit: 'PT' } },
             transform: { scaleX: 1, scaleY: 1, translateX: 10, translateY: 25, unit: 'PT' } } } });
-        requests.push({ insertText: { objectId: prTitleId, text: '📊 Round-by-Round', insertionIndex: 0 } });
-        requests.push({ updateTextStyle: { objectId: prTitleId, textRange: { type: 'ALL' }, style: { bold: true, fontSize: { magnitude: 32, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: BRAND.charcoal } }, fontFamily: 'Open Sans' }, fields: 'bold,fontSize,foregroundColor,fontFamily' } });
+        requests.push({ insertText: { objectId: prTitleId, text: '📊', insertionIndex: 0 } });
+        requests.push({ updateTextStyle: { objectId: prTitleId, textRange: { type: 'ALL' }, style: { fontSize: { magnitude: 32, unit: 'PT' } }, fields: 'fontSize' } });
+        requests.push({ updateParagraphStyle: { objectId: prTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
+        var prHImgId = 'pr_h_' + Date.now();
+        requests.push({ createImage: { objectId: prHImgId, url: 'https://luckdragonasgard.github.io/kbt-trivia-tools/assets/headings/h_round_by_round.png',
+          elementProperties: { pageObjectId: prSlideId,
+            size: { height: { magnitude: 50, unit: 'PT' }, width: { magnitude: 320, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 200, translateY: 30, unit: 'PT' } } } });
         requests.push({ updateParagraphStyle: { objectId: prTitleId, textRange: { type: 'ALL' }, style: { alignment: 'CENTER' }, fields: 'alignment' } });
 
         var prBoxId = 'pr_box_' + Date.now();
