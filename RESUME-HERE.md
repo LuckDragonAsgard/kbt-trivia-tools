@@ -102,13 +102,42 @@ Spotify-style end-of-night recap. Slides: hero, rank, **accuracy** (N/M correct,
 └──────────┘                       │                       │
    browser                  push to main                  anon key
                           (GHA deploy ~25s)            (publishable)
+                                   ▲
+                         CF Worker: kbt-api
+                    (AI tools proxy — all 8 live)
 ```
 
 - **GitHub Pages** hosts static apps. Push to `main` → auto-deploy.
 - **Supabase project `huvfgenbcaiicatvtxak`** (region `ap-southeast-2`) — Postgres + RLS + PostgREST.
-- **Google Cloud project `bubbly-clarity-494509-g0`** — OAuth client for the Slides export. JS origin is the GH Pages domain.
+- **Google Cloud project `bubbly-clarity-494509-g0`** — OAuth2 client for the Slides export. Org policy blocks SA key creation — worker uses OAuth2 refresh token flow instead.
 - **Anon key** is publishable, embedded in `kbt-data.js`. Reads/writes are gated by RLS policies — every KBT table has RLS enabled.
-- **Backend Worker** `kbt-api.pgallivan.workers.dev` — serves all AI tools (ai-text, fact-check, fal-morph, fal-faceswap, fal-inpaint, fal-rembg, generate-slides). Deployed 2026-04-28. Secrets set: FAL_KEY ✅ ANTHROPIC_API_KEY ✅ GOOGLE_SA_JSON ⚠️ (pending).
+- **Backend Worker** `kbt-api.pgallivan.workers.dev` — serves all 8 AI tools. All secrets set. All tools live as of 2026-04-29.
+
+---
+
+## AI Tools — Backend Worker (all ✅ as of 2026-04-29)
+
+Worker: `https://kbt-api.pgallivan.workers.dev` (CF account: Luck Dragon Main `a6f47c17`)
+
+| Tool | Endpoint | Secret | Status |
+|---|---|---|---|
+| fact-check | `/fact-check` | ANTHROPIC_API_KEY | ✅ |
+| ai-text | `/ai-text` | ANTHROPIC_API_KEY | ✅ |
+| fal-morph | `/fal-morph` | FAL_KEY | ✅ |
+| fal-faceswap | `/fal-faceswap` | FAL_KEY | ✅ |
+| fal-inpaint | `/fal-inpaint` | FAL_KEY | ✅ |
+| fal-rembg | `/fal-rembg` | FAL_KEY | ✅ |
+| generate-slides | `/generate-slides` | GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET + GOOGLE_REFRESH_TOKEN | ✅ |
+| env-check | `/env-check` | — | ✅ |
+
+### Google OAuth2 for Slides (note for future)
+GCP org policy `iam.disableServiceAccountKeyCreation` is enforced at the org level on project `bubbly-clarity-494509-g0` — SA keys cannot be created via UI or API. The worker instead uses an **OAuth2 refresh token flow**:
+- Client ID: `342815819710-sugohi5jr60hs2mfv1vgi4apfp3p2bjc.apps.googleusercontent.com`
+- Client Secret: set as `GOOGLE_CLIENT_SECRET` on the worker (rotated 2026-04-29)
+- Refresh Token: set as `GOOGLE_REFRESH_TOKEN` on the worker (scope: `https://www.googleapis.com/auth/presentations`, account: `paddy@luckdragon.io`)
+- Flow: worker POSTs to `https://oauth2.googleapis.com/token` with `grant_type=refresh_token` to get a short-lived access token per request.
+
+If the refresh token expires (rare for offline access tokens), re-authorise via [OAuth Playground](https://developers.google.com/oauthplayground) with the custom credentials, scope `https://www.googleapis.com/auth/presentations`, and `paddy@luckdragon.io`. The redirect URI `https://developers.google.com/oauthplayground` must remain on the OAuth client's authorised list.
 
 ---
 
@@ -142,23 +171,22 @@ From any Claude chat:
 KBT — change X to Y
 ```
 
-Claude will follow `kbt-data.js` / `host-app.html` patterns, push the file to GitHub via the PAT in `asgard-vault.pgallivan.workers.dev` (X-Pin: `2967`), and GitHub Pages auto-deploys in ~25s.
+Claude will follow `kbt-data.js` / `host-app.html` patterns, push the file to GitHub via the PAT in `asgard-vault.pgallivan.workers.dev` (via asgard-tools `/chat/smart`, key name `GITHUB_TOKEN`), and GitHub Pages auto-deploys in ~25s.
 
 For DB changes: Claude has the Supabase MCP and can apply migrations directly.
 
-For Slides API changes: edit `slides-export.js`, push, deploy. Re-run "Export to Slides" in the host-app to test.
+For Worker changes: read source from `workers/kbt-api.js` in this repo, modify, deploy via asgard-tools `deploy_worker` tool with worker name `kbt-api`.
 
 ---
 
-## Outstanding / next steps (what's NOT done)
+## Outstanding / next steps
 
-Backend deployed 2026-04-28. **Two blockers before all tools are live:**
+All 8 AI tools are live as of 2026-04-29. No blockers.
 
-- **⚠️ fal.ai billing** — new account (paddy@luckdragon.io) has $0 balance. Add credits at `fal.ai/dashboard/billing` → unlocks ai-text + all fal image tools.
-- **⚠️ GOOGLE_SA_JSON** — not set on kbt-api Worker. Get service account JSON from GCP project `bubbly-clarity-494509-g0`, set via CF API: `PUT /accounts/a6f47c17.../workers/scripts/kbt-api/secrets`.
-- **✅ fact-check** works now (uses ANTHROPIC_API_KEY, verified live).
+### Repo hygiene (low priority, safe to do any time)
+Delete these dead files from the repo root: `_bashprobe.txt`, `_probe.bin`, `api/*.js`, `vercel.json`, `.vercel/`, `deploy*.bat` — none referenced after the Vercel→GitHub Pages migration.
 
-Feature backlog (non-blocking):
+### Feature backlog (non-blocking)
 
 - **Realtime push** instead of 3-second polling on the host's incoming-answers panel — switch to Supabase Realtime channels. Cleaner UX during fast rounds.
 - **Push question to all players** signal — currently the player-side widget lets them type the round/Q# manually. A "host pushes the question" mechanism would auto-set those fields on every player device. Needs a session/state row in `kbt_sess` that the player polls or subscribes to.
@@ -174,16 +202,16 @@ None of these are blockers for running events. They're product-improvement direc
 
 ## Connectors / accounts a fresh Claude session needs
 
-- **GitHub** — `LuckDragonAsgard` org. PAT with `public_repo` scope is in the vault.
-- **Drive** — `paddy@luckdragon.io` (rarely needed; per the storage rule, KBT is fully on GitHub now).
+- **GitHub** — PAT is in asgard-vault under key `GITHUB_TOKEN`, accessible via `asgard-tools /chat/smart` → `get_secret("GITHUB_TOKEN")`.
 - **Supabase** — project `huvfgenbcaiicatvtxak`. Supabase MCP authed.
-- **Cloudflare** — only needed if touching Asgard infrastructure or the vault.
-- **Vault** — `https://asgard-vault.pgallivan.workers.dev`, X-Pin `2967` (verbal-only).
+- **Cloudflare** — CF MCP or asgard-tools for worker deploys (Luck Dragon Main account `a6f47c17`).
+- **Vault** — `https://asgard-vault.pgallivan.workers.dev` — PIN is now stored in `PADDY_PIN` env binding (not hardcoded). Use asgard-tools `/chat/smart` with `get_secret` instead of direct vault calls.
 
 ---
 
 ## Handover doc trail (full chronology)
 
+- [v10 (2026-04-29)](docs/handovers/2026-04-29-v10.md) — all 8 AI tools live; OAuth2 refresh token flow for Slides (SA key blocked by org policy); vault PIN rotated to env-based
 - [v9 (2026-04-28)](docs/handovers/2026-04-27-v9.md) — final state of off-Drive migration + cross-account handover wired into Asgard
 - [v8 (2026-04-27 eve)](docs/handovers/2026-04-27-v8.md) — migration started, 13 markdowns mirrored
 - [v7 (2026-04-27 late)](docs/handovers/2026-04-27-v7.md) — RLS, captain constraint, per-q correctness, parameterised rounds, dynamic schedule, real logo
