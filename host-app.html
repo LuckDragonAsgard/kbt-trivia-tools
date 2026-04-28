@@ -2490,7 +2490,55 @@
                     <div class="question-text">${q.text}</div>
                     <button type="button" class="answer-button" onclick="revealAnswer()">Show Answer</button>
                     <div id="answerBox"></div>
-                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : `<div id="markPanel" class="mark-panel"></div>`}
+                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : `<div id="markPanel" class="mark-panel"></div>
+<div id="incomingAnswers" style="margin-top:18px;padding:14px;background:#fff;border:2px solid #FBC500;border-radius:12px;">
+  <h4 style="margin:0 0 10px;color:#383737;">📥 Incoming Player Answers <span id="incCount" style="background:#FBC500;color:#383737;padding:2px 8px;border-radius:10px;font-size:12px;margin-left:6px;">0</span></h4>
+  <div id="incomingList" style="max-height:280px;overflow-y:auto;font-size:13px;">
+    <div style="color:#999">Waiting for player submissions…</div>
+  </div>
+</div>
+<script>
+(function(){
+  var lastIds = new Set();
+  async function poll(){
+    if (!window.kbtData || !window.kbtData.getLiveAnswers) return;
+    var code = window.kbtData.TARGET_EVENT_CODE;
+    var rows = await window.kbtData.getLiveAnswers(code);
+    if (!Array.isArray(rows)) return;
+    // Show only ungraded + recent (last 50)
+    var ungraded = rows.filter(function(r){ return r.is_correct === null && r.selected_option; }).slice(0, 50);
+    document.getElementById('incCount').textContent = ungraded.length;
+    var listEl = document.getElementById('incomingList');
+    if (!ungraded.length) {
+      listEl.innerHTML = '<div style="color:#999">No pending answers</div>';
+      return;
+    }
+    listEl.innerHTML = ungraded.map(function(r){
+      var safe = String(r.selected_option || '').replace(/[<>&"]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; });
+      return ''
+        + '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">'
+        + '<span style="font-weight:600;min-width:90px;">' + (r.team_name || '?') + '</span>'
+        + '<span style="background:#eef;padding:2px 6px;border-radius:4px;font-size:11px;">R' + (r.round || '?') + 'Q' + (r.question_number || '?') + '</span>'
+        + '<span style="flex:1;">' + safe + '</span>'
+        + '<button onclick="gradeIncoming(\''+r.id+'\',true,1)" style="background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✓</button>'
+        + '<button onclick="gradeIncoming(\''+r.id+'\',false,0)" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✗</button>'
+        + '</div>';
+    }).join('');
+  }
+  window.gradeIncoming = async function(id, ok, pts){
+    if (window.kbtData && window.kbtData.gradeLiveAnswer) {
+      await window.kbtData.gradeLiveAnswer(id, ok, pts);
+      poll();
+    }
+  };
+  // Poll every 3 seconds while quiz tab is open
+  setInterval(function(){
+    var qp = document.getElementById('quizPage');
+    if (qp && qp.classList && qp.classList.contains('active')) poll();
+  }, 3000);
+})();
+</script>
+`}
                     <div class="fun-fact-toggle" onclick="this.classList.toggle('expanded')">
                         💡 Fun Fact
                         <div class="fun-fact-text">${funFactText}</div>
