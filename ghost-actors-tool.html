@@ -901,7 +901,7 @@
                 const base64 = tempCanvas.toDataURL('image/jpeg', 0.92);
 
                 // Call the AI inpainting API
-                const res = await fetch('/api/fal-inpaint', {
+                const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/fal-inpaint', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
