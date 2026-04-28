@@ -1861,7 +1861,17 @@
                     return `<span class="powerup-badge">${labels[p] || p}</span>`;
                 }).join(' ');
                 const row = document.createElement('tr');
-                const roundCells = rounds.map(r => `<td><input type="number" class="score-input" value="${s['R'+r]||0}" min="0" onchange="updateTeamScore('${team.id}','R${r}',this.value)"></td>`).join('');
+                const roundCells = rounds.map(r => {
+                    // Score-reconciliation guard: if per-question marks exist for this team+round,
+                    // the round total is auto-derived. Lock the input to prevent accidental overwrite.
+                    const hasPerQ = (_perQuestionRowCache || []).some(rec =>
+                        rec.team_name === team.name && rec.round === r && rec.question_number > 0
+                    );
+                    const lockedAttrs = hasPerQ
+                        ? 'readonly title="Auto-summed from per-question marks. Clear the per-q marks to edit directly." style="background:#f3f4f6;color:#6b7280;cursor:not-allowed;"'
+                        : '';
+                    return `<td><input type="number" class="score-input" value="${s['R'+r]||0}" min="0" onchange="updateTeamScore('${team.id}','R${r}',this.value)" ${lockedAttrs}></td>`;
+                }).join('');
                 row.innerHTML = `
                     <td><span style="display:inline-flex;align-items:center;gap:8px;">
                         <span style="width:12px;height:12px;border-radius:50%;background:${team.color||'#2C94C2'};flex-shrink:0;"></span>
@@ -1948,6 +1958,10 @@
             try {
                 if (window.kbtData) {
                     await window.kbtData.submitRoundScore(code, team.name, round, points, qNum);
+                    // Dual-write to kbt_live_answers (canonical per-question table, v7 extension)
+                    if (typeof window.kbtData.submitLiveAnswer === 'function') {
+                        window.kbtData.submitLiveAnswer(code, team.name, round, qNum, isRight, points);
+                    }
                     const idx = _perQuestionRowCache.findIndex(r => r.team_name === team.name && r.round === round && r.question_number === qNum);
                     if (idx >= 0) _perQuestionRowCache[idx] = { team_name: team.name, round, question_number: qNum, points };
                     else _perQuestionRowCache.push({ team_name: team.name, round, question_number: qNum, points });
