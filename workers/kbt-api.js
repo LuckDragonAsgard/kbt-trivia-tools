@@ -2,7 +2,7 @@
 // Routes: /api/env-check, /api/ai-text, /api/fact-check,
 //         /api/fal-morph, /api/fal-faceswap, /api/fal-inpaint,
 //         /api/fal-rembg, /api/generate-slides
-// Secrets needed: FAL_KEY, ANTHROPIC_API_KEY, GOOGLE_SA_JSON
+// Secrets needed: FAL_KEY, ANTHROPIC_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
 
 // ─── Shared utils ────────────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ function handleEnvCheck(env) {
     PLATFORM: 'Cloudflare Worker',
     HAS_FAL_KEY: env.FAL_KEY ? 'YES' : 'NO',
     HAS_ANTHROPIC: env.ANTHROPIC_API_KEY ? 'YES' : 'NO',
-    HAS_GOOGLE_SA: env.GOOGLE_SA_JSON ? 'YES' : 'NO',
+    HAS_GOOGLE_OAUTH: (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REFRESH_TOKEN) ? 'YES' : 'NO',
   });
 }
 
@@ -489,31 +489,20 @@ const TYPE_COLORS = {
 const SLIDE_W = 9144000;
 const SLIDE_H = 5143500;
 
-async function getAccessToken(saJson) {
-  const sa = JSON.parse(saJson);
-  const now = Math.floor(Date.now() / 1000);
-  const header = btoa(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const claim = btoa(JSON.stringify({
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/presentations https://www.googleapis.com/auth/drive",
-    aud: "https://oauth2.googleapis.com/token",
-    iat: now, exp: now + 3600,
-  }));
-  const sigInput = `${header}.${claim}`;
-  const keyData = sa.private_key.replace(/-----BEGIN PRIVATE KEY-----/, '').replace(/-----END PRIVATE KEY-----/, '').replace(/\s/g, '');
-  const binaryKey = Uint8Array.from(atob(keyData), c => c.charCodeAt(0));
-  const cryptoKey = await crypto.subtle.importKey('pkcs8', binaryKey, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
-  const encoder = new TextEncoder();
-  const sigBytes = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', cryptoKey, encoder.encode(sigInput));
-  const sig = btoa(String.fromCharCode(...new Uint8Array(sigBytes)));
-  const jwt = `${sigInput}.${sig}`;
-  const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+async function getAccessToken(env) {
+  const resp = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+    body: new URLSearchParams({
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      refresh_token: env.GOOGLE_REFRESH_TOKEN,
+      grant_type: 'refresh_token',
+    }),
   });
-  const { access_token } = await tokenRes.json();
-  return access_token;
+  const data = await resp.json();
+  if (!data.access_token) throw new Error('Token refresh failed: ' + JSON.stringify(data));
+  return data.access_token;
 }
 
 async function dbGet(path) {
@@ -571,8 +560,9 @@ function buildSlideRequests(slides) {
 }
 
 async function handleGenerateSlides(request, env) {
-  const saJson = env.GOOGLE_SA_JSON;
-  if (!saJson) return json({ error: 'GOOGLE_SA_JSON not configured' }, 500);
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_REFRESH_TOKEN) {
+    return json({ error: 'Google OAuth secrets not configured (need GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN)' }, 500);
+  }
 
   const url = new URL(request.url);
   const event_code = url.searchParams.get('event_code');
@@ -603,7 +593,7 @@ async function handleGenerateSlides(request, env) {
     qs.forEach(q => qMap[q.id] = q);
   }
 
-  const accessToken = await getAccessToken(saJson);
+  const accessToken = await getAccessToken(env);
   const createRes = await fetch('https://slides.googleapis.com/v1/presentations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
