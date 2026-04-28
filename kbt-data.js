@@ -159,7 +159,7 @@
       return Object.entries(totals)
         .map(function([team_name, total]){ return { team_name: team_name, total: total }; })
         .sort(function(a, b){ return b.total - a.total; });
-    }
+    },
     async getTeamMembers(eventCode){
       return pgGet('kbt_team_member', {
         select: 'id,team_id,team_code,player_name,player_code,is_captain,created_at',
@@ -177,6 +177,22 @@
         was_correct: typeof wasCorrect === 'boolean' ? wasCorrect : null
       }, 'resolution=merge-duplicates,return=representation');
     },
+    async submitLiveAnswer(eventCode, teamName, round, questionNumber, isCorrect, pointsAwarded){
+      // Dual-write companion to submitRoundScore — captures host's per-question marks in the
+      // canonical kbt_live_answers table (extended schema added in v7). Best-effort: never
+      // blocks the UX if the write fails.
+      return pgPost('kbt_live_answers', {
+        event_code: eventCode || TARGET_EVENT_CODE,
+        team_name: teamName,
+        round: round,
+        question_number: questionNumber,
+        is_correct: !!isCorrect,
+        points_awarded: parseInt(pointsAwarded) || 0
+      }, 'resolution=merge-duplicates,return=representation').catch(function(e){
+        console.warn('[kbt] kbt_live_answers write failed:', e && e.message);
+        return null;
+      });
+    }
   };
 
   const offline = {
