@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-patch_slides.py — KBT host-app.html Google OAuth + Slides Export patch
-Run this from any terminal:  python patch_slides.py
+patch_slides.py — placeholder
 
-What it does:
-  1. Fetches the live host-app.html from GitHub
-  2. If > Narva Slides Portal 132px 諜 <Page> sections>t***aa
-tth Paddy host-app.html from GitHub
-  2. IjectsTTE±:ent OAuth + Slides export JS before the last </script>
-  5. Saves the result to host-app-patched.html (then commit that to GitHub)
+The original ~14KB patch_slides.py from Drive (file id 1QLldACxXFMwRwvbTCxF2hHlGu4WW8K9Z)
+was deleted from Drive during the 2026-04-27/28 paddy@luckdragon.io account cleanup
+before this migration finished. This file is a placeholder.
 
-Before running:
-  - Set GOOGLE_CLIENT_ID below (get it from Google Cloud Console)
-  - Or leave as placeholder and set it in the saved HTML manually
+What it did (per v6 handover): one-shot patcher that injected Google OAuth + Slides
+export JS into host-app.html. That logic is now part of the live host-app.html and
+slides-export.js — those two files in the repo root are the canonical implementation
+and supersede this script.
 
-After running:
-  - Rename host-app-patched.html -> host-app.html in the repo
-  - Commit + push (auto-deploy pipeline handles the rest)
+If you need the original for reference, search any local backup dirs (H:\\KBT\\,
+Vercel deploy artifacts) for `patch_slides.py`.
+"""
+
+import sys
+print(__doc__)
+sys.exit(0)
