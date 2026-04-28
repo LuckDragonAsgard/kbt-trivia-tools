@@ -269,6 +269,7 @@ If EDIT and fixable: set suggested_rewrite to an improved version following KBT 
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 6000,
+      system: 'You are a JSON-only API endpoint. ALWAYS respond with a valid JSON array starting with [ and ending with ]. Never write prose before or after the JSON. Never use phrases like "I notice", "Based on", "Here is", or any introductory text. Your ENTIRE response must be a parseable JSON array.',
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{ role: 'user', content: prompt }],
     }),
@@ -280,8 +281,14 @@ If EDIT and fixable: set suggested_rewrite to an improved version following KBT 
   const textBlock = [...(data.content || [])].reverse().find(b => b.type === 'text');
   if (!textBlock?.text) return json({ error: 'No text response', raw: data }, 500);
 
-  const clean = textBlock.text.replace(/```json\n?|```/g, '').trim();
-  const results = JSON.parse(clean);
+  const raw = textBlock.text.replace(/```json\n?|```/g, '').trim();
+  // Extract JSON array robustly — Claude may add preamble prose before/after
+  const startIdx = raw.indexOf('[');
+  const endIdx = raw.lastIndexOf(']');
+  if (startIdx === -1 || endIdx === -1) {
+    return json({ error: 'No JSON array in fact-check response', preview: raw.substring(0, 300) }, 500);
+  }
+  const results = JSON.parse(raw.substring(startIdx, endIdx + 1));
 
   const pass = results.filter(r => r.verdict === 'PASS').length;
   const edit = results.filter(r => r.verdict === 'EDIT').length;
