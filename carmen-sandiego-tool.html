@@ -652,7 +652,7 @@
       const panel = document.getElementById('aiCluesPanel');
       btn.disabled = true; btn.textContent = '⏳ Generating clues...';
       try {
-        const res = await fetch('/api/ai-text', {
+        const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ tool: 'carmen', location })
