@@ -2797,7 +2797,14 @@
                     <div class="question-text">${q.text}</div>
                     <button type="button" class="answer-button" onclick="revealAnswer()">Show Answer</button>
                     <div id="answerBox"></div>
-                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : `<div id="markPanel" class="mark-panel"></div>
+                    ${q.type === 'Gambler' ? `<div id="wagerPanel" class="wager-panel"></div>` : q.type === 'Gambler Pairs' ? `<div id="gamblerPairsPanel" class="gambler-pairs-panel"></div>
+<div id="incomingAnswers" style="margin-top:18px;padding:14px;background:#fff;border:2px solid #FBC500;border-radius:12px;">
+  <h4 style="margin:0 0 10px;color:#383737;">📥 Incoming Player Answers <span id="incCount" style="background:#FBC500;color:#383737;padding:2px 8px;border-radius:10px;font-size:12px;margin-left:6px;">0</span></h4>
+  <div id="incomingList" style="max-height:280px;overflow-y:auto;font-size:13px;">
+    <div style="color:#999">Waiting for player submissions…</div>
+  </div>
+</div>
+` : `<div id="markPanel" class="mark-panel"></div>
 <div id="incomingAnswers" style="margin-top:18px;padding:14px;background:#fff;border:2px solid #FBC500;border-radius:12px;">
   <h4 style="margin:0 0 10px;color:#383737;">📥 Incoming Player Answers <span id="incCount" style="background:#FBC500;color:#383737;padding:2px 8px;border-radius:10px;font-size:12px;margin-left:6px;">0</span></h4>
   <div id="incomingList" style="max-height:280px;overflow-y:auto;font-size:13px;">
