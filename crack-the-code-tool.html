@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crack The Code - KBT Rebus Tool</title>
-    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +21,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
 
         header {
-            background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+            background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
@@ -55,7 +55,7 @@
 
         .panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #0066cc;
+            color: #2dd4bf;
             font-size: 1.4em;
             margin-bottom: 16px;
             border-bottom: 2px solid #ddd;
@@ -80,7 +80,7 @@
             font-family: 'Londrina Solid', cursive;
             font-size: 1.1em;
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #0066cc; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2dd4bf; }
 
         textarea { min-height: 80px; resize: vertical; }
 
@@ -106,8 +106,8 @@
             transition: border-color 0.2s;
         }
 
-        .image-slot:hover { border-color: #0066cc; }
-        .image-slot.loaded { border-style: solid; border-color: #0066cc; }
+        .image-slot:hover { border-color: #2dd4bf; }
+        .image-slot.loaded { border-style: solid; border-color: #2dd4bf; }
 
         .image-slot img {
             width: 100%;
@@ -169,14 +169,14 @@
             margin-top: 10px;
         }
 
-        .btn-export { background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: #fff; }
+        .btn-export { background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); color: #fff; }
         .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); }
         .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .add-slot-btn {
             background: rgba(0, 102, 204, 0.1);
-            border: 2px solid #0066cc;
-            color: #0066cc;
+            border: 2px solid #2dd4bf;
+            color: #2dd4bf;
             border-radius: 8px;
             padding: 8px;
             font-family: 'Luckiest Guy', cursive;
@@ -205,7 +205,7 @@
         .preview-header h2 {
             margin: 0;
             font-family: 'Luckiest Guy', cursive;
-            color: #0066cc;
+            color: #2dd4bf;
             font-size: 1.3em;
             border: none;
             padding: 0;
@@ -228,9 +228,9 @@
         }
 
         .toggle-btn.active {
-            background: #0066cc;
+            background: #2dd4bf;
             color: #fff;
-            border-color: #0066cc;
+            border-color: #2dd4bf;
         }
 
         .canvas-wrapper {
@@ -261,7 +261,7 @@
             border: 1px solid #ddd;
             margin-top: 12px;
         }
-        .export-hint strong { color: #0066cc; }
+        .export-hint strong { color: #2dd4bf; }
 
         .kbt-watermark {
             position: absolute;
@@ -276,14 +276,23 @@
         #export-canvas {
             width: 1920px;
             height: 1080px;
-            background: #fff;
+            background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
             position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-image: linear-gradient(0deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 200, 200, 0.1) 1px, transparent 1px);
+            background-image: linear-gradient(0deg, rgba(45,212,191,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(45,212,191,0.04) 1px, transparent 1px);
             background-size: 40px 40px;
+        }
+
+        #export-canvas::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 7px;
+            background: #2dd4bf;
+            z-index: 10;
         }
 
         .rebus-container {
@@ -308,9 +317,9 @@
         .answer-text {
             position: absolute;
             bottom: 60px;
-            font-family: 'Luckiest Guy', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 48px;
-            color: #0066cc;
+            color: #fbbf24;
             text-align: center;
             max-width: 80%;
         }
@@ -318,9 +327,9 @@
         .question-text {
             position: absolute;
             top: 80px;
-            font-family: 'Londrina Solid', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 36px;
-            color: #333;
+            color: #2dd4bf;
             text-align: center;
             max-width: 90%;
         }
@@ -353,7 +362,7 @@
                 <div class="status-bar" id="status-bar">Add at least 1 image to export</div>
 
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
-                    <div style="font-family: 'Luckiest Guy', cursive; color: #0066cc; margin-bottom: 8px;">Export Images</div>
+                    <div style="font-family: 'Bowlby One SC', cursive; color: #2dd4bf; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
                         🔴 Export A — Question
                     </button>
