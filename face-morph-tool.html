@@ -1,625 +1,625 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT Face Morph Tool v6 — Two-Pass Blend</title>
-<link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<title>KBT Face Morph Tool v7 — Landmark Blend</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js" crossorigin="anonymous"></script>
 <style>
-  :root {
-    --teal: #0f766e;
-    --teal-2: #2dd4bf;
-    --gold: #fbbf24;
-    --bg: #0f172a;
-    --panel: #1e293b;
-    --panel-2: #162032;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --border: rgba(255,255,255,0.07);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(160deg, #0f172a 0%, #1a2540 100%);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px 16px 60px;
-  }
-  .header { text-align: center; margin-bottom: 32px; }
-  .header h1 {
-    font-family: 'Bowlby One SC', cursive;
-    font-size: 52px;
-    color: var(--teal-2);
-    letter-spacing: 2px;
-    text-shadow: 0 0 40px rgba(45,212,191,0.3);
-  }
-  .header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
-  .container { max-width: 1080px; margin: 0 auto; }
-  .panel {
-    background: var(--panel);
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-  }
-  .panel-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-  .face-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .face-slot { display: flex; flex-direction: column; gap: 8px; }
-  .face-box {
-    border: 2px dashed rgba(45,212,191,0.25);
-    border-radius: 10px;
-    min-height: 260px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    overflow: hidden;
-    position: relative;
-  }
-  .face-box:hover { border-color: var(--teal-2); background: rgba(45,212,191,0.04); }
-  .face-box.loaded { border-style: solid; border-color: rgba(45,212,191,0.4); padding: 0; }
-  .face-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
-  .face-box .placeholder { text-align: center; padding: 20px; pointer-events: none; }
-  .face-box .placeholder .icon { font-size: 48px; margin-bottom: 8px; }
-  .face-box .placeholder .label { font-size: 14px; color: var(--muted); }
-  .face-box .change-hint {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: rgba(0,0,0,0.6); color: white;
-    text-align: center; font-size: 12px; padding: 6px;
-    opacity: 0; transition: opacity 0.2s;
-  }
-  .face-box.loaded:hover .change-hint { opacity: 1; }
-  .name-input {
-    padding: 10px 14px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--panel-2);
-    color: white; font-size: 14px; font-family: 'Inter', sans-serif;
-    width: 100%; transition: border-color 0.2s;
-  }
-  .name-input:focus { outline: none; border-color: var(--teal-2); }
-  .name-input::placeholder { color: var(--muted); }
-  .steps { margin: 20px 0; display: flex; flex-direction: column; gap: 6px; }
-  .step {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: var(--muted);
-    padding: 8px 12px; border-radius: 8px;
-    transition: background 0.2s, color 0.2s;
-  }
-  .step.active { background: rgba(45,212,191,0.08); color: var(--text); }
-  .step.done { color: #4ade80; }
-  .step.error { color: #f87171; background: rgba(248,113,113,0.08); }
-  .step .dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(255,255,255,0.1);
-  }
-  .step.active .dot { background: var(--teal-2); animation: pulse 1s ease-in-out infinite; }
-  .step.done .dot { background: #4ade80; }
-  .step.error .dot { background: #f87171; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-  .step .timer { font-size: 11px; color: var(--muted); margin-left: auto; }
-  .btn-generate {
-    width: 100%; padding: 16px; border: none; border-radius: 12px;
-    background: linear-gradient(135deg, var(--teal), var(--teal-2));
-    color: white; font-size: 17px; font-weight: 700;
-    font-family: 'Bowlby One SC', cursive; letter-spacing: 1px;
-    cursor: pointer; transition: opacity 0.2s, transform 0.1s; margin-top: 8px;
-  }
-  .btn-generate:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-  .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .result-section { display: none; }
-  .result-section.active { display: block; }
-  .morph-preview { text-align: center; margin-bottom: 24px; }
-  .morph-preview img {
-    max-width: 500px; max-height: 500px; width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 2px rgba(45,212,191,0.2);
-    display: inline-block;
-  }
-  .slides-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .slide-card { background: var(--panel-2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-  .slide-card-header {
-    padding: 10px 14px; font-size: 12px; font-weight: 600;
-    color: var(--muted); border-bottom: 1px solid var(--border);
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .slide-card canvas { width: 100%; display: block; }
-  .btn-dl {
-    padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
-    background: rgba(255,255,255,0.08); color: var(--text);
-    font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
-    transition: background 0.2s;
-  }
-  .btn-dl:hover { background: rgba(255,255,255,0.15); }
-  .btn-morph-dl {
-    display: inline-block; margin-top: 12px; padding: 10px 22px;
-    border-radius: 8px; border: 1px solid rgba(45,212,191,0.3);
-    background: rgba(45,212,191,0.08); color: var(--teal-2);
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    text-decoration: none; transition: background 0.2s;
-  }
-  .btn-morph-dl:hover { background: rgba(45,212,191,0.15); }
-  .spec-note {
-    font-size: 12px; color: var(--muted); padding: 12px 14px;
-    background: rgba(0,0,0,0.2); border-radius: 8px;
-    border-left: 3px solid rgba(45,212,191,0.3); line-height: 1.6;
-    margin-top: 12px;
-  }
-  .spec-note strong { color: var(--teal-2); }
-  @media (max-width: 640px) {
-    .face-grid, .slides-grid { grid-template-columns: 1fr; }
-    .header h1 { font-size: 36px; }
-  }
+:root{--purple:#7c3aed;--purple2:#a78bfa;--amber:#d97706;--bg:#f1f5f9;--panel:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--ok:#22c55e;--err:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:24px 16px 60px;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto}
+.hdr{text-align:center;background:white;border:1px solid var(--border);border-radius:14px;padding:20px 24px;margin-bottom:16px}
+.hdr h1{font-size:26px;font-weight:700;color:var(--purple)}
+.hdr p{color:var(--muted);font-size:13px;margin-top:3px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.panel{background:white;border:1px solid var(--border);border-radius:14px;padding:20px}
+.panel-title{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.drop{border:2px dashed #cbd5e1;border-radius:10px;min-height:220px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;overflow:hidden;position:relative;background:#fafafa}
+.drop:hover{border-color:var(--purple);background:#faf5ff}
+.drop.has-img{border-style:solid;border-color:#c4b5fd;padding:0}
+.drop.has-img img{width:100%;height:100%;object-fit:contain;max-height:260px;display:block}
+.drop.has-img:hover::after{content:'Click to replace';position:absolute;bottom:0;left:0;right:0;background:rgba(124,58,237,.7);color:#fff;font-size:12px;font-weight:600;text-align:center;padding:7px}
+.ph{text-align:center;padding:16px;color:var(--muted);pointer-events:none}
+.ph .ico{font-size:36px;display:block;margin-bottom:8px}
+.ph .ph-t{font-size:14px;font-weight:500}
+.ph .ph-s{font-size:12px;margin-top:3px}
+.name-in{width:100%;padding:9px 13px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);margin-top:10px;transition:.15s}
+.name-in:focus{outline:none;border-color:var(--purple)}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.feat{background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:12px}
+.feat-lbl{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.feat-tog{display:flex;gap:6px}
+.tog{flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:white;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;color:var(--muted);font-family:inherit}
+.tog.sel-a{background:#ede9fe;border-color:var(--purple);color:var(--purple)}
+.tog.sel-b{background:#fef3c7;border-color:var(--amber);color:var(--amber)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.btn{padding:11px 24px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.btn-p{background:var(--purple);color:white}.btn-p:hover{background:#6d28d9}.btn-p:disabled{background:#c4b5fd;cursor:not-allowed}
+.btn-s{background:white;color:var(--text);border:1px solid var(--border)}.btn-s:hover{border-color:var(--purple);color:var(--purple)}
+.lbl-row{display:flex;gap:8px;align-items:center}.lbl-row label{font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
+.lbl-row input{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;width:90px;transition:.15s}.lbl-row input:focus{outline:none;border-color:var(--purple)}
+.status-box{background:white;border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:16px;display:none}
+.step{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;color:var(--muted)}
+.step.on{color:var(--text)}.step.ok{color:var(--ok)}.step.fail{color:var(--err)}
+.dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;flex-shrink:0}
+.step.on .dot{background:var(--purple)}.step.ok .dot{background:var(--ok)}.step.fail .dot{background:var(--err)}
+.out-box{background:white;border:1px solid var(--border);border-radius:14px;padding:20px;display:none}
+.slides{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+.slide-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.slide-wrap canvas{width:100%;height:auto;display:block}
+.slide-foot{padding:8px 12px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-weight:500}
+.dl-btn{padding:4px 10px;background:var(--purple);color:white;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.init-bar{text-align:center;font-size:13px;color:var(--muted);padding:8px;background:white;border:1px solid var(--border);border-radius:9px;margin-bottom:12px}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="wrap">
 
-  <div class="header">
-    <h1>Face Morph</h1>
-    <p>Two-pass blend · Background removal · KBT slide output</p>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Upload Faces</div>
-    <div class="face-grid">
-      <div class="face-slot">
-        <div class="face-box" id="box1" onclick="triggerFile(1)">
-          <input type="file" id="file1" accept="image/*" style="display:none" onchange="loadFile(this,1)">
-          <div class="placeholder" id="ph1">
-            <div class="icon">👤</div>
-            <div class="label">Click to upload Face A</div>
-          </div>
-          <div class="change-hint">Click to replace</div>
-        </div>
-        <input class="name-input" id="name1" placeholder="Name A (e.g. Hugh Jackman)" oninput="checkReady()">
-      </div>
-      <div class="face-slot">
-        <div class="face-box" id="box2" onclick="triggerFile(2)">
-          <input type="file" id="file2" accept="image/*" style="display:none" onchange="loadFile(this,2)">
-          <div class="placeholder" id="ph2">
-            <div class="icon">👤</div>
-            <div class="label">Click to upload Face B</div>
-          </div>
-          <div class="change-hint">Click to replace</div>
-        </div>
-        <input class="name-input" id="name2" placeholder="Name B (e.g. Ryan Reynolds)" oninput="checkReady()">
-      </div>
-    </div>
-
-    <div class="spec-note">
-      <strong>How it works:</strong> Removes backgrounds from both faces via fal.ai · runs two face-swap passes in parallel (A→B and B→A) · blends them 50/50 on canvas · applies white-outline sticker treatment to all three images in the slide output. Total time ~35–45 seconds.
-    </div>
-
-    <div class="steps" id="steps" style="display:none">
-      <div class="step" id="s1"><div class="dot"></div><span>Removing background — Face A</span><span class="timer" id="t1"></span></div>
-      <div class="step" id="s2"><div class="dot"></div><span>Removing background — Face B</span><span class="timer" id="t2"></span></div>
-      <div class="step" id="s3"><div class="dot"></div><span>Generating morph pass 1 / 2 (A base, B swap)</span><span class="timer" id="t3"></span></div>
-      <div class="step" id="s4"><div class="dot"></div><span>Generating morph pass 2 / 2 (B base, A swap)</span><span class="timer" id="t4"></span></div>
-      <div class="step" id="s5"><div class="dot"></div><span>Blending morphs at 50 / 50</span><span class="timer" id="t5"></span></div>
-      <div class="step" id="s6"><div class="dot"></div><span>Building slides</span><span class="timer" id="t6"></span></div>
-    </div>
-
-    <button class="btn-generate" id="btnGo" disabled onclick="generate()">Generate Morph</button>
-  </div>
-
-  <div class="result-section" id="resultSection">
-    <div class="panel morph-preview" id="morphPanel">
-      <div class="panel-title">Morph Result — 50/50 Blend</div>
-      <img id="morphImg" alt="Blended morph">
-      <br>
-      <a class="btn-morph-dl" id="morphDlBtn">⬇ Download Morph</a>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">Presentation Slides</div>
-      <div class="slides-grid">
-        <div class="slide-card">
-          <div class="slide-card-header">
-            <span>Slide A — Question</span>
-            <button class="btn-dl" onclick="dlSlide('A')">⬇ Download</button>
-          </div>
-          <canvas id="slideA" width="1920" height="1080"></canvas>
-        </div>
-        <div class="slide-card">
-          <div class="slide-card-header">
-            <span>Slide B — Answer</span>
-            <button class="btn-dl" onclick="dlSlide('B')">⬇ Download</button>
-          </div>
-          <canvas id="slideB" width="1920" height="1080"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
+<div class="hdr">
+  <h1>Facemorph. Tool v7</h1>
+  <p>MediaPipe landmark alignment · selective feature compositing · KBT white slide output</p>
 </div>
 
+<div id="initBar" class="init-bar">⏳ Loading AI face model…</div>
+
+<div class="row2">
+  <div class="panel">
+    <div class="panel-title">Face A</div>
+    <div class="drop" id="dropA" onclick="document.getElementById('fileA').click()">
+      <div class="ph"><span class="ico">🧑</span><div class="ph-t">Click or drop photo</div><div class="ph-s">JPG · PNG · WebP</div></div>
+    </div>
+    <input type="file" id="fileA" accept="image/*" style="display:none" onchange="loadFace(event,'A')">
+    <input type="text" id="nameA" class="name-in" placeholder="Person A name e.g. Lewis Capaldi">
+  </div>
+  <div class="panel">
+    <div class="panel-title">Face B</div>
+    <div class="drop" id="dropB" onclick="document.getElementById('fileB').click()">
+      <div class="ph"><span class="ico">🧑</span><div class="ph-t">Click or drop photo</div><div class="ph-s">JPG · PNG · WebP</div></div>
+    </div>
+    <input type="file" id="fileB" accept="image/*" style="display:none" onchange="loadFace(event,'B')">
+    <input type="text" id="nameB" class="name-in" placeholder="Person B name e.g. Daniel Day-Lewis">
+  </div>
+</div>
+
+<div class="panel" id="featPanel" style="display:none;margin-bottom:16px">
+  <div class="panel-title">Feature assignment — which face contributes each region</div>
+  <div class="feat-grid" id="featGrid"></div>
+  <div style="font-size:12px;color:var(--muted)">
+    🟣 = Face A &nbsp;&nbsp; 🟡 = Face B &nbsp;&nbsp; Result: Face B is on top; erased regions reveal Face A underneath.
+  </div>
+</div>
+
+<div class="bar">
+  <button class="btn btn-p" id="btnGo" onclick="generate()" disabled>Generate Morph</button>
+  <button class="btn btn-s" onclick="shuffleFeatures()">🎲 Shuffle</button>
+  <div class="lbl-row"><label>Slide label:</label><input type="text" id="slideLabel" value="R1Q1" maxlength="8"></div>
+</div>
+
+<div class="status-box" id="statusBox">
+  <div class="step" id="s0"><span class="dot"></span> Detecting facial landmarks…</div>
+  <div class="step" id="s1"><span class="dot"></span> Computing alignment transform…</div>
+  <div class="step" id="s2"><span class="dot"></span> Removing backgrounds…</div>
+  <div class="step" id="s3"><span class="dot"></span> Compositing morph (landmark erasure)…</div>
+  <div class="step" id="s4"><span class="dot"></span> Applying white border + shadow…</div>
+  <div class="step" id="s5"><span class="dot"></span> Rendering KBT slides…</div>
+</div>
+
+<div class="out-box" id="outBox">
+  <div class="panel-title">Output slides — 1920 × 1080</div>
+  <div class="slides">
+    <div class="slide-wrap">
+      <canvas id="slideQ"></canvas>
+      <div class="slide-foot"><span>Question</span><button class="dl-btn" onclick="dlSlide('slideQ','facemorph-question')">Download PNG</button></div>
+    </div>
+    <div class="slide-wrap">
+      <canvas id="slideA"></canvas>
+      <div class="slide-foot"><span>Answer reveal</span><button class="dl-btn" onclick="dlSlide('slideA','facemorph-answer')">Download PNG</button></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
 <script>
 const API = 'https://kbt-api.pgallivan.workers.dev';
-const SW = 1920, SH = 1080;
-let face1b64 = null, face2b64 = null;
+const WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+const MODEL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const PURPLE = '#7c3aed';
 
-// ── File loading ──────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
+let landmarker = null;
+let imgA = null, imgB = null;
+let lmA = null, lmB = null; // 478 normalized landmarks each
 
-function triggerFile(n) { document.getElementById('file' + n).click(); }
+// Feature assignment: which face (A or B) contributes each region
+// L/R = viewer's perspective (L = left side of image)
+let feats = { eyeL:'A', eyeR:'B', nose:'A', mouth:'B', sideL:'B', sideR:'A' };
 
-function loadFile(input, n) {
-  const f = input.files[0];
+const FEAT_LABELS = {
+  eyeL:'Left Eye', eyeR:'Right Eye',
+  nose:'Nose', mouth:'Mouth',
+  sideL:'Left Side / Ear', sideR:'Right Side / Ear'
+};
+
+// MediaPipe 478-point face mesh landmark index groups
+// Note: in a standard (non-mirrored) photo, person faces camera
+//   → person's left is on viewer's RIGHT; person's right is on viewer's LEFT
+// MediaPipe naming: "left eye" = person's left = appears on RIGHT of image
+// So for viewer's LEFT eye region we use MediaPipe's RIGHT eye landmarks
+const LM = {
+  // Eye on LEFT of image (= person's RIGHT eye in MediaPipe)
+  eyeL: [362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398],
+  // Eye on RIGHT of image (= person's LEFT eye in MediaPipe)
+  eyeR: [33,246,161,160,159,158,157,173,133,155,154,153,145,144,163,7],
+  // Nose (bridge + tip + nostrils)
+  nose: [168,6,197,195,5,4,1,2,94,19,370,462,460,461,358,327,326,2,97,98,99,240,235,141,94],
+  // Mouth (outer lip boundary)
+  mouth: [61,185,40,39,37,0,267,269,270,409,291,375,321,405,314,17,84,181,91,146],
+  // Left side of image face boundary (temple + cheek + jaw left)
+  sideL: [454,323,361,288,397,365,379,378,400,377,152,377,400,378,379,365,397,288,361,323,356,389,251,284],
+  // Right side of image face boundary
+  sideR: [234,93,132,58,172,136,150,149,176,148,152,148,176,149,150,136,172,58,132,93,127,162,21,54]
+};
+
+// Iris centers for alignment
+// Iris on LEFT of image = MediaPipe landmark 473 (right iris = person's right)
+// Iris on RIGHT of image = MediaPipe landmark 468 (left iris = person's left)
+const IRIS_L = 473; // eye on left of image
+const IRIS_R = 468; // eye on right of image
+
+// ── MediaPipe init ─────────────────────────────────────────────────────────
+async function initMP() {
+  try {
+    const vision = await FilesetResolver.forVisionTasks(WASM);
+    landmarker = await FaceLandmarker.createFromOptions(vision, {
+      baseOptions: { modelAssetPath: MODEL, delegate: 'GPU' },
+      runningMode: 'IMAGE', numFaces: 1, outputFaceBlendshapes: false
+    });
+    document.getElementById('initBar').style.display = 'none';
+  } catch(e) {
+    document.getElementById('initBar').textContent = '⚠️ Failed to load AI model: ' + e.message;
+    console.error(e);
+  }
+}
+
+// ── Image loading ──────────────────────────────────────────────────────────
+function loadFace(ev, slot) {
+  const f = ev.target.files[0];
   if (!f) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const b64 = e.target.result;
+  const fr = new FileReader();
+  fr.onload = e => {
     const img = new Image();
     img.onload = () => {
-      if (n === 1) face1b64 = b64;
-      else face2b64 = b64;
-      const box = document.getElementById('box' + n);
-      document.getElementById('ph' + n).style.display = 'none';
-      const old = box.querySelector('img.preview');
-      if (old) old.remove();
-      const preview = document.createElement('img');
-      preview.className = 'preview';
-      preview.src = b64;
-      box.insertBefore(preview, box.querySelector('.change-hint'));
-      box.classList.add('loaded');
-      checkReady();
+      if (slot === 'A') { imgA = img; }
+      else              { imgB = img; }
+      showPreview(slot === 'A' ? 'dropA' : 'dropB', img.src);
+      if (imgA && imgB) {
+        document.getElementById('btnGo').disabled = false;
+        renderFeatPanel();
+      }
     };
-    img.src = b64;
+    img.src = e.target.result;
   };
-  reader.readAsDataURL(f);
+  fr.readAsDataURL(f);
 }
 
-function checkReady() {
-  document.getElementById('btnGo').disabled = !(
-    face1b64 && face2b64 &&
-    document.getElementById('name1').value.trim() &&
-    document.getElementById('name2').value.trim()
-  );
+function showPreview(dropId, src) {
+  const d = document.getElementById(dropId);
+  d.innerHTML = '<img src="' + src + '">';
+  d.classList.add('has-img');
 }
 
-// ── Step timers ───────────────────────────────────────────────────────────
-
-const timers = {};
-function stepActive(n) {
-  document.getElementById('s' + n).className = 'step active';
-  const start = Date.now();
-  timers[n] = setInterval(() => {
-    const sec = Math.round((Date.now() - start) / 1000);
-    document.getElementById('t' + n).textContent = sec + 's';
-  }, 500);
-}
-function stepDone(n) {
-  clearInterval(timers[n]);
-  document.getElementById('s' + n).className = 'step done';
-}
-function stepError(n, msg) {
-  clearInterval(timers[n]);
-  const el = document.getElementById('s' + n);
-  el.className = 'step error';
-  el.querySelector('span').textContent += ' — ' + msg;
-}
-
-// ── API helpers ───────────────────────────────────────────────────────────
-
-async function apiRembg(b64) {
-  const res = await fetch(API + '/api/fal-rembg', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: b64 }),
+// Drag/drop
+['A','B'].forEach(slot => {
+  const d = document.getElementById('drop' + slot);
+  d.addEventListener('dragover', e => { e.preventDefault(); d.style.borderColor = PURPLE; });
+  d.addEventListener('dragleave', () => { d.style.borderColor = ''; });
+  d.addEventListener('drop', e => {
+    e.preventDefault(); d.style.borderColor = '';
+    const f = e.dataTransfer.files[0];
+    if (f) loadFace({target:{files:[f]}}, slot);
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'rembg failed');
-  return data.url;
+});
+
+// ── Feature panel ──────────────────────────────────────────────────────────
+function renderFeatPanel() {
+  const p = document.getElementById('featPanel');
+  p.style.display = 'block';
+  const g = document.getElementById('featGrid');
+  g.innerHTML = Object.entries(FEAT_LABELS).map(([k,lbl]) => `
+    <div class="feat">
+      <div class="feat-lbl">${lbl}</div>
+      <div class="feat-tog">
+        <button class="tog ${feats[k]==='A'?'sel-a':''}" onclick="setFeat('${k}','A',this)">A</button>
+        <button class="tog ${feats[k]==='B'?'sel-b':''}" onclick="setFeat('${k}','B',this)">B</button>
+      </div>
+    </div>`).join('');
 }
 
-async function falUrlToDataUrl(url) {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Could not fetch CDN image (' + res.status + ')');
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = reject;
-    r.readAsDataURL(blob);
+function setFeat(k, v, btn) {
+  feats[k] = v;
+  btn.closest('.feat-tog').querySelectorAll('.tog').forEach(b => {
+    b.classList.remove('sel-a','sel-b');
+  });
+  btn.classList.add(v === 'A' ? 'sel-a' : 'sel-b');
+}
+
+function shuffleFeatures() {
+  const keys = Object.keys(feats);
+  const vals = ['A','A','A','B','B','B'].sort(() => Math.random()-.5);
+  keys.forEach((k,i) => { feats[k] = vals[i]; });
+  renderFeatPanel();
+}
+
+// ── Step helpers ───────────────────────────────────────────────────────────
+function sOn(id) { const e=document.getElementById(id); e.className='step on'; }
+function sOk(id) { const e=document.getElementById(id); e.className='step ok'; }
+function sFail(id) { const e=document.getElementById(id); e.className='step fail'; }
+
+// ── Landmark detection ─────────────────────────────────────────────────────
+function detectLM(img) {
+  if (!landmarker) throw new Error('Face model not loaded yet');
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth || img.width;
+  c.height = img.naturalHeight || img.height;
+  c.getContext('2d').drawImage(img, 0, 0);
+  const res = landmarker.detect(c);
+  if (!res.faceLandmarks || !res.faceLandmarks.length)
+    throw new Error('No face detected — try a clearer front-facing photo');
+  return res.faceLandmarks[0]; // 478 {x,y,z} normalized [0,1]
+}
+
+// ── Alignment transform ────────────────────────────────────────────────────
+function getEyePx(lm, isLeft, w, h) {
+  const idx = isLeft ? IRIS_L : IRIS_R;
+  const p = lm[idx] || lm[isLeft ? 362 : 33];
+  return { x: p.x * w, y: p.y * h };
+}
+
+function computeTransform(lmSrc, lmDst, imgSrc, imgDst) {
+  // Align imgDst onto imgSrc coordinate space by matching eye positions
+  const ws = imgSrc.naturalWidth || imgSrc.width;
+  const hs = imgSrc.naturalHeight || imgSrc.height;
+  const wd = imgDst.naturalWidth || imgDst.width;
+  const hd = imgDst.naturalHeight || imgDst.height;
+
+  const srcL = getEyePx(lmSrc, true,  ws, hs);
+  const srcR = getEyePx(lmSrc, false, ws, hs);
+  const dstL = getEyePx(lmDst, true,  wd, hd);
+  const dstR = getEyePx(lmDst, false, wd, hd);
+
+  const angSrc = Math.atan2(srcR.y - srcL.y, srcR.x - srcL.x);
+  const angDst = Math.atan2(dstR.y - dstL.y, dstR.x - dstL.x);
+  const rot = angSrc - angDst;
+
+  const distSrc = Math.hypot(srcR.x-srcL.x, srcR.y-srcL.y);
+  const distDst = Math.hypot(dstR.x-dstL.x, dstR.y-dstL.y);
+  const scale = distSrc / (distDst || 1);
+
+  return { rot, scale,
+    anchorX: srcL.x, anchorY: srcL.y,
+    pivotX: dstL.x,  pivotY: dstL.y,
+    wd, hd };
+}
+
+// Transform a normalised landmark point into the composite canvas pixel space
+function lmToPx(lm, idx, w, h, T) {
+  const p = lm[idx];
+  if (!p) return null;
+  const px = p.x * w - T.pivotX;
+  const py = p.y * h - T.pivotY;
+  const cos = Math.cos(T.rot), sin = Math.sin(T.rot);
+  return {
+    x: T.anchorX + (px*cos - py*sin) * T.scale,
+    y: T.anchorY + (px*sin + py*cos) * T.scale
+  };
+}
+
+// ── rembg helpers ──────────────────────────────────────────────────────────
+function imgToB64(img) {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth||img.width; c.height = img.naturalHeight||img.height;
+  c.getContext('2d').drawImage(img,0,0);
+  return c.toDataURL('image/jpeg',.93).split(',')[1];
+}
+
+async function rembg(b64) {
+  const r = await fetch(API+'/api/fal-rembg', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({image:b64})
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error||'rembg failed');
+  return d.url;
+}
+
+async function urlToImg(url) {
+  const r = await fetch(url);
+  const blob = await r.blob();
+  const data = await new Promise(res => {
+    const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(blob);
+  });
+  return new Promise(res => {
+    const img = new Image(); img.onload = () => res(img); img.src = data;
   });
 }
 
-async function apiMorph(f1b64, f2b64) {
-  const res = await fetch(API + '/api/fal-morph', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ face1: f1b64, face2: f2b64 }),
+// ── Convex hull (Graham scan) ──────────────────────────────────────────────
+function convexHull(pts) {
+  if (pts.length < 3) return pts;
+  const lo = pts.reduce((m,p) => p.y > m.y || (p.y===m.y && p.x<m.x) ? p : m, pts[0]);
+  const sorted = pts.filter(p=>p!==lo).sort((a,b) => {
+    const da = Math.atan2(a.y-lo.y, a.x-lo.x);
+    const db = Math.atan2(b.y-lo.y, b.x-lo.x);
+    return da-db;
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'morph failed');
-  return data.url;
-}
-
-async function loadImg(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Image load failed: ' + url.substring(0, 80)));
-    img.src = url;
-  });
-}
-
-// ── Main pipeline ─────────────────────────────────────────────────────────
-
-async function generate() {
-  document.getElementById('btnGo').disabled = true;
-  document.getElementById('resultSection').classList.remove('active');
-  document.getElementById('steps').style.display = 'flex';
-
-  const n1 = document.getElementById('name1').value.trim();
-  const n2 = document.getElementById('name2').value.trim();
-
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById('s' + i).className = 'step';
-    document.getElementById('t' + i).textContent = '';
+  const h = [lo];
+  for (const p of sorted) {
+    while (h.length>1) {
+      const a=h[h.length-2], b=h[h.length-1];
+      if ((b.x-a.x)*(p.y-a.y) - (b.y-a.y)*(p.x-a.x) <= 0) h.pop(); else break;
+    }
+    h.push(p);
   }
+  return h;
+}
+
+// ── Compositing ────────────────────────────────────────────────────────────
+// imgBase: rembg'd Face A (transparent)
+// imgOver: rembg'd Face B (transparent), aligned via T
+// lmOver: landmarks of Face B (on original image dimensions)
+// Features assigned to 'A': erase from Face B layer → Face A shows through
+function compositeMorph(imgBase, imgOver, lmOver, T) {
+  const w = imgBase.naturalWidth||imgBase.width;
+  const h = imgBase.naturalHeight||imgBase.height;
+  const wo = T.wd, ho = T.hd;
+
+  // ── Layer: Face B (aligned, full) ──
+  const cB = document.createElement('canvas');
+  cB.width = w; cB.height = h;
+  const ctxB = cB.getContext('2d');
+
+  ctxB.save();
+  ctxB.translate(T.anchorX, T.anchorY);
+  ctxB.rotate(T.rot);
+  ctxB.scale(T.scale, T.scale);
+  ctxB.translate(-T.pivotX, -T.pivotY);
+  ctxB.drawImage(imgOver, 0, 0, wo, ho);
+  ctxB.restore();
+
+  // ── Erase features from Face B that belong to Face A ──
+  ctxB.globalCompositeOperation = 'destination-out';
+  for (const [feat, owner] of Object.entries(feats)) {
+    if (owner !== 'A') continue; // only erase if A contributes this feature
+    const idxs = LM[feat];
+    if (!idxs) continue;
+    // Map Face B landmark positions through transform T into canvas space
+    const pts = idxs.map(i => lmToPx(lmOver, i, wo, ho, T)).filter(Boolean);
+    if (pts.length < 3) continue;
+    const hull = convexHull(pts);
+    const centroid = hull.reduce((acc,p)=>({x:acc.x+p.x/hull.length,y:acc.y+p.y/hull.length}),{x:0,y:0});
+    // Expand hull outward by ~30px for clean coverage
+    const pad = 32;
+    const expanded = hull.map(p => {
+      const dx=p.x-centroid.x, dy=p.y-centroid.y;
+      const d=Math.hypot(dx,dy)||1;
+      return {x:p.x+dx/d*pad, y:p.y+dy/d*pad};
+    });
+    ctxB.beginPath();
+    ctxB.moveTo(expanded[0].x, expanded[0].y);
+    for (let i=1;i<expanded.length;i++) ctxB.lineTo(expanded[i].x, expanded[i].y);
+    ctxB.closePath();
+    ctxB.fill();
+  }
+
+  // ── Composite: Face A (base) + Face B (top, with erasures) ──
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const ctx = out.getContext('2d');
+  ctx.drawImage(imgBase, 0, 0); // Face A
+  ctx.drawImage(cB, 0, 0);       // Face B (erased regions transparent → Face A shows)
+  return out;
+}
+
+// ── Sticker treatment (white border + shadow) ──────────────────────────────
+function sticker(img, borderPx) {
+  const sw = img.naturalWidth||img.width;
+  const sh = img.naturalHeight||img.height;
+  const pad = borderPx + 28;
+
+  const c = document.createElement('canvas');
+  c.width = sw + pad*2; c.height = sh + pad*2;
+  const ctx = c.getContext('2d');
+
+  // White silhouette (scaled up = border)
+  const sil = document.createElement('canvas');
+  sil.width = sw; sil.height = sh;
+  const sc = sil.getContext('2d');
+  sc.drawImage(img, 0, 0);
+  sc.globalCompositeOperation = 'source-in';
+  sc.fillStyle = 'white'; sc.fillRect(0,0,sw,sh);
+
+  const s = 1 + (borderPx * 2.2) / Math.min(sw,sh);
+  const bw = sw*s, bh = sh*s;
+  ctx.drawImage(sil, pad+(sw-bw)/2, pad+(sh-bh)/2, bw, bh);
+
+  // Shadow + original
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.28)'; ctx.shadowBlur=18; ctx.shadowOffsetX=4; ctx.shadowOffsetY=9;
+  ctx.drawImage(img, pad, pad);
+  ctx.restore();
+  return c;
+}
+
+function stickerFromCanvas(can, borderPx) {
+  // same as sticker() but input is a canvas (already transparent)
+  const sw = can.width, sh = can.height;
+  const pad = borderPx + 28;
+  const c = document.createElement('canvas');
+  c.width = sw+pad*2; c.height = sh+pad*2;
+  const ctx = c.getContext('2d');
+  const sil = document.createElement('canvas');
+  sil.width = sw; sil.height = sh;
+  const sc = sil.getContext('2d');
+  sc.drawImage(can, 0, 0);
+  sc.globalCompositeOperation = 'source-in';
+  sc.fillStyle='white'; sc.fillRect(0,0,sw,sh);
+  const s = 1+(borderPx*2.2)/Math.min(sw,sh);
+  const bw=sw*s, bh=sh*s;
+  ctx.drawImage(sil, pad+(sw-bw)/2, pad+(sh-bh)/2, bw, bh);
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.28)'; ctx.shadowBlur=18; ctx.shadowOffsetX=4; ctx.shadowOffsetY=9;
+  ctx.drawImage(can, pad, pad);
+  ctx.restore();
+  return c;
+}
+
+// ── KBT slide rendering ────────────────────────────────────────────────────
+const SW=1920, SH=1080;
+
+function drawHeader(ctx, label) {
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = PURPLE;
+  // R_Q_ label
+  ctx.font = '500 30px Inter, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(label, 52, 58);
+  // "Facemorph." title
+  ctx.font = 'bold 68px Inter, sans-serif';
+  ctx.fillText('Facemorph.', 170, 60);
+}
+
+function renderQ(morphSt, label) {
+  const c = document.getElementById('slideQ');
+  c.width = SW; c.height = SH;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,SW,SH);
+
+  // Center morph image (80% height max, slightly right of center to clear header)
+  const maxH = SH - 160, maxW = SW * 0.7;
+  const sc = Math.min(maxW/morphSt.width, maxH/morphSt.height);
+  const dw = morphSt.width*sc, dh = morphSt.height*sc;
+  ctx.drawImage(morphSt, (SW-dw)/2+30, (SH-dh)/2+20, dw, dh);
+
+  drawHeader(ctx, label);
+}
+
+function renderA(stA, morphSt, stB, answer, label) {
+  const c = document.getElementById('slideA');
+  c.width = SW; c.height = SH;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,SW,SH);
+
+  // Three faces: side · morph(big) · side
+  const availH = SH - 260;
+  const cH = Math.min(availH, 720);
+  const cW = cH * (morphSt.width/morphSt.height);
+  const sH = cH * 0.72;
+  const sWa = sH * (stA.width/stA.height);
+  const sWb = sH * (stB.width/stB.height);
+  const gutter = 24;
+  const totalW = sWa + gutter + cW + gutter + sWb;
+  const startX = (SW - totalW) / 2;
+  const topY = (SH - 220 - cH) / 2 + 60;
+
+  // Side faces (slightly lower = stacked look)
+  ctx.drawImage(stA, startX, topY + (cH-sH)/2 + 18, sWa, sH);
+  ctx.drawImage(stB, startX + sWa + gutter + cW + gutter, topY + (cH-sH)/2 + 18, sWb, sH);
+  // Center morph (on top)
+  ctx.drawImage(morphSt, startX + sWa + gutter, topY, cW, cH);
+
+  // Answer box (purple border + bold text)
+  if (answer) {
+    ctx.font = 'bold 42px Inter, sans-serif';
+    const tw = ctx.measureText(answer).width;
+    const bw = Math.min(SW-120, tw+80), bh = 78;
+    const bx = (SW-bw)/2, by = SH-155;
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = PURPLE; ctx.lineWidth = 4;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx,by,bw,bh,8);
+    else { ctx.rect(bx,by,bw,bh); }
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = PURPLE;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(answer, SW/2, by+bh/2);
+  }
+
+  drawHeader(ctx, label);
+}
+
+// ── Main pipeline ──────────────────────────────────────────────────────────
+async function generate() {
+  if (!imgA || !imgB) return;
+  const btn = document.getElementById('btnGo');
+  btn.disabled = true;
+  document.getElementById('statusBox').style.display='block';
+  document.getElementById('outBox').style.display='none';
 
   try {
-    // Steps 1 & 2 — rembg in parallel
-    stepActive(1); stepActive(2);
-    const [noBg1Url, noBg2Url] = await Promise.all([
-      apiRembg(face1b64),
-      apiRembg(face2b64),
-    ]);
-    stepDone(1); stepDone(2);
+    // S0: detect landmarks
+    sOn('s0');
+    if (!landmarker) throw new Error('Face model not ready — wait a moment and try again');
+    lmA = detectLM(imgA);
+    lmB = detectLM(imgB);
+    sOk('s0');
 
-    const [noBg1b64, noBg2b64] = await Promise.all([
-      falUrlToDataUrl(noBg1Url),
-      falUrlToDataUrl(noBg2Url),
-    ]);
-    const [noBg1Img, noBg2Img] = await Promise.all([
-      loadImg(noBg1b64),
-      loadImg(noBg2b64),
-    ]);
+    // S1: compute alignment (Face B aligned onto Face A)
+    sOn('s1');
+    const T = computeTransform(lmA, lmB, imgA, imgB);
+    sOk('s1');
 
-    // Steps 3 & 4 — two-pass morph in parallel
-    // Pass 1: A base + B swap  /  Pass 2: B base + A swap
-    // Blending both 50/50 gives features from both people visible
-    stepActive(3); stepActive(4);
-    const [morph1Url, morph2Url] = await Promise.all([
-      apiMorph(noBg1b64, noBg2b64),
-      apiMorph(noBg2b64, noBg1b64),
-    ]);
-    stepDone(3); stepDone(4);
+    // S2: rembg both source images in parallel
+    sOn('s2');
+    const [urlA, urlB] = await Promise.all([rembg(imgToB64(imgA)), rembg(imgToB64(imgB))]);
+    const [cutA, cutB] = await Promise.all([urlToImg(urlA), urlToImg(urlB)]);
+    sOk('s2');
 
-    // Step 5 — blend
-    stepActive(5);
-    const [morph1Img, morph2Img] = await Promise.all([
-      loadImg(morph1Url),
-      loadImg(morph2Url),
-    ]);
-    const blendW = Math.max(morph1Img.width, morph2Img.width);
-    const blendH = Math.max(morph1Img.height, morph2Img.height);
-    const blendC = document.createElement('canvas');
-    blendC.width = blendW; blendC.height = blendH;
-    const blendCtx = blendC.getContext('2d');
-    blendCtx.drawImage(morph1Img, 0, 0, blendW, blendH);
-    blendCtx.globalAlpha = 0.5;
-    blendCtx.drawImage(morph2Img, 0, 0, blendW, blendH);
-    blendCtx.globalAlpha = 1;
-    const blendDataUrl = blendC.toDataURL('image/jpeg', 0.95);
-    const blendImg = await loadImg(blendDataUrl);
-    stepDone(5);
+    // S3: composite (Face B aligned + feature erasure → Face A shows through)
+    sOn('s3');
+    const morphCanvas = compositeMorph(cutA, cutB, lmB, T);
+    sOk('s3');
 
-    // Show raw morph download
-    document.getElementById('morphImg').src = blendDataUrl;
-    document.getElementById('morphDlBtn').onclick = () => {
-      const a = document.createElement('a');
-      a.href = blendC.toDataURL('image/png');
-      a.download = 'kbt-morph-' + n1.replace(/\s+/g,'') + '-' + n2.replace(/\s+/g,'') + '.png';
-      a.click();
-    };
+    // S4: sticker treatment on all three
+    sOn('s4');
+    const morphSt  = stickerFromCanvas(morphCanvas, 9);
+    const stA = sticker(cutA, 7);
+    const stB = sticker(cutB, 7);
+    sOk('s4');
 
-    // Step 6 — render slides
-    stepActive(6);
-    await renderSlideA(document.getElementById('slideA'), blendImg, n1, n2);
-    await renderSlideB(document.getElementById('slideB'), noBg1Img, blendImg, noBg2Img, n1, n2);
-    stepDone(6);
+    // S5: render slides
+    sOn('s5');
+    const label  = (document.getElementById('slideLabel').value||'R1Q1').trim();
+    const nameA  = document.getElementById('nameA').value.trim();
+    const nameB  = document.getElementById('nameB').value.trim();
+    const answer = nameA && nameB ? nameA + ' & ' + nameB : (nameA || nameB || '');
+    renderQ(morphSt, label);
+    renderA(stA, morphSt, stB, answer, label);
+    sOk('s5');
 
-    document.getElementById('resultSection').classList.add('active');
-    setTimeout(() => document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' }), 100);
+    document.getElementById('outBox').style.display='block';
+    document.getElementById('outBox').scrollIntoView({behavior:'smooth'});
 
-  } catch (err) {
-    for (let i = 1; i <= 6; i++) {
-      if (document.getElementById('s' + i).classList.contains('active')) {
-        stepError(i, err.message); break;
-      }
-    }
+  } catch(err) {
     console.error(err);
+    ['s0','s1','s2','s3','s4','s5'].forEach(id => {
+      if (document.getElementById(id).classList.contains('on')) sFail(id);
+    });
+    alert('Error: ' + err.message);
   }
-  document.getElementById('btnGo').disabled = false;
+  btn.disabled = false;
 }
 
-// ── Canvas utilities ──────────────────────────────────────────────────────
-
-function drawKbtBg(ctx) {
-  const g = ctx.createLinearGradient(0, 0, 0, SH);
-  g.addColorStop(0, '#0f172a'); g.addColorStop(1, '#1e293b');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, SW, SH);
+function dlSlide(id, name) {
+  const c = document.getElementById(id);
+  const a = document.createElement('a');
+  a.download = name + '.png'; a.href = c.toDataURL('image/png'); a.click();
 }
 
-function drawKbtLogo(ctx) {
-  ctx.save();
-  ctx.font = 'bold 26px "Bowlby One SC", cursive';
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillText('KNOW', 48, 68);
-  ctx.fillStyle = '#2dd4bf';
-  ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
-  ctx.restore();
-}
-
-/**
- * Draw a bg-removed image as a floating cutout with white outline + drop shadow.
- * cx, cy = centre of where to place the sticker.
- */
-function drawCutoutSticker(ctx, img, cx, cy, maxW, maxH) {
-  const scale = Math.min(maxW / img.width, maxH / img.height);
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
-  const OUTLINE = 10;
-  const PAD = OUTLINE + 6;
-
-  // Build outlined version on offscreen canvas
-  const oc = document.createElement('canvas');
-  oc.width = w + PAD * 2; oc.height = h + PAD * 2;
-  const oct = oc.getContext('2d');
-
-  // Dilate the alpha to create outline
-  for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 10) {
-    for (let r = 1; r <= OUTLINE; r++) {
-      oct.drawImage(img, PAD + Math.round(Math.cos(angle) * r), PAD + Math.round(Math.sin(angle) * r), w, h);
-    }
-  }
-  oct.globalCompositeOperation = 'source-in';
-  oct.fillStyle = '#ffffff';
-  oct.fillRect(0, 0, oc.width, oc.height);
-  oct.globalCompositeOperation = 'source-over';
-  oct.drawImage(img, PAD, PAD, w, h);
-
-  // Draw onto main canvas with drop shadow
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetX = 12;
-  ctx.shadowOffsetY = 18;
-  ctx.drawImage(oc, Math.round(cx - w / 2) - PAD, Math.round(cy - h / 2) - PAD);
-  ctx.restore();
-}
-
-/**
- * Draw a photo in a white-bordered frame with drop shadow.
- * For the morph image which has a background.
- */
-function drawFramedSticker(ctx, img, cx, cy, maxW, maxH) {
-  const scale = Math.min(maxW / img.width, maxH / img.height);
-  const w = Math.round(img.width * scale);
-  const h = Math.round(img.height * scale);
-  const dx = Math.round(cx - w / 2);
-  const dy = Math.round(cy - h / 2);
-  const BORDER = 14;
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 34;
-  ctx.shadowOffsetX = 12;
-  ctx.shadowOffsetY = 18;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(dx - BORDER, dy - BORDER, w + BORDER * 2, h + BORDER * 2);
-  ctx.restore();
-  ctx.drawImage(img, dx, dy, w, h);
-}
-
-// ── Slide renderers ───────────────────────────────────────────────────────
-
-async function renderSlideA(canvas, morphImg, n1, n2) {
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, SW, SH);
-  drawKbtBg(ctx);
-
-  // Teal accent bar top
-  ctx.fillStyle = '#2dd4bf';
-  ctx.fillRect(0, 0, SW, 7);
-
-  drawKbtLogo(ctx);
-
-  // Title
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 96px "Bowlby One SC", cursive';
-  ctx.fillStyle = '#2dd4bf';
-  ctx.fillText('FACE MORPH', SW / 2, 160);
-
-  // Subtitle
-  ctx.font = '400 28px "Inter", sans-serif';
-  ctx.fillStyle = '#64748b';
-  ctx.fillText('Who are these two people?', SW / 2, 210);
-
-  // Morph centred — large framed
-  drawFramedSticker(ctx, morphImg, SW / 2, SH / 2 + 55, 680, 680);
-
-  // Footer
-  ctx.font = 'bold 20px "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(100,116,139,0.5)';
-  ctx.fillText('KNOW BRAINER TRIVIA', SW / 2, SH - 28);
-}
-
-async function renderSlideB(canvas, noBg1Img, morphImg, noBg2Img, n1, n2) {
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, SW, SH);
-  drawKbtBg(ctx);
-
-  // Gold accent bar top
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(0, 0, SW, 7);
-
-  drawKbtLogo(ctx);
-
-  // Title
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 96px "Bowlby One SC", cursive';
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillText('THE ANSWER', SW / 2, 160);
-
-  // Three stickers: Face A | Morph | Face B
-  const TILE = 440, GAP = 64;
-  const TILE_H = 500;
-  const ROW_CY = SH / 2 + 40;
-  const totalW = TILE * 3 + GAP * 2;
-  const x0 = (SW - totalW) / 2 + TILE / 2;
-
-  // Face A — cutout sticker (bg removed, floating)
-  drawCutoutSticker(ctx, noBg1Img, x0, ROW_CY, TILE, TILE_H);
-
-  // Morph — framed photo
-  drawFramedSticker(ctx, morphImg, x0 + TILE + GAP, ROW_CY, TILE, TILE_H);
-
-  // Face B — cutout sticker
-  drawCutoutSticker(ctx, noBg2Img, x0 + (TILE + GAP) * 2, ROW_CY, TILE, TILE_H);
-
-  // Name labels
-  const labelY = ROW_CY + TILE_H / 2 + 62;
-
-  ctx.font = 'bold 40px "Inter", sans-serif';
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillText(n1, x0, labelY);
-
-  ctx.font = 'bold 34px "Inter", sans-serif';
-  ctx.fillStyle = '#2dd4bf';
-  ctx.fillText('MORPH', x0 + TILE + GAP, labelY);
-
-  ctx.font = 'bold 40px "Inter", sans-serif';
-  ctx.fillStyle = '#e2e8f0';
-  ctx.fillText(n2, x0 + (TILE + GAP) * 2, labelY);
-
-  // Footer
-  ctx.font = 'bold 20px "Inter", sans-serif';
-  ctx.fillStyle = 'rgba(100,116,139,0.5)';
-  ctx.fillText('KNOW BRAINER TRIVIA', SW / 2, SH - 28);
-}
-
-// ── Downloads ─────────────────────────────────────────────────────────────
-
-function dlSlide(which) {
-  const canvas = document.getElementById('slide' + which);
-  const n1 = document.getElementById('name1').value.replace(/\s+/g, '') || 'FaceA';
-  const n2 = document.getElementById('name2').value.replace(/\s+/g, '') || 'FaceB';
-  canvas.toBlob(blob => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'kbt-morph-slide' + which + '-' + n1 + '-' + n2 + '.png';
-    a.click();
-  }, 'image/png');
-}
+// Start loading model immediately
+initMP();
 </script>
 </body>
 </html>
