@@ -552,7 +552,7 @@ function accentBar(slideId, color) {
   const id = `bar_${Math.random().toString(36).slice(2, 8)}`;
   return [
     { createShape: { objectId: id, shapeType: 'RECTANGLE', elementProperties: { pageObjectId: slideId, size: { width: { magnitude: SLIDE_W, unit: 'EMU' }, height: { magnitude: 80000, unit: 'EMU' } }, transform: { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0, unit: 'EMU' } } } },
-    { updateShapeProperties: { objectId: id, shapeProperties: { shapeBackgroundFill: { solidFill: { color: { rgbColor: rgb(color) } } }, outline: { outlineFill: { solidFill: { color: { rgbColor: rgb(color) } } }, weight: { magnitude: 0, unit: 'PT' } } }, fields: 'shapeBackgroundFill,outline' } },
+    { updateShapeProperties: { objectId: id, shapeProperties: { shapeBackgroundFill: { solidFill: { color: { rgbColor: rgb(color) } } } }, fields: 'shapeBackgroundFill' } },
   ];
 }
 
@@ -607,7 +607,7 @@ async function handleGenerateSlides(request, env) {
     body: JSON.stringify({ title: `KBT Trivia — ${venue}` }),
   });
   const pres = await createRes.json();
-  if (!pres.presentationId) return json({ error: 'Google Slides API create failed — check OAuth token', details: pres }, 500);
+  if (!pres.presentationId) return json({error:'Slides API failed',details:pres},500);
   const presId = pres.presentationId;
 
   const slideList = [];
