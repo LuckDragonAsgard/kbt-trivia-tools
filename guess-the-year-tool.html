@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guess The Year Tool - KBT Multimedia Question Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +21,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
 
         header {
-            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
@@ -55,7 +55,7 @@
 
         .panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #e91e63;
+            color: #2dd4bf;
             font-size: 1.4em;
             margin-bottom: 16px;
             border-bottom: 2px solid #ddd;
@@ -80,7 +80,7 @@
             font-family: 'Londrina Solid', cursive;
             font-size: 1.1em;
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #e91e63; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2dd4bf; }
 
         textarea { min-height: 120px; resize: vertical; }
 
@@ -115,7 +115,7 @@
             margin-top: 10px;
         }
 
-        .btn-export { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); color: #fff; }
+        .btn-export { background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); color: #fff; }
         .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3); }
         .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -138,7 +138,7 @@
         .preview-header h2 {
             margin: 0;
             font-family: 'Luckiest Guy', cursive;
-            color: #e91e63;
+            color: #2dd4bf;
             font-size: 1.3em;
             border: none;
             padding: 0;
@@ -161,9 +161,9 @@
         }
 
         .toggle-btn.active {
-            background: #e91e63;
+            background: #2dd4bf;
             color: #fff;
-            border-color: #e91e63;
+            border-color: #2dd4bf;
         }
 
         .canvas-wrapper {
@@ -194,12 +194,12 @@
             border: 1px solid #ddd;
             margin-top: 12px;
         }
-        .export-hint strong { color: #e91e63; }
+        .export-hint strong { color: #2dd4bf; }
 
         #export-canvas {
             width: 1920px;
             height: 1080px;
-            background: #1a1a2e;
+            background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
             position: relative;
             overflow: hidden;
         }
@@ -209,7 +209,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 8px;
-            background: linear-gradient(90deg, #e91e63, #ff5722, #e91e63);
+            background: linear-gradient(90deg, #2dd4bf, #0f766e, #2dd4bf);
         }
 
         .canvas-content {
@@ -224,9 +224,9 @@
         }
 
         .question-header {
-            font-family: 'Londrina Solid', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 52px;
-            color: #ffffff;
+            color: #2dd4bf;
             text-align: center;
             margin-bottom: 50px;
             max-width: 90%;
@@ -248,9 +248,10 @@
         }
 
         .event-item {
-            font-family: 'Londrina Solid', cursive;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
             font-size: 30px;
-            color: #f0f0f0;
+            color: #e2e8f0;
             padding-left: 52px;
             position: relative;
             line-height: 1.4;
@@ -262,7 +263,7 @@
             position: absolute;
             left: 0;
             font-size: 38px;
-            color: #e91e63;
+            color: #2dd4bf;
         }
 
         .year-display {
@@ -270,7 +271,7 @@
             bottom: 80px;
             font-family: 'Luckiest Guy', cursive;
             font-size: 72px;
-            color: #e91e63;
+            color: #fbbf24;
             text-align: center;
             text-shadow: 0 4px 16px rgba(233,30,99,0.5);
         }
@@ -310,7 +311,7 @@
                 <div class="status-bar" id="status-bar">Add year and events to export</div>
 
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
-                    <div style="font-family: 'Luckiest Guy', cursive; color: #e91e63; margin-bottom: 8px;">Export Images</div>
+                    <div style="font-family: 'Luckiest Guy', cursive; color: #2dd4bf; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
                         🔴 Export A — Question
                     </button>
