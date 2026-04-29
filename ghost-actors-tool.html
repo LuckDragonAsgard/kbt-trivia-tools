@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghost Actors Tool - KBT Multimedia Question Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -962,19 +962,66 @@
             redrawCanvas();
         });
 
+        // ── KBT slide chrome helpers ──────────────────────────────────────────
+        function kbtLoadFont() {
+            if (kbtLoadFont._loaded) return kbtLoadFont._loaded;
+            const bowlby = new FontFace('Bowlby One SC', 'url(https://fonts.gstatic.com/s/bowlbyonesc/v22/DtVlJxerQqQm37tzN3wMug9Pzgj8owhNjuE.woff2)');
+            kbtLoadFont._loaded = bowlby.load().then(f => { document.fonts.add(f); }).catch(() => {});
+            return kbtLoadFont._loaded;
+        }
+
+        function kbtDrawChrome(ctx, W, H, type) {
+            // type: 'question' → teal accents; 'answer' → gold accents
+            const accent = type === 'answer' ? '#fbbf24' : '#2dd4bf';
+            const titleText = type === 'answer' ? 'THE ANSWER' : "WHO'S THE GHOST?";
+
+            // Semi-transparent dark overlay bar at top
+            const barH = 120;
+            const grad = ctx.createLinearGradient(0, 0, 0, barH + 40);
+            grad.addColorStop(0, 'rgba(15,23,42,0.95)');
+            grad.addColorStop(1, 'rgba(15,23,42,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, barH + 40);
+
+            // Coloured accent bar at very top
+            ctx.fillStyle = accent;
+            ctx.fillRect(0, 0, W, 7);
+
+            // Title text
+            ctx.font = 'bold 82px "Bowlby One SC", cursive';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = accent;
+            ctx.fillText(titleText, W / 2, 18);
+
+            // Bottom gradient + footer
+            const botGrad = ctx.createLinearGradient(0, H - 80, 0, H);
+            botGrad.addColorStop(0, 'rgba(15,23,42,0)');
+            botGrad.addColorStop(1, 'rgba(15,23,42,0.85)');
+            ctx.fillStyle = botGrad;
+            ctx.fillRect(0, H - 80, W, 80);
+
+            ctx.font = 'bold 22px "Inter", sans-serif';
+            ctx.fillStyle = 'rgba(100,116,139,0.7)';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText('KNOW BRAINER TRIVIA', W / 2, H - 18);
+        }
+
         // Create result canvases
-        function createResults() {
+        async function createResults() {
+            await kbtLoadFont();
             const targetWidth = 1920;
             const targetHeight = 1080;
 
-            // GhostA - Inpainted image
+            // GhostA — inpainted (question): "Who's the Ghost?"
             state.ghostACanvas = resizeCanvasTo(state.workingImage, targetWidth, targetHeight);
             ghostACanvas.width = targetWidth;
             ghostACanvas.height = targetHeight;
             const aCtx = ghostACanvas.getContext('2d');
             aCtx.drawImage(state.ghostACanvas, 0, 0);
+            kbtDrawChrome(aCtx, targetWidth, targetHeight, 'question');
 
-            // GhostB - Original with circle
+            // GhostB — original with circle highlight (answer): "The Answer"
             const originalResized = resizeCanvasTo(state.originalCanvas, targetWidth, targetHeight);
             state.ghostBCanvas = document.createElement('canvas');
             state.ghostBCanvas.width = targetWidth;
@@ -982,7 +1029,7 @@
             const bCtx = state.ghostBCanvas.getContext('2d');
             bCtx.drawImage(originalResized, 0, 0);
 
-            // Draw circle around selection
+            // Draw highlight circle around selection
             if (state.selectionRect) {
                 const rect = state.selectionRect;
                 const scaleX = targetWidth / state.workingImage.width;
@@ -993,99 +1040,26 @@
                 const rw = rect.w * scaleX / 2;
                 const rh = rect.h * scaleY / 2;
 
-                // Draw bright ellipse
-                bCtx.strokeStyle = '#FF6B6B';
-                bCtx.lineWidth = 6;
-                bCtx.globalAlpha = 0.9;
+                // Glowing teal ellipse
+                bCtx.shadowColor = '#2dd4bf';
+                bCtx.shadowBlur = 30;
+                bCtx.strokeStyle = '#2dd4bf';
+                bCtx.lineWidth = 8;
+                bCtx.globalAlpha = 0.95;
                 bCtx.beginPath();
-                bCtx.ellipse(cx, cy, rw + 20, rh + 20, 0, 0, Math.PI * 2);
+                bCtx.ellipse(cx, cy, rw + 22, rh + 22, 0, 0, Math.PI * 2);
                 bCtx.stroke();
+                bCtx.shadowBlur = 0;
                 bCtx.globalAlpha = 1;
 
-                // Add question mark
-                bCtx.fillStyle = '#FF6B6B';
-                bCtx.font = 'bold 120px Arial';
-                bCtx.textAlign = 'center';
-                bCtx.textBaseline = 'middle';
-                bCtx.globalAlpha = 0.8;
-                bCtx.fillText('?', cx, cy);
-                bCtx.globalAlpha = 1;
-
-                // Add actor name if provided
+                // Actor name below the circle
                 if (state.actorName) {
-                    bCtx.fillStyle = '#00bcd4';
-                    bCtx.font = 'bold 48px Arial';
-                    bCtx.fillText(state.actorName, cx, cy + 100);
-                }
-            }
-
-            ghostBCanvas.width = targetWidth;
-            ghostBCanvas.height = targetHeight;
-            const bCtx2 = ghostBCanvas.getContext('2d');
-            bCtx2.drawImage(state.ghostBCanvas, 0, 0);
-        }
-
-        // Resize canvas to target dimensions
-        function resizeCanvasTo(sourceCanvas, targetWidth, targetHeight) {
-            const canvas = document.createElement('canvas');
-            canvas.width = targetWidth;
-            canvas.height = targetHeight;
-            const ctx = canvas.getContext('2d');
-
-            // Maintain aspect ratio with letter/pillarboxing
-            const srcRatio = sourceCanvas.width / sourceCanvas.height;
-            const targetRatio = targetWidth / targetHeight;
-
-            let drawWidth, drawHeight, drawX, drawY;
-
-            if (srcRatio > targetRatio) {
-                drawWidth = targetWidth;
-                drawHeight = targetWidth / srcRatio;
-                drawX = 0;
-                drawY = (targetHeight - drawHeight) / 2;
-            } else {
-                drawWidth = targetHeight * srcRatio;
-                drawHeight = targetHeight;
-                drawX = (targetWidth - drawWidth) / 2;
-                drawY = 0;
-            }
-
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, targetWidth, targetHeight);
-            ctx.drawImage(sourceCanvas, drawX, drawY, drawWidth, drawHeight);
-
-            return canvas;
-        }
-
-        // Download handlers
-        downloadGhostA.addEventListener('click', () => {
-            downloadCanvas(state.ghostACanvas, `GhostA_${state.actorName || 'Question'}.png`);
-        });
-
-        downloadGhostB.addEventListener('click', () => {
-            downloadCanvas(state.ghostBCanvas, `GhostB_${state.actorName || 'Answer'}.png`);
-        });
-
-        function downloadCanvas(canvas, filename) {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = filename;
-            link.click();
-        }
-
-        // Update state with actor/title info
-        actorNameInput.addEventListener('change', (e) => {
-            state.actorName = e.target.value;
-        });
-
-        titleNameInput.addEventListener('change', (e) => {
-            state.titleName = e.target.value;
-        });
-
-        // Reset
-        resetBtn.addEventListener('click', () => {
-            location.reload();
-        });
-    </script>
-</body>
-</html>
+                    bCtx.fillStyle = '#fbbf24';
+                    bCtx.font = 'bold 52px "Bowlby One SC", cursive';
+                    bCtx.textAlign = 'center';
+                    bCtx.textBaseline = 'top';
+                    // Dark pill behind name for legibility
+                    const nameW = bCtx.measureText(state.actorName).width;
+                    bCtx.fillStyle = 'rgba(15,23,42,0.75)';
+                    const nameY = cy + rh + 30;
+                    bCtx.fillRect(cx - nameW / 2 - 16, nameY - 4, nameW + 32, 66);
