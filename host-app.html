@@ -2742,7 +2742,7 @@
                 var applied = 0;
                 for (var i = 0; i < ungraded.length; i++) {
                     var r = ungraded[i];
-                    var correctAns = findCorrectAnswer(r.round_number, r.question_number);
+                    var correctAns = findCorrectAnswer(r.round_number || r.round, r.question_number);
                     if (!correctAns) continue;
                     var fm = fuzzyMatch(r.selected_option || '', correctAns);
                     if (fm.autoGrade) {
