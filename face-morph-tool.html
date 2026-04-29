@@ -5,7 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KBT Face Morph Tool v7 — Landmark Blend</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.js" crossorigin="anonymous"></script>
+<script type="module">
+import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs';
+window.FilesetResolver = FilesetResolver;
+window.FaceLandmarker = FaceLandmarker;
+window.initMP();
+</script>
 <style>
 :root{--purple:#7c3aed;--purple2:#a78bfa;--amber:#d97706;--bg:#f1f5f9;--panel:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--ok:#22c55e;--err:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -627,8 +632,7 @@ function dlSlide(id, name) {
   a.download = name + '.png'; a.href = c.toDataURL('image/png'); a.click();
 }
 
-// Start loading model immediately
-initMP();
+// Model loaded via ES module above (window.initMP called after globals set)
 </script>
 </body>
 </html>
