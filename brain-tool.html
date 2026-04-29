@@ -795,6 +795,13 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   finalCanvas.height = CANVAS_H;
   const finalCtx = finalCanvas.getContext('2d');
 
+  // KBT dark gradient background (matches presentation theme)
+  const bgGrad = finalCtx.createLinearGradient(0, 0, 0, CANVAS_H);
+  bgGrad.addColorStop(0, '#0f172a');
+  bgGrad.addColorStop(1, '#1e293b');
+  finalCtx.fillStyle = bgGrad;
+  finalCtx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
   const x = Math.round((CANVAS_W - finalW) / 2);
   const y = Math.round(SAFE_TOP + (SAFE_ZONE_H - finalH) / 2);
 
@@ -853,12 +860,4 @@ async function generateCelebHints() {
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    panel.textContent = '🎤 Host hints (read progressively):\n\n' + data.result;
-    panel.style.display = 'block';
-  } catch(err) { alert('AI error: ' + err.message); }
-  finally { btn.disabled = false; btn.textContent = '🤖 AI Generate Hints for Host'; }
-}
-
-</script>
-</body>
-</html>
+    pan
