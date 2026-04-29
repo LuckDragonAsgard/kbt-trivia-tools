@@ -2623,6 +2623,51 @@
 
         // ── Incoming answers poller ──────────────────────────────────
         var _incomingPollerStarted = false;
+
+        // ── Fuzzy auto-correct utilities ──────────────────────────────────────────
+        function levenshtein(a, b) {
+            a = a.toLowerCase().replace(/[^a-z0-9]/g,'');
+            b = b.toLowerCase().replace(/[^a-z0-9]/g,'');
+            if (!a.length) return b.length;
+            if (!b.length) return a.length;
+            var dp = Array.from({length: b.length+1}, function(_,i){ return i; });
+            for (var i = 0; i < a.length; i++) {
+                var prev = i + 1;
+                for (var j = 0; j < b.length; j++) {
+                    var val = (a[i] === b[j]) ? dp[j] : 1 + Math.min(dp[j], dp[j+1], prev);
+                    dp[j] = prev;
+                    prev = val;
+                }
+                dp[b.length] = prev;
+            }
+            return dp[b.length];
+        }
+
+        function fuzzyMatch(submitted, correct) {
+            if (!submitted || !correct) return { score: 0, label: 'no answer', color: '#999' };
+            var s = submitted.toLowerCase().replace(/[^a-z0-9]/g,'');
+            var c = correct.toLowerCase().replace(/[^a-z0-9]/g,'');
+            if (!s || !c) return { score: 0, label: 'no answer', color: '#999' };
+            // Exact match bonus
+            if (s === c) return { score: 1.0, label: '✓ exact', color: '#059669', autoGrade: true };
+            // Check if correct is contained in submitted or vice versa
+            if (s.includes(c) || c.includes(s)) return { score: 0.9, label: '~exact', color: '#059669', autoGrade: true };
+            var maxLen = Math.max(s.length, c.length);
+            var dist = levenshtein(s, c);
+            var score = 1 - (dist / maxLen);
+            if (score >= 0.8) return { score: score, label: Math.round(score*100)+'%', color: '#16a34a', autoGrade: true };
+            if (score >= 0.6) return { score: score, label: Math.round(score*100)+'%', color: '#ca8a04', autoGrade: false };
+            return { score: score, label: Math.round(score*100)+'%', color: '#dc2626', autoGrade: false };
+        }
+
+        function findCorrectAnswer(roundNum, qNum) {
+            if (!questions) return null;
+            for (var i = 0; i < questions.length; i++) {
+                if (questions[i].round == roundNum && questions[i].num == qNum) return questions[i].answer || null;
+            }
+            return null;
+        }
+
         function startIncomingPoller() {
             if (_incomingPollerStarted) return;
             _incomingPollerStarted = true;
@@ -2645,21 +2690,71 @@
                     listEl.innerHTML = '<div style="color:#999">No pending answers</div>';
                     return;
                 }
+                var autoCount = 0;
                 listEl.innerHTML = ungraded.map(function(r){
                     var safe = String(r.selected_option || '').replace(/[<>&"]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; });
-                    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">'
-                        + '<span style="font-weight:600;min-width:90px;">' + (r.team_name || '?') + '</span>'
-                        + '<span style="background:#eef;padding:2px 6px;border-radius:4px;font-size:11px;">R' + (r.round || '?') + 'Q' + (r.question_number || '?') + '</span>'
-                        + '<span style="flex:1;">' + safe + '</span>'
-                        + '<button onclick="gradeIncoming(\'' + r.id + '\',true,1)" style="background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✓</button>'
+                    var correctAns = findCorrectAnswer(r.round_number, r.question_number);
+                    var fm = correctAns ? fuzzyMatch(r.selected_option || '', correctAns) : null;
+                    if (fm && fm.autoGrade) autoCount++;
+                    var fmBadge = fm
+                        ? '<span style="font-size:10px;padding:1px 5px;border-radius:8px;background:' + fm.color + ';color:#fff;font-weight:700;min-width:36px;text-align:center;">' + fm.label + '</span>'
+                        : '';
+                    var tickStyle = (fm && fm.autoGrade)
+                        ? 'background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:700;box-shadow:0 0 0 2px #059669;'
+                        : 'background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;';
+                    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #eee;">'
+                        + '<span style="font-weight:600;min-width:85px;font-size:12px;">' + (r.team_name || '?') + '</span>'
+                        + '<span style="background:#eef;padding:2px 5px;border-radius:4px;font-size:10px;">R' + (r.round_number || r.round || '?') + 'Q' + (r.question_number || '?') + '</span>'
+                        + fmBadge
+                        + '<span style="flex:1;font-size:12px;">' + safe + '</span>'
+                        + '<button onclick="gradeIncoming(\'' + r.id + '\',true,1)" style="' + tickStyle + '">✓</button>'
                         + '<button onclick="gradeIncoming(\'' + r.id + '\',false,0)" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✗</button>'
                         + '</div>';
                 }).join('');
+                // Show "Grade all confident" button if auto-gradeable answers exist
+                var gcBtn = document.getElementById('gradeConfidentBtn');
+                if (!gcBtn && autoCount > 0) {
+                    var btn = document.createElement('button');
+                    btn.id = 'gradeConfidentBtn';
+                    btn.textContent = '\u26A1 Auto-grade ' + autoCount + ' confident answer(s)';
+                    btn.style.cssText = 'width:100%;margin-top:8px;padding:8px;background:#059669;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;';
+                    btn.onclick = gradeAllConfident;
+                    listEl.parentElement.appendChild(btn);
+                } else if (gcBtn) {
+                    gcBtn.textContent = '\u26A1 Auto-grade ' + autoCount + ' confident answer(s)';
+                    gcBtn.style.display = autoCount > 0 ? 'block' : 'none';
+                }
             }
             window.gradeIncoming = async function(id, ok, pts) {
                 if (window.kbtData && window.kbtData.gradeLiveAnswer) {
                     await window.kbtData.gradeLiveAnswer(id, ok, pts);
                     pollIncomingAnswers();
+                }
+            };
+            window.gradeAllConfident = async function() {
+                var code = window.kbtData.TARGET_EVENT_CODE;
+                var rows = await window.kbtData.getLiveAnswers(code);
+                if (!Array.isArray(rows)) return;
+                var ungraded = rows.filter(function(r){ return r.is_correct === null && r.selected_option; });
+                var applied = 0;
+                for (var i = 0; i < ungraded.length; i++) {
+                    var r = ungraded[i];
+                    var correctAns = findCorrectAnswer(r.round_number, r.question_number);
+                    if (!correctAns) continue;
+                    var fm = fuzzyMatch(r.selected_option || '', correctAns);
+                    if (fm.autoGrade) {
+                        await window.kbtData.gradeLiveAnswer(r.id, true, 1);
+                        applied++;
+                    }
+                }
+                pollIncomingAnswers();
+                var listEl = document.getElementById('incomingList');
+                if (listEl && listEl.parentElement) {
+                    var note = document.createElement('div');
+                    note.style.cssText = 'background:#d1fae5;color:#065f46;padding:6px 10px;border-radius:6px;font-size:12px;font-weight:600;margin-top:6px;';
+                    note.textContent = '\u2713 Auto-graded ' + applied + ' answer(s) as correct';
+                    listEl.parentElement.appendChild(note);
+                    setTimeout(function(){ note.remove(); }, 4000);
                 }
             };
             setInterval(pollIncomingAnswers, 3000);
