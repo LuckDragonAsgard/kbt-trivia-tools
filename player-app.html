@@ -499,15 +499,33 @@ if (eventCode) {
 </style>
 <button class="ans-toggle" onclick="document.getElementById('ansCard').classList.toggle('visible')" id="ansToggleBtn" style="display:none">✏️ Submit Answer</button>
 <div class="ans-card" id="ansCard">
-  <h4>Submit your team's answer</h4>
+  <h4 style="display:flex;justify-content:space-between;align-items:center;">
+    <span id="ansCardTitle">Submit your team's answer</span>
+    <button onclick="toggleGamblerPairsMode()" id="gpModeBtn" style="font-size:11px;padding:3px 8px;background:#7c3aed;color:#fff;border:none;border-radius:10px;cursor:pointer;">🃏 Pairs mode</button>
+  </h4>
   <div class="row">
     <label>Round</label><input type="number" id="ansRound" min="1" value="1">
     <label>Q#</label><input type="number" id="ansQNum" min="1" value="1">
   </div>
-  <textarea id="ansText" placeholder="Type your answer here…" maxlength="500"></textarea>
+  <!-- Standard text answer -->
+  <div id="stdAnswerBlock">
+    <textarea id="ansText" placeholder="Type your answer here…" maxlength="500"></textarea>
+  </div>
+  <!-- Gambler Pairs selection UI -->
+  <div id="gpAnswerBlock" style="display:none;">
+    <div style="font-size:12px;color:#666;margin-bottom:8px;">Pick option 1 or 2 for each pair shown on screen. Leave blank to skip a pair.</div>
+    <div id="gpPairsGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;"></div>
+  </div>
   <button onclick="submitPlayerAnswer()">Submit</button>
   <div class="status" id="ansStatus"></div>
 </div>
+<style>
+  .gp-pair-row { display:flex; flex-direction:column; align-items:center; background:#f5f3ff; border:1px solid #c4b5fd; border-radius:8px; padding:6px; }
+  .gp-pair-row .pair-lbl { font-weight:800; font-size:16px; color:#7c3aed; }
+  .gp-pair-btns { display:flex; gap:4px; margin-top:4px; }
+  .gp-btn { padding:4px 10px; border:2px solid #c4b5fd; border-radius:6px; background:#fff; font-weight:700; cursor:pointer; font-size:14px; color:#7c3aed; }
+  .gp-btn.selected { background:#7c3aed; color:#fff; border-color:#7c3aed; }
+</style>
 <script>
 (function(){
   function show(){
@@ -517,25 +535,70 @@ if (eventCode) {
   }
   setInterval(show, 1000);
 })();
+var _gpMode = false;
+var _gpSelections = { A: null, B: null, C: null, D: null, E: null };
+
+function toggleGamblerPairsMode() {
+  _gpMode = !_gpMode;
+  document.getElementById('stdAnswerBlock').style.display = _gpMode ? 'none' : 'block';
+  document.getElementById('gpAnswerBlock').style.display  = _gpMode ? 'block' : 'none';
+  document.getElementById('ansCardTitle').textContent = _gpMode ? 'Gambler Pairs — pick 1 or 2' : 'Submit your team\u2019s answer';
+  document.getElementById('gpModeBtn').style.background = _gpMode ? '#059669' : '#7c3aed';
+  if (_gpMode) buildGpGrid();
+}
+
+function buildGpGrid() {
+  var grid = document.getElementById('gpPairsGrid');
+  var pairs = ['A','B','C','D','E'];
+  grid.innerHTML = pairs.map(function(ltr) {
+    return '<div class="gp-pair-row">'
+         + '<span class="pair-lbl">' + ltr + '</span>'
+         + '<div class="gp-pair-btns">'
+         + '<button class="gp-btn" id="gp_' + ltr + '_1" onclick="selectGpPair(\''+ltr+'\',\'1\')">1</button>'
+         + '<button class="gp-btn" id="gp_' + ltr + '_2" onclick="selectGpPair(\''+ltr+'\',\'2\')">2</button>'
+         + '</div></div>';
+  }).join('');
+  pairs.forEach(function(l){ _gpSelections[l] = null; });
+}
+
+function selectGpPair(ltr, opt) {
+  _gpSelections[ltr] = _gpSelections[ltr] === opt ? null : opt;
+  ['1','2'].forEach(function(n) {
+    var btn = document.getElementById('gp_'+ltr+'_'+n);
+    if (btn) btn.className = 'gp-btn' + (_gpSelections[ltr] === n ? ' selected' : '');
+  });
+}
+
 async function submitPlayerAnswer(){
   var st = document.getElementById('ansStatus');
   var team = (window.kbtPlayerState && window.kbtPlayerState.team_name) || null;
   if (!team) { st.textContent = 'Register your team first'; return; }
   var round = parseInt(document.getElementById('ansRound').value) || 1;
   var qNum  = parseInt(document.getElementById('ansQNum').value) || 1;
-  var txt   = document.getElementById('ansText').value.trim();
-  if (!txt) { st.textContent = 'Type an answer first'; return; }
-  st.textContent = 'Sending…';
+  var txt;
+  if (_gpMode) {
+    var parts = ['A','B','C','D','E'].filter(function(l){ return _gpSelections[l]; })
+                                      .map(function(l){ return l + _gpSelections[l]; });
+    if (!parts.length) { st.textContent = 'Select at least one pair'; return; }
+    txt = parts.join(',');
+  } else {
+    txt = document.getElementById('ansText').value.trim();
+    if (!txt) { st.textContent = 'Type an answer first'; return; }
+  }
+  st.textContent = 'Sending\u2026';
   var code = (new URLSearchParams(location.search)).get('code') || (window.kbtData && window.kbtData.TARGET_EVENT_CODE) || null;
   try {
     var res = await window.kbtData.submitPlayerAnswer(code, team, round, qNum, txt);
     if (res) {
-      st.textContent = '✓ Submitted (waiting for host to grade)';
-      document.getElementById('ansText').value = '';
-      // auto-increment Q# for next round of typing
+      st.textContent = '\u2713 Submitted (waiting for host to grade)';
+      if (_gpMode) {
+        ['A','B','C','D','E'].forEach(function(l){ selectGpPair(l, null); _gpSelections[l] = null; });
+      } else {
+        document.getElementById('ansText').value = '';
+      }
       document.getElementById('ansQNum').value = qNum + 1;
     } else {
-      st.textContent = 'Submit failed — try again';
+      st.textContent = 'Submit failed \u2014 try again';
     }
   } catch(e){ st.textContent = 'Error: ' + (e.message || e); }
 }
