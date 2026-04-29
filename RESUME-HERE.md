@@ -31,3 +31,29 @@
 - brain-tool ✅ · soundmash-tool ✅ · face-morph-tool ✅ (upgraded)
 - Live Worker hash: fb4904ea — no changes needed this session
 
+## Full tool branding audit + upgrade — 2026-04-29
+
+### KBT Standard (now applied to ALL tools):
+- **Background:** `#0f172a → #1e293b` dark gradient
+- **Font:** `Bowlby One SC` for all slide titles
+- **Question accent:** teal `#2dd4bf` (bar + title + highlights)
+- **Answer accent:** gold `#fbbf24` (bar + title + key text)
+- **Footer:** "KNOW BRAINER TRIVIA" (muted, bottom centre)
+- **KBT logo:** "KNOW BRAINER" watermark (top-left on full-canvas tools)
+
+### Tools upgraded this session:
+| Tool | Change |
+|---|---|
+| face-morph-tool v6 | rembg both faces, two-pass morph blend, cutout sticker treatment |
+| brain-tool | dark bg on output canvas (was transparent) |
+| soundmash-tool | KBT dark bg, Bowlby, teal question/gold answer, 2-col answer layout, better waveform |
+| ghost-actors-tool | KBT chrome overlay (title bar + footer) on slides, teal circle, gold actor pill |
+| guess-the-year-tool | KBT dark bg, Bowlby header, teal accent bar, gold year display |
+| linked-pics-tool | KBT dark bg, teal banner, Bowlby question/answer labels, gold answer text |
+| crack-the-code-tool | KBT dark bg + teal grid, Bowlby, teal accent bar, gold answer text |
+
+### Tools NOT changed (no slide output):
+- host-brief-tool — AI text only, no slides
+- brand-tool — text/logo AI tool, no 1920 canvas
+- carmen-sandiego-tool — map screenshot tool (kept unique map styling)
+- admin-app, host-app, player-app, wrap — not host tools
