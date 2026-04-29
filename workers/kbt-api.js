@@ -527,7 +527,7 @@ function textBox(text, x, y, w, h, fontSize, color, bold = false, align = 'CENTE
     { createShape: { objectId: id, shapeType: 'TEXT_BOX', elementProperties: { pageObjectId: '__SLIDE__', size: { width: { magnitude: w, unit: 'EMU' }, height: { magnitude: h, unit: 'EMU' } }, transform: { scaleX: 1, scaleY: 1, translateX: x, translateY: y, unit: 'EMU' } } } },
     { insertText: { objectId: id, text } },
     { updateTextStyle: { objectId: id, style: { fontSize: { magnitude: fontSize, unit: 'PT' }, foregroundColor: { opaqueColor: { rgbColor: rgb(color) } }, bold }, fields: 'fontSize,foregroundColor,bold' } },
-    { updateParagraphStyle: { objectId: id, style: { alignment: align }, fields: 'alignment' } },
+    { updateParagraphStyle: { objectId: id, style: { alignment: align === 'LEFT' ? 'START' : align === 'RIGHT' ? 'END' : align }, fields: 'alignment' } },
   ];
 }
 
@@ -744,3 +744,4 @@ export default {
     }
   }
 };
+
