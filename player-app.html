@@ -187,6 +187,14 @@ let myTeam = null;    // after registering or joining
 
 const params = new URLSearchParams(window.location.search);
 eventCode = params.get('code') || localStorage.getItem('kbt_event_code') || '';
+// Restore player state from localStorage (for page reloads after registration)
+if (localStorage.getItem('kbt_team_name') && localStorage.getItem('kbt_event_code')) {
+  window.kbtPlayerState = {
+    team_name: localStorage.getItem('kbt_team_name'),
+    team_code: localStorage.getItem('kbt_team_code'),
+    event_code: localStorage.getItem('kbt_event_code')
+  };
+}
 const joinTeamCodeFromUrl = (params.get('team') || '').toUpperCase().trim();
 document.getElementById('event-chip').textContent = eventCode || 'No Event';
 
@@ -316,6 +324,7 @@ function showSuccessAsCaptain() {
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=170x170&margin=0&data=${encodeURIComponent(joinUrl)}`;
   document.getElementById('join-qr').src = qrSrc;
   document.getElementById('team-code-box').style.display = 'block';
+  window.kbtPlayerState = { team_name: myTeam.team_name || myTeam.display_name, team_code: myTeam.team_code, event_code: eventCode };
   setScreen('screen-success');
   loadTeamsList('teams-list');
 }
@@ -383,6 +392,7 @@ async function joinTeam() {
     document.getElementById('joined-emoji').textContent = foundTeam.team_emoji || '🧠';
     document.getElementById('joined-team-name').textContent = foundTeam.team_name || foundTeam.display_name || 'Team';
     document.getElementById('joined-captain').textContent = foundTeam.team_captain || '—';
+    window.kbtPlayerState = { team_name: foundTeam.team_name || foundTeam.display_name, team_code: foundTeam.team_code, event_code: eventCode };
     setScreen('screen-joined');
     loadMemberList(foundTeam.id);
     loadTeamsList('teams-list-2');
