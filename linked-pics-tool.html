@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linked Pics Tool - KBT Multimedia Question Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Londrina+Solid:wght@400;700;900&family=Luckiest+Guy&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +21,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
 
         header {
-            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+            background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
@@ -58,7 +58,7 @@
 
         .panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #e91e63;
+            color: #2dd4bf;
             font-size: 1.4em;
             margin-bottom: 16px;
             border-bottom: 2px solid #ddd;
@@ -83,7 +83,7 @@
             font-family: 'Londrina Solid', cursive;
             font-size: 1.1em;
         }
-        input[type="text"]:focus { outline: none; border-color: #e91e63; }
+        input[type="text"]:focus { outline: none; border-color: #2dd4bf; }
 
         .image-slots {
             display: grid;
@@ -107,8 +107,8 @@
             transition: border-color 0.2s;
         }
 
-        .image-slot:hover { border-color: #e91e63; }
-        .image-slot.loaded { border-style: solid; border-color: #e91e63; }
+        .image-slot:hover { border-color: #2dd4bf; }
+        .image-slot.loaded { border-style: solid; border-color: #2dd4bf; }
 
         .image-slot img {
             width: 100%;
@@ -120,7 +120,7 @@
         .slot-label {
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.3em;
-            color: #e91e63;
+            color: #2dd4bf;
             position: absolute;
             top: 6px;
             left: 10px;
@@ -208,7 +208,7 @@
 
         .preview-header h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #e91e63;
+            color: #2dd4bf;
             font-size: 1.4em;
         }
 
@@ -230,9 +230,9 @@
         }
 
         .toggle-btn.active {
-            border-color: #e91e63;
+            border-color: #2dd4bf;
             background: rgba(71,181,208,0.15);
-            color: #e91e63;
+            color: #2dd4bf;
         }
 
         /* Canvas wrapper — letterboxed 16:9 */
@@ -257,7 +257,7 @@
             width: 1920px;
             height: 1080px;
             transform-origin: top left;
-            background: #e8e8e8;
+            background: #0f172a;
             display: flex;
             flex-direction: column;
         }
@@ -292,17 +292,17 @@
             position: absolute;
             top: 12px;
             left: 16px;
-            font-family: 'Luckiest Guy', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 3em;
-            color: #333;
+            color: #ffffff;
             text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6);
         }
 
         /* Bottom banner — always present */
         .canvas-banner {
             height: 120px;
-            background: linear-gradient(135deg, #0f3460, #16213e);
-            border-top: 4px solid #e91e63;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border-top: 4px solid #2dd4bf;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -311,17 +311,17 @@
         }
 
         .banner-question {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 3.2em;
-            color: #e91e63;
+            color: #2dd4bf;
             letter-spacing: 3px;
             text-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
 
         .banner-answer {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: 'Bowlby One SC', cursive;
             font-size: 2.8em;
-            color: #333;
+            color: #fbbf24;
             text-align: center;
             text-shadow: 0 2px 8px rgba(0,0,0,0.5);
             padding: 0 40px;
@@ -366,7 +366,7 @@
             border: 2px solid #ddd;
         }
 
-        .export-hint strong { color: #e91e63; }
+        .export-hint strong { color: #2dd4bf; }
 
         /* Watermark */
         .kbt-watermark {
@@ -443,7 +443,7 @@
                 <div class="status-bar" id="status-bar">Upload all 4 images to export</div>
 
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
-                    <div style="font-family: 'Luckiest Guy', cursive; color: #e91e63; margin-bottom: 8px;">Export Images</div>
+                    <div style="font-family: 'Bowlby One SC', cursive; color: #2dd4bf; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export-a" id="btn-export-a" disabled onclick="exportImage('A')">
                         🔴 Export A — Question
                     </button>
@@ -658,7 +658,7 @@
                     height: 1080,
                     scale: 1,
                     useCORS: true,
-                    backgroundColor: '#000000',
+                    backgroundColor: '#0f172a',
                     logging: false
                 });
 
