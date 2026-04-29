@@ -312,6 +312,22 @@
     async submitWager(code, teamName, round, qNum, amount, wasCorrect){
       return (getMode()==='live' ? live : offline).submitWager(code, teamName, round, qNum, amount, wasCorrect);
     },
+    async submitPlayerAnswer(code, teamName, round, questionNumber, answerText){
+      if (getMode() !== 'live') return null;
+      return live.submitPlayerAnswer(code, teamName, round, questionNumber, answerText);
+    },
+    async submitLiveAnswer(code, teamName, round, questionNumber, isCorrect, pointsAwarded){
+      if (getMode() !== 'live') return null;
+      return live.submitLiveAnswer(code, teamName, round, questionNumber, isCorrect, pointsAwarded);
+    },
+    async getLiveAnswers(code){
+      if (getMode() !== 'live') return [];
+      return live.getLiveAnswers ? live.getLiveAnswers(code) : [];
+    },
+    async gradeLiveAnswer(id, isCorrect, points){
+      if (getMode() !== 'live') return null;
+      return live.gradeLiveAnswer ? live.gradeLiveAnswer(id, isCorrect, points) : null;
+    },
 
     shapeQuestion(row){
       const q = row.kbt_question || {};
