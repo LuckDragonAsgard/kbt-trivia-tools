@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoundMash - KBT Question Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Londrina+Solid:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Luckiest+Guy&family=Londrina+Solid:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -888,40 +888,61 @@
             const canvas = document.getElementById('questionCanvas');
             const ctx = canvas.getContext('2d');
 
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(1, '#252545');
+            // KBT background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(1, '#1e293b');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Teal accent bar
+            ctx.fillStyle = '#2dd4bf';
+            ctx.fillRect(0, 0, canvas.width, 7);
+
+            // KBT logo (top-left)
+            ctx.font = 'bold 26px "Bowlby One SC", cursive';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillText('KNOW', 48, 68);
+            ctx.fillStyle = '#2dd4bf';
+            ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
+
             // Title
-            ctx.font = 'bold 140px "Luckiest Guy"';
-            ctx.fillStyle = '#ffc107';
+            ctx.font = 'bold 128px "Bowlby One SC", cursive';
+            ctx.fillStyle = '#2dd4bf';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('SOUNDMASH', canvas.width / 2, 300);
+            ctx.fillText('SOUNDMASH', canvas.width / 2, 290);
 
             // Subtitle
             const validClips = state.clips.filter(c => c.title && c.artist).length;
-            ctx.font = 'bold 80px "Londrina Solid"';
-            ctx.fillStyle = '#fff';
-            ctx.fillText(`Name all ${validClips} songs`, canvas.width / 2, 550);
+            ctx.font = '400 42px "Inter", sans-serif';
+            ctx.fillStyle = 'rgba(100,116,139,0.9)';
+            ctx.fillText(`Name all ${validClips} songs`, canvas.width / 2, 400);
 
             // Decorative waveform bars
             drawWaveformBars(ctx, canvas.width, canvas.height);
+
+            // Footer
+            ctx.font = 'bold 20px "Inter", sans-serif';
+            ctx.fillStyle = 'rgba(100,116,139,0.5)';
+            ctx.fillText('KNOW BRAINER TRIVIA', canvas.width / 2, canvas.height - 28);
         }
 
         function drawWaveformBars(ctx, width, height) {
-            ctx.fillStyle = 'rgba(71, 181, 208, 0.3)';
+            // Decorative animated waveform bars in lower half
             const barWidth = 8;
-            const spacing = 15;
-            const startX = (width - (40 * spacing)) / 2;
-
-            for (let i = 0; i < 40; i++) {
+            const spacing = 18;
+            const numBars = 48;
+            const startX = (width - numBars * spacing) / 2;
+            const centreY = height * 0.72;
+            for (let i = 0; i < numBars; i++) {
                 const x = startX + i * spacing;
-                const barHeight = Math.sin(i / 10) * 80 + 100;
-                ctx.fillRect(x, height - 300 - barHeight / 2, barWidth, barHeight);
+                const barHeight = Math.abs(Math.sin(i / 4.5)) * 140 + 28;
+                const alpha = 0.15 + 0.25 * (Math.abs(Math.sin(i / 4.5)));
+                ctx.fillStyle = `rgba(45, 212, 191, ${alpha})`;
+                ctx.fillRect(x, centreY - barHeight / 2, barWidth, barHeight);
             }
         }
 
@@ -929,36 +950,61 @@
             const canvas = document.getElementById('answerCanvas');
             const ctx = canvas.getContext('2d');
 
-            // Background gradient
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(1, '#252545');
+            // KBT background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(1, '#1e293b');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Gold accent bar
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(0, 0, canvas.width, 7);
+
+            // KBT logo (top-left)
+            ctx.font = 'bold 26px "Bowlby One SC", cursive';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillText('KNOW', 48, 68);
+            ctx.fillStyle = '#2dd4bf';
+            ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
+
             // Title
-            ctx.font = 'bold 100px "Luckiest Guy"';
-            ctx.fillStyle = '#ffc107';
+            ctx.font = 'bold 104px "Bowlby One SC", cursive';
+            ctx.fillStyle = '#fbbf24';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText('Answers', canvas.width / 2, 100);
+            ctx.fillText('THE ANSWERS', canvas.width / 2, 100);
 
-            // Answers
+            // Answers list — 2 columns if > 4 clips
             const validClips = state.clips.filter(c => c.title && c.artist);
-            ctx.font = 'bold 60px "Londrina Solid"';
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'left';
+            const useTwoCols = validClips.length > 4;
+            const colW = canvas.width / (useTwoCols ? 2 : 1);
+            const xBase = useTwoCols ? 100 : 150;
 
-            let y = 350;
+            ctx.textAlign = 'left';
+            let col = 0, row = 0;
             validClips.forEach((clip, i) => {
-                ctx.fillText(`${i + 1}. ${clip.title}`, 150, y);
-                ctx.font = '48px "Londrina Solid"';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-                ctx.fillText(`   ${clip.artist}`, 150, y + 80);
-                ctx.font = 'bold 60px "Londrina Solid"';
-                ctx.fillStyle = '#fff';
-                y += 180;
+                if (useTwoCols && i === Math.ceil(validClips.length / 2)) { col = 1; row = 0; }
+                const x = xBase + col * colW;
+                const y = 290 + row * 160;
+                ctx.font = 'bold 54px "Bowlby One SC", cursive';
+                ctx.fillStyle = '#e2e8f0';
+                ctx.textBaseline = 'top';
+                ctx.fillText(`${i + 1}. ${clip.title}`, x, y);
+                ctx.font = '400 38px "Inter", sans-serif';
+                ctx.fillStyle = '#2dd4bf';
+                ctx.fillText(`    ${clip.artist}`, x, y + 64);
+                row++;
             });
+
+            // Footer
+            ctx.font = 'bold 20px "Inter", sans-serif';
+            ctx.fillStyle = 'rgba(100,116,139,0.5)';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText('KNOW BRAINER TRIVIA', canvas.width / 2, canvas.height - 28);
         }
 
         function bufferToWavUrl(audioBuffer) {
@@ -1014,59 +1060,4 @@
             return URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/wav' }));
         }
 
-        function downloadAudio() {
-            if (!state.mashupBuffer) return;
-            const url = bufferToWavUrl(state.mashupBuffer);
-            downloadFile(url, 'soundmash.wav');
-        }
-
-        function downloadQuestion() {
-            const canvas = document.getElementById('questionCanvas');
-            canvas.toBlob(blob => downloadFile(URL.createObjectURL(blob), 'soundmash-question.png'));
-        }
-
-        function downloadAnswer() {
-            const canvas = document.getElementById('answerCanvas');
-            canvas.toBlob(blob => downloadFile(URL.createObjectURL(blob), 'soundmash-answer.png'));
-        }
-
-        function downloadFile(url, filename) {
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function showError(message) {
-            const el = document.getElementById('errorMessage');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 5000);
-        }
-
-        function showSuccess(message) {
-            const el = document.getElementById('successMessage');
-            el.textContent = message;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 4000);
-        }
-
-        function loadFontsForCanvas() {
-            // Load fonts for canvas rendering
-            const font1 = new FontFace('Luckiest Guy', 'url(https://fonts.gstatic.com/s/luckiestguy/v20/Yld3PnzHjEMKyeFuJmKlSE7i0q1GQ9xd.woff2)');
-            const font2 = new FontFace('Londrina Solid', 'url(https://fonts.gstatic.com/s/londrinasolid/v15/LCFlsQNX3XDfwgB5KzT4H8QxE8T7.woff2)');
-
-            Promise.all([font1.load(), font2.load()]).then(fonts => {
-                fonts.forEach(font => document.fonts.add(font));
-            }).catch(() => {
-                // Fallback to system fonts if loading fails
-            });
-        }
-
-        // Start
-        init();
-    </script>
-</body>
-</html>
+        function do
