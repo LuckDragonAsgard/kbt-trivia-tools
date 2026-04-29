@@ -2780,6 +2780,8 @@
                 banner = '<div class="special-question-banner special-bonus">🎯 Bonus round — separate answer sheet</div>';
             }
             const roundLabel = q.round ? 'Round ' + q.round : '';
+            const hasCooldown = q.dbId && _venueCooldownSet && _venueCooldownSet.has(String(q.dbId));
+            const cooldownBanner = hasCooldown ? '<div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:6px 10px;font-size:12px;color:#92400e;margin-bottom:8px;">⚠️ This question was used at this venue within the last 2 years</div>' : '';
             const funFactText = q.funFact || 'This is a fun fact about this question!';
             display.innerHTML = `
                 <div class="question-card">
@@ -2787,6 +2789,7 @@
                         <span class="badge ${badgeClass}">${q.type}</span>
                         ${roundLabel ? `<span class="badge badge-type">${roundLabel}</span>` : ''}
                     </div>
+                    ${cooldownBanner}
                     ${banner}
                     <div class="question-text">${q.text}</div>
                     <button type="button" class="answer-button" onclick="revealAnswer()">Show Answer</button>
@@ -3023,6 +3026,7 @@
                     else if (t === 'GAMBLER PAIRS') type = 'Gambler Pairs';
                     else type = type.charAt(0) + type.slice(1).toLowerCase();
                     return {
+                        dbId: r.quiz_question_id,
                         round: r.quiz_item_round,
                         num: r.quiz_item_number,
                         order: r.quiz_item_order,
@@ -3042,10 +3046,39 @@
                 displayQuestion();
                 console.log('[kbt] loaded ' + mapped.length + ' live questions for ' + code);
                 addKbtBadge('LIVE: ' + code + ' (' + mapped.length + ' Qs)', '#22c55e');
+                // Record venue usage + check cooldowns in background
+                if (window.kbtData.recordVenueUsage) {
+                    window.kbtData.recordVenueUsage(code, mapped).catch(function(){});
+                }
+                loadVenueCooldowns(code, mapped);
             } catch (e) {
                 console.warn('[kbt] loadLiveQuestions failed, staying on fallback:', e);
                 addKbtBadge('OFFLINE (fallback questions)', '#6b7280');
             }
+        }
+
+
+        var _venueCooldownSet = new Set(); // set of question dbIds with cooldown
+
+        async function loadVenueCooldowns(code, qs) {
+            try {
+                // Get venue loc_id from event
+                var ev = await window.kbtData.getEventByCode(code);
+                if (!ev || !ev.event_location_id) return;
+                var locId = ev.event_location_id;
+                var dbIds = qs.map(function(q){ return q.dbId; }).filter(Boolean);
+                if (!dbIds.length) return;
+                var cooldowns = await window.kbtData.getVenueCooldowns(dbIds, locId);
+                if (!Array.isArray(cooldowns)) return;
+                cooldowns.forEach(function(cd) {
+                    if (cd.in_cooldown) _venueCooldownSet.add(String(cd.question_id));
+                });
+                if (_venueCooldownSet.size > 0) {
+                    console.log('[kbt] venue cooldown flags:', _venueCooldownSet.size, 'question(s)');
+                    // Re-render current question to show warning if needed
+                    displayQuestion();
+                }
+            } catch(e) { console.warn('[kbt] loadVenueCooldowns err:', e.message); }
         }
 
         function addKbtBadge(text, bg) {
