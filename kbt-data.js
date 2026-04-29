@@ -130,7 +130,7 @@
     },
     async submitRoundScore(eventCode, teamName, round, points, questionNumber){
       const rows = await pgPost(
-        'trial_scores',
+        'trial_scores?on_conflict=event_code,team_name,round,question_number',
         {
           event_code: eventCode || TARGET_EVENT_CODE,
           team_name: teamName,
