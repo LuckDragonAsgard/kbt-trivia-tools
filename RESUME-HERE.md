@@ -57,3 +57,15 @@
 - brand-tool — text/logo AI tool, no 1920 canvas
 - carmen-sandiego-tool — map screenshot tool (kept unique map styling)
 - admin-app, host-app, player-app, wrap — not host tools
+
+## Session log — 2026-04-29 (triple audit)
+
+Triple-pass audit of everything. Two bugs found and fixed:
+
+**Bug 9d** (`host-app.html` commit `20e57f3b`): `window.gradeAllConfident` used `r.round_number` without `|| r.round` fallback. Fixed. Verified live.
+
+**Bug P3-1** (`host-app.html` commit `7dd858ea`): `nextBtn` never visually disabled at last question. Fixed.
+
+**Current host-app.html SHA:** `7dd858eac11c03f76c9093f7971db8f13d5628d6`
+
+All apps, tools, Worker routes, and data layer pass all three audit passes. Live Model is ship-ready. Weekly/No-Host are post-launch roadmap items.
