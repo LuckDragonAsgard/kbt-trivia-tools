@@ -3,323 +3,622 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT Face Morph Tool v5 — AI-Powered</title>
+<title>KBT Face Morph Tool v6 — Two-Pass Blend</title>
 <link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --purple: #5b21b6;
     --teal: #0f766e;
     --teal-2: #2dd4bf;
+    --gold: #fbbf24;
     --bg: #0f172a;
     --panel: #1e293b;
+    --panel-2: #162032;
     --text: #e2e8f0;
-    --muted: #94a3b8;
+    --muted: #64748b;
+    --border: rgba(255,255,255,0.07);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(160deg, #0f172a 0%, #1a2540 100%);
     color: var(--text);
     min-height: 100vh;
-    padding: 20px;
+    padding: 24px 16px 60px;
   }
-  h1 {
+  .header { text-align: center; margin-bottom: 32px; }
+  .header h1 {
     font-family: 'Bowlby One SC', cursive;
-    font-size: 40px;
+    font-size: 52px;
     color: var(--teal-2);
-    text-align: center;
-    margin-bottom: 8px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 40px rgba(45,212,191,0.3);
   }
-  .sub { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 14px; }
-  .container { max-width: 1100px; margin: 0 auto; }
+  .header p { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .container { max-width: 1080px; margin: 0 auto; }
   .panel {
     background: var(--panel);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 24px;
     margin-bottom: 16px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
   }
-  .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .face-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .face-slot { display: flex; flex-direction: column; gap: 8px; }
   .face-box {
-    border: 2px dashed rgba(255,255,255,0.15);
+    border: 2px dashed rgba(45,212,191,0.25);
     border-radius: 10px;
-    padding: 20px;
-    text-align: center;
+    min-height: 260px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     cursor: pointer;
-    min-height: 280px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    position: relative;
   }
-  .face-box:hover { border-color: var(--teal-2); }
-  .face-box img { max-width: 100%; max-height: 240px; border-radius: 6px; margin-bottom: 8px; }
+  .face-box:hover { border-color: var(--teal-2); background: rgba(45,212,191,0.04); }
+  .face-box.loaded { border-style: solid; border-color: rgba(45,212,191,0.4); padding: 0; }
+  .face-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
+  .face-box .placeholder { text-align: center; padding: 20px; pointer-events: none; }
+  .face-box .placeholder .icon { font-size: 48px; margin-bottom: 8px; }
+  .face-box .placeholder .label { font-size: 14px; color: var(--muted); }
+  .face-box .change-hint {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.6); color: white;
+    text-align: center; font-size: 12px; padding: 6px;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .face-box.loaded:hover .change-hint { opacity: 1; }
   .name-input {
-    margin-top: 10px; padding: 8px 12px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.2);
-    color: white; font-size: 14px; width: 100%;
+    padding: 10px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel-2);
+    color: white; font-size: 14px; font-family: 'Inter', sans-serif;
+    width: 100%; transition: border-color 0.2s;
   }
-  .options {
-    display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; align-items: center;
+  .name-input:focus { outline: none; border-color: var(--teal-2); }
+  .name-input::placeholder { color: var(--muted); }
+  .steps { margin: 20px 0; display: flex; flex-direction: column; gap: 6px; }
+  .step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--muted);
+    padding: 8px 12px; border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
   }
-  .options label { font-size: 13px; color: var(--muted); }
-  .options select {
-    padding: 6px 10px; border-radius: 6px; background: rgba(0,0,0,0.2);
-    color: white; border: 1px solid rgba(255,255,255,0.15); font-size: 13px;
+  .step.active { background: rgba(45,212,191,0.08); color: var(--text); }
+  .step.done { color: #4ade80; }
+  .step.error { color: #f87171; background: rgba(248,113,113,0.08); }
+  .step .dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.1);
   }
-  .btn {
-    padding: 14px 28px; border-radius: 10px; border: none; cursor: pointer;
-    font-size: 16px; font-weight: 700; letter-spacing: 0.5px;
-  }
-  .btn-primary {
+  .step.active .dot { background: var(--teal-2); animation: pulse 1s ease-in-out infinite; }
+  .step.done .dot { background: #4ade80; }
+  .step.error .dot { background: #f87171; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  .step .timer { font-size: 11px; color: var(--muted); margin-left: auto; }
+  .btn-generate {
+    width: 100%; padding: 16px; border: none; border-radius: 12px;
     background: linear-gradient(135deg, var(--teal), var(--teal-2));
-    color: white; width: 100%;
+    color: white; font-size: 17px; font-weight: 700;
+    font-family: 'Bowlby One SC', cursive; letter-spacing: 1px;
+    cursor: pointer; transition: opacity 0.2s, transform 0.1s; margin-top: 8px;
   }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-generate:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+  .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .result-section { display: none; }
+  .result-section.active { display: block; }
+  .morph-preview { text-align: center; margin-bottom: 24px; }
+  .morph-preview img {
+    max-width: 500px; max-height: 500px; width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 2px rgba(45,212,191,0.2);
+    display: inline-block;
+  }
+  .slides-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .slide-card { background: var(--panel-2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+  .slide-card-header {
+    padding: 10px 14px; font-size: 12px; font-weight: 600;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .slide-card canvas { width: 100%; display: block; }
   .btn-dl {
-    background: rgba(255,255,255,0.1); color: white;
-    padding: 10px 18px; margin-top: 10px;
+    padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+    background: rgba(255,255,255,0.08); color: var(--text);
+    font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
   }
-  .progress {
-    margin: 16px 0; padding: 12px 16px; border-radius: 8px;
-    background: rgba(45,212,191,0.08); border-left: 3px solid var(--teal-2);
-    font-size: 13px; display: none;
+  .btn-dl:hover { background: rgba(255,255,255,0.15); }
+  .btn-morph-dl {
+    display: inline-block; margin-top: 12px; padding: 10px 22px;
+    border-radius: 8px; border: 1px solid rgba(45,212,191,0.3);
+    background: rgba(45,212,191,0.08); color: var(--teal-2);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: background 0.2s;
   }
-  .progress.active { display: block; }
-  .result {
-    display: none; text-align: center; padding: 24px;
-  }
-  .result.active { display: block; }
-  .result img { max-width: 100%; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-  .slides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
-  .slide-preview { background: white; border-radius: 8px; padding: 8px; }
-  .slide-preview canvas { width: 100%; display: block; }
+  .btn-morph-dl:hover { background: rgba(45,212,191,0.15); }
   .spec-note {
-    font-size: 12px; color: var(--muted); margin-top: 12px; padding: 12px;
-    background: rgba(0,0,0,0.2); border-radius: 6px; line-height: 1.6;
+    font-size: 12px; color: var(--muted); padding: 12px 14px;
+    background: rgba(0,0,0,0.2); border-radius: 8px;
+    border-left: 3px solid rgba(45,212,191,0.3); line-height: 1.6;
+    margin-top: 12px;
   }
   .spec-note strong { color: var(--teal-2); }
+  @media (max-width: 640px) {
+    .face-grid, .slides-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 36px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Face Morph</h1>
-  <div class="sub">Powered by Easel AI via fal.ai — professional face-swap model</div>
+
+  <div class="header">
+    <h1>Face Morph</h1>
+    <p>Two-pass blend · Background removal · KBT slide output</p>
+  </div>
 
   <div class="panel">
-    <div class="inputs">
-      <div>
-        <div class="face-box" id="box1" onclick="document.getElementById('file1').click()">
-          <input type="file" id="file1" accept="image/*" style="display:none" onchange="loadFile(this, 1)">
-          <div id="placeholder1"><div style="font-size:48px">👤</div><div style="margin-top:8px">Click to upload Face A</div></div>
+    <div class="panel-title">Upload Faces</div>
+    <div class="face-grid">
+      <div class="face-slot">
+        <div class="face-box" id="box1" onclick="triggerFile(1)">
+          <input type="file" id="file1" accept="image/*" style="display:none" onchange="loadFile(this,1)">
+          <div class="placeholder" id="ph1">
+            <div class="icon">👤</div>
+            <div class="label">Click to upload Face A</div>
+          </div>
+          <div class="change-hint">Click to replace</div>
         </div>
-        <input class="name-input" id="name1" placeholder="Name (e.g. Sean Connery)">
+        <input class="name-input" id="name1" placeholder="Name A (e.g. Hugh Jackman)" oninput="checkReady()">
       </div>
-      <div>
-        <div class="face-box" id="box2" onclick="document.getElementById('file2').click()">
-          <input type="file" id="file2" accept="image/*" style="display:none" onchange="loadFile(this, 2)">
-          <div id="placeholder2"><div style="font-size:48px">👤</div><div style="margin-top:8px">Click to upload Face B</div></div>
+      <div class="face-slot">
+        <div class="face-box" id="box2" onclick="triggerFile(2)">
+          <input type="file" id="file2" accept="image/*" style="display:none" onchange="loadFile(this,2)">
+          <div class="placeholder" id="ph2">
+            <div class="icon">👤</div>
+            <div class="label">Click to upload Face B</div>
+          </div>
+          <div class="change-hint">Click to replace</div>
         </div>
-        <input class="name-input" id="name2" placeholder="Name (e.g. Daniel Craig)">
+        <input class="name-input" id="name2" placeholder="Name B (e.g. Ryan Reynolds)" oninput="checkReady()">
       </div>
-    </div>
-
-    <div class="options">
-      <label>Gender:
-        <select id="gender">
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-        </select>
-      </label>
-      <label>Hair style:
-        <select id="workflow">
-          <option value="target_hair">Keep Face A's hair</option>
-          <option value="user_hair">Use Face B's hair</option>
-        </select>
-      </label>
     </div>
 
     <div class="spec-note">
-      <strong>How it works:</strong> Uploads both faces to fal.ai's Easel AI face-swap model.
-      The model detects facial landmarks, matches angle/lighting/skin tone automatically,
-      and produces a seamless blend — sharp features, no blur, professional-quality output.
-      Takes ~8-15 seconds. Output is a single morph image you can drop into the question slide.
+      <strong>How it works:</strong> Removes backgrounds from both faces via fal.ai · runs two face-swap passes in parallel (A→B and B→A) · blends them 50/50 on canvas · applies white-outline sticker treatment to all three images in the slide output. Total time ~35–45 seconds.
     </div>
 
-    <div class="progress" id="progress">Initialising…</div>
-    <button class="btn btn-primary" id="btnGo" disabled onclick="generate()">Generate Morph</button>
+    <div class="steps" id="steps" style="display:none">
+      <div class="step" id="s1"><div class="dot"></div><span>Removing background — Face A</span><span class="timer" id="t1"></span></div>
+      <div class="step" id="s2"><div class="dot"></div><span>Removing background — Face B</span><span class="timer" id="t2"></span></div>
+      <div class="step" id="s3"><div class="dot"></div><span>Generating morph pass 1 / 2 (A base, B swap)</span><span class="timer" id="t3"></span></div>
+      <div class="step" id="s4"><div class="dot"></div><span>Generating morph pass 2 / 2 (B base, A swap)</span><span class="timer" id="t4"></span></div>
+      <div class="step" id="s5"><div class="dot"></div><span>Blending morphs at 50 / 50</span><span class="timer" id="t5"></span></div>
+      <div class="step" id="s6"><div class="dot"></div><span>Building slides</span><span class="timer" id="t6"></span></div>
+    </div>
+
+    <button class="btn-generate" id="btnGo" disabled onclick="generate()">Generate Morph</button>
   </div>
 
-  <div class="result" id="result">
-    <h2 style="margin-bottom:16px">Morph Result</h2>
-    <img id="resultImg" alt="Morph">
-    <button class="btn btn-dl" onclick="downloadResult()">⬇ Download Morph</button>
+  <div class="result-section" id="resultSection">
+    <div class="panel morph-preview" id="morphPanel">
+      <div class="panel-title">Morph Result — 50/50 Blend</div>
+      <img id="morphImg" alt="Blended morph">
+      <br>
+      <a class="btn-morph-dl" id="morphDlBtn">⬇ Download Morph</a>
+    </div>
 
-    <div class="slides">
-      <div>
-        <h3 style="font-size:14px;color:var(--muted);margin-bottom:8px">Slide A — Question</h3>
-        <div class="slide-preview"><canvas id="slideA"></canvas></div>
-        <button class="btn btn-dl" onclick="downloadSlide('A')">⬇ Download Slide A</button>
-      </div>
-      <div>
-        <h3 style="font-size:14px;color:var(--muted);margin-bottom:8px">Slide B — Answer</h3>
-        <div class="slide-preview"><canvas id="slideB"></canvas></div>
-        <button class="btn btn-dl" onclick="downloadSlide('B')">⬇ Download Slide B</button>
+    <div class="panel">
+      <div class="panel-title">Presentation Slides</div>
+      <div class="slides-grid">
+        <div class="slide-card">
+          <div class="slide-card-header">
+            <span>Slide A — Question</span>
+            <button class="btn-dl" onclick="dlSlide('A')">⬇ Download</button>
+          </div>
+          <canvas id="slideA" width="1920" height="1080"></canvas>
+        </div>
+        <div class="slide-card">
+          <div class="slide-card-header">
+            <span>Slide B — Answer</span>
+            <button class="btn-dl" onclick="dlSlide('B')">⬇ Download</button>
+          </div>
+          <canvas id="slideB" width="1920" height="1080"></canvas>
+        </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <script>
+const API = 'https://kbt-api.pgallivan.workers.dev';
 const SW = 1920, SH = 1080;
-const PURPLE = '#5b21b6';
-let img1b64 = null, img2b64 = null;
-let morphImgObj = null, img1Obj = null, img2Obj = null;
+let face1b64 = null, face2b64 = null;
+
+// ── File loading ──────────────────────────────────────────────────────────
+
+function triggerFile(n) { document.getElementById('file' + n).click(); }
 
 function loadFile(input, n) {
   const f = input.files[0];
   if (!f) return;
-  const r = new FileReader();
-  r.onload = e => {
-    const box = document.getElementById('box'+n);
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
     const img = new Image();
     img.onload = () => {
-      if (n === 1) { img1b64 = e.target.result; img1Obj = img; }
-      else { img2b64 = e.target.result; img2Obj = img; }
-      box.innerHTML = `<img src="${e.target.result}" alt="Face ${n}">`;
-      box.onclick = () => document.getElementById('file'+n).click();
-      // Re-insert hidden input
-      const fi = document.createElement('input');
-      fi.type = 'file'; fi.id = 'file'+n; fi.accept = 'image/*';
-      fi.style.display = 'none';
-      fi.onchange = function() { loadFile(this, n); };
-      box.appendChild(fi);
-      check();
+      if (n === 1) face1b64 = b64;
+      else face2b64 = b64;
+      const box = document.getElementById('box' + n);
+      document.getElementById('ph' + n).style.display = 'none';
+      const old = box.querySelector('img.preview');
+      if (old) old.remove();
+      const preview = document.createElement('img');
+      preview.className = 'preview';
+      preview.src = b64;
+      box.insertBefore(preview, box.querySelector('.change-hint'));
+      box.classList.add('loaded');
+      checkReady();
     };
-    img.src = e.target.result;
+    img.src = b64;
   };
-  r.readAsDataURL(f);
+  reader.readAsDataURL(f);
 }
 
-function check() {
-  document.getElementById('btnGo').disabled = !(img1b64 && img2b64);
+function checkReady() {
+  document.getElementById('btnGo').disabled = !(
+    face1b64 && face2b64 &&
+    document.getElementById('name1').value.trim() &&
+    document.getElementById('name2').value.trim()
+  );
 }
 
-function progress(msg) {
-  const p = document.getElementById('progress');
-  p.textContent = msg;
-  p.classList.add('active');
+// ── Step timers ───────────────────────────────────────────────────────────
+
+const timers = {};
+function stepActive(n) {
+  document.getElementById('s' + n).className = 'step active';
+  const start = Date.now();
+  timers[n] = setInterval(() => {
+    const sec = Math.round((Date.now() - start) / 1000);
+    document.getElementById('t' + n).textContent = sec + 's';
+  }, 500);
 }
+function stepDone(n) {
+  clearInterval(timers[n]);
+  document.getElementById('s' + n).className = 'step done';
+}
+function stepError(n, msg) {
+  clearInterval(timers[n]);
+  const el = document.getElementById('s' + n);
+  el.className = 'step error';
+  el.querySelector('span').textContent += ' — ' + msg;
+}
+
+// ── API helpers ───────────────────────────────────────────────────────────
+
+async function apiRembg(b64) {
+  const res = await fetch(API + '/api/fal-rembg', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: b64 }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'rembg failed');
+  return data.url;
+}
+
+async function falUrlToDataUrl(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Could not fetch CDN image (' + res.status + ')');
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function apiMorph(f1b64, f2b64) {
+  const res = await fetch(API + '/api/fal-morph', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ face1: f1b64, face2: f2b64 }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'morph failed');
+  return data.url;
+}
+
+async function loadImg(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Image load failed: ' + url.substring(0, 80)));
+    img.src = url;
+  });
+}
+
+// ── Main pipeline ─────────────────────────────────────────────────────────
 
 async function generate() {
   document.getElementById('btnGo').disabled = true;
-  document.getElementById('result').classList.remove('active');
-  progress('Uploading faces to fal.ai…');
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('steps').style.display = 'flex';
 
-  const gender = document.getElementById('gender').value;
-  const workflow = document.getElementById('workflow').value;
+  const n1 = document.getElementById('name1').value.trim();
+  const n2 = document.getElementById('name2').value.trim();
+
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('s' + i).className = 'step';
+    document.getElementById('t' + i).textContent = '';
+  }
 
   try {
-    progress('Running face-swap model (8-15s)…');
-    const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/fal-faceswap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        base_image: img1b64,
-        reference_image: img2b64,
-        gender, workflow,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Morph failed');
+    // Steps 1 & 2 — rembg in parallel
+    stepActive(1); stepActive(2);
+    const [noBg1Url, noBg2Url] = await Promise.all([
+      apiRembg(face1b64),
+      apiRembg(face2b64),
+    ]);
+    stepDone(1); stepDone(2);
 
-    progress('Loading morph image…');
-    morphImgObj = new Image();
-    morphImgObj.crossOrigin = 'anonymous';
-    await new Promise((resolve, reject) => {
-      morphImgObj.onload = resolve;
-      morphImgObj.onerror = reject;
-      morphImgObj.src = data.image_url;
-    });
+    const [noBg1b64, noBg2b64] = await Promise.all([
+      falUrlToDataUrl(noBg1Url),
+      falUrlToDataUrl(noBg2Url),
+    ]);
+    const [noBg1Img, noBg2Img] = await Promise.all([
+      loadImg(noBg1b64),
+      loadImg(noBg2b64),
+    ]);
 
-    document.getElementById('resultImg').src = data.image_url;
-    document.getElementById('result').classList.add('active');
-    document.getElementById('progress').classList.remove('active');
-    document.getElementById('btnGo').disabled = false;
+    // Steps 3 & 4 — two-pass morph in parallel
+    // Pass 1: A base + B swap  /  Pass 2: B base + A swap
+    // Blending both 50/50 gives features from both people visible
+    stepActive(3); stepActive(4);
+    const [morph1Url, morph2Url] = await Promise.all([
+      apiMorph(noBg1b64, noBg2b64),
+      apiMorph(noBg2b64, noBg1b64),
+    ]);
+    stepDone(3); stepDone(4);
 
-    renderSlides();
-  } catch (e) {
-    progress('❌ ' + e.message);
-    document.getElementById('btnGo').disabled = false;
+    // Step 5 — blend
+    stepActive(5);
+    const [morph1Img, morph2Img] = await Promise.all([
+      loadImg(morph1Url),
+      loadImg(morph2Url),
+    ]);
+    const blendW = Math.max(morph1Img.width, morph2Img.width);
+    const blendH = Math.max(morph1Img.height, morph2Img.height);
+    const blendC = document.createElement('canvas');
+    blendC.width = blendW; blendC.height = blendH;
+    const blendCtx = blendC.getContext('2d');
+    blendCtx.drawImage(morph1Img, 0, 0, blendW, blendH);
+    blendCtx.globalAlpha = 0.5;
+    blendCtx.drawImage(morph2Img, 0, 0, blendW, blendH);
+    blendCtx.globalAlpha = 1;
+    const blendDataUrl = blendC.toDataURL('image/jpeg', 0.95);
+    const blendImg = await loadImg(blendDataUrl);
+    stepDone(5);
+
+    // Show raw morph download
+    document.getElementById('morphImg').src = blendDataUrl;
+    document.getElementById('morphDlBtn').onclick = () => {
+      const a = document.createElement('a');
+      a.href = blendC.toDataURL('image/png');
+      a.download = 'kbt-morph-' + n1.replace(/\s+/g,'') + '-' + n2.replace(/\s+/g,'') + '.png';
+      a.click();
+    };
+
+    // Step 6 — render slides
+    stepActive(6);
+    await renderSlideA(document.getElementById('slideA'), blendImg, n1, n2);
+    await renderSlideB(document.getElementById('slideB'), noBg1Img, blendImg, noBg2Img, n1, n2);
+    stepDone(6);
+
+    document.getElementById('resultSection').classList.add('active');
+    setTimeout(() => document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' }), 100);
+
+  } catch (err) {
+    for (let i = 1; i <= 6; i++) {
+      if (document.getElementById('s' + i).classList.contains('active')) {
+        stepError(i, err.message); break;
+      }
+    }
+    console.error(err);
   }
+  document.getElementById('btnGo').disabled = false;
 }
 
-// ─── Slide rendering ────────────────────────────────────────────────
-function bg(ctx) {
+// ── Canvas utilities ──────────────────────────────────────────────────────
+
+function drawKbtBg(ctx) {
   const g = ctx.createLinearGradient(0, 0, 0, SH);
   g.addColorStop(0, '#0f172a'); g.addColorStop(1, '#1e293b');
   ctx.fillStyle = g; ctx.fillRect(0, 0, SW, SH);
 }
 
-function sticker(ctx, img, x, y, maxW, maxH, border = 14) {
-  const scale = Math.min(maxW/img.width, maxH/img.height);
-  const w = img.width * scale, h = img.height * scale;
-  const dx = x + (maxW - w) / 2, dy = y + (maxH - h) / 2;
+function drawKbtLogo(ctx) {
+  ctx.save();
+  ctx.font = 'bold 26px "Bowlby One SC", cursive';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText('KNOW', 48, 68);
+  ctx.fillStyle = '#2dd4bf';
+  ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
+  ctx.restore();
+}
+
+/**
+ * Draw a bg-removed image as a floating cutout with white outline + drop shadow.
+ * cx, cy = centre of where to place the sticker.
+ */
+function drawCutoutSticker(ctx, img, cx, cy, maxW, maxH) {
+  const scale = Math.min(maxW / img.width, maxH / img.height);
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const OUTLINE = 10;
+  const PAD = OUTLINE + 6;
+
+  // Build outlined version on offscreen canvas
+  const oc = document.createElement('canvas');
+  oc.width = w + PAD * 2; oc.height = h + PAD * 2;
+  const oct = oc.getContext('2d');
+
+  // Dilate the alpha to create outline
+  for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 10) {
+    for (let r = 1; r <= OUTLINE; r++) {
+      oct.drawImage(img, PAD + Math.round(Math.cos(angle) * r), PAD + Math.round(Math.sin(angle) * r), w, h);
+    }
+  }
+  oct.globalCompositeOperation = 'source-in';
+  oct.fillStyle = '#ffffff';
+  oct.fillRect(0, 0, oc.width, oc.height);
+  oct.globalCompositeOperation = 'source-over';
+  oct.drawImage(img, PAD, PAD, w, h);
+
+  // Draw onto main canvas with drop shadow
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,0.55)';
-  ctx.shadowBlur = 24; ctx.shadowOffsetY = 12;
-  // White border
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(dx - border, dy - border, w + border*2, h + border*2);
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetX = 12;
+  ctx.shadowOffsetY = 18;
+  ctx.drawImage(oc, Math.round(cx - w / 2) - PAD, Math.round(cy - h / 2) - PAD);
+  ctx.restore();
+}
+
+/**
+ * Draw a photo in a white-bordered frame with drop shadow.
+ * For the morph image which has a background.
+ */
+function drawFramedSticker(ctx, img, cx, cy, maxW, maxH) {
+  const scale = Math.min(maxW / img.width, maxH / img.height);
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const dx = Math.round(cx - w / 2);
+  const dy = Math.round(cy - h / 2);
+  const BORDER = 14;
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 34;
+  ctx.shadowOffsetX = 12;
+  ctx.shadowOffsetY = 18;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(dx - BORDER, dy - BORDER, w + BORDER * 2, h + BORDER * 2);
   ctx.restore();
   ctx.drawImage(img, dx, dy, w, h);
 }
 
-function renderSlides() {
-  const n1 = document.getElementById('name1').value || 'Face A';
-  const n2 = document.getElementById('name2').value || 'Face B';
+// ── Slide renderers ───────────────────────────────────────────────────────
 
-  // Slide A
-  const cA = document.getElementById('slideA');
-  cA.width = SW; cA.height = SH;
-  const xA = cA.getContext('2d');
-  bg(xA);
-  xA.fillStyle = '#2dd4bf'; xA.font = 'bold 84px "Bowlby One SC", cursive';
-  xA.textAlign = 'center'; xA.fillText('FACE MORPH', SW/2, 110);
-  xA.fillStyle = '#e2e8f0'; xA.font = '32px Inter, sans-serif';
-  xA.fillText('Who are these two people?', SW/2, 170);
-  sticker(xA, morphImgObj, SW/2 - 380, 220, 760, 760);
+async function renderSlideA(canvas, morphImg, n1, n2) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, SW, SH);
+  drawKbtBg(ctx);
 
-  // Slide B
-  const cB = document.getElementById('slideB');
-  cB.width = SW; cB.height = SH;
-  const xB = cB.getContext('2d');
-  bg(xB);
-  xB.fillStyle = '#fbbf24'; xB.font = 'bold 84px "Bowlby One SC", cursive';
-  xB.textAlign = 'center'; xB.fillText('THE ANSWER', SW/2, 110);
-  const tile = 440, gap = 60;
-  const tw = tile*3 + gap*2;
-  const x0 = (SW - tw) / 2, y0 = 220;
-  sticker(xB, img1Obj, x0, y0, tile, tile);
-  sticker(xB, morphImgObj, x0 + tile + gap, y0, tile, tile);
-  sticker(xB, img2Obj, x0 + (tile + gap)*2, y0, tile, tile);
-  xB.fillStyle = '#e2e8f0'; xB.font = 'bold 36px Inter, sans-serif';
-  xB.fillText(n1, x0 + tile/2, y0 + tile + 60);
-  xB.fillStyle = '#2dd4bf'; xB.fillText('MORPH', x0 + tile + gap + tile/2, y0 + tile + 60);
-  xB.fillStyle = '#e2e8f0'; xB.fillText(n2, x0 + (tile+gap)*2 + tile/2, y0 + tile + 60);
+  // Teal accent bar top
+  ctx.fillStyle = '#2dd4bf';
+  ctx.fillRect(0, 0, SW, 7);
+
+  drawKbtLogo(ctx);
+
+  // Title
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 96px "Bowlby One SC", cursive';
+  ctx.fillStyle = '#2dd4bf';
+  ctx.fillText('FACE MORPH', SW / 2, 160);
+
+  // Subtitle
+  ctx.font = '400 28px "Inter", sans-serif';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('Who are these two people?', SW / 2, 210);
+
+  // Morph centred — large framed
+  drawFramedSticker(ctx, morphImg, SW / 2, SH / 2 + 55, 680, 680);
+
+  // Footer
+  ctx.font = 'bold 20px "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(100,116,139,0.5)';
+  ctx.fillText('KNOW BRAINER TRIVIA', SW / 2, SH - 28);
 }
 
-function downloadResult() {
-  const a = document.createElement('a');
-  a.href = document.getElementById('resultImg').src;
-  a.download = 'kbt-morph.png';
-  a.click();
+async function renderSlideB(canvas, noBg1Img, morphImg, noBg2Img, n1, n2) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, SW, SH);
+  drawKbtBg(ctx);
+
+  // Gold accent bar top
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(0, 0, SW, 7);
+
+  drawKbtLogo(ctx);
+
+  // Title
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 96px "Bowlby One SC", cursive';
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillText('THE ANSWER', SW / 2, 160);
+
+  // Three stickers: Face A | Morph | Face B
+  const TILE = 440, GAP = 64;
+  const TILE_H = 500;
+  const ROW_CY = SH / 2 + 40;
+  const totalW = TILE * 3 + GAP * 2;
+  const x0 = (SW - totalW) / 2 + TILE / 2;
+
+  // Face A — cutout sticker (bg removed, floating)
+  drawCutoutSticker(ctx, noBg1Img, x0, ROW_CY, TILE, TILE_H);
+
+  // Morph — framed photo
+  drawFramedSticker(ctx, morphImg, x0 + TILE + GAP, ROW_CY, TILE, TILE_H);
+
+  // Face B — cutout sticker
+  drawCutoutSticker(ctx, noBg2Img, x0 + (TILE + GAP) * 2, ROW_CY, TILE, TILE_H);
+
+  // Name labels
+  const labelY = ROW_CY + TILE_H / 2 + 62;
+
+  ctx.font = 'bold 40px "Inter", sans-serif';
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText(n1, x0, labelY);
+
+  ctx.font = 'bold 34px "Inter", sans-serif';
+  ctx.fillStyle = '#2dd4bf';
+  ctx.fillText('MORPH', x0 + TILE + GAP, labelY);
+
+  ctx.font = 'bold 40px "Inter", sans-serif';
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillText(n2, x0 + (TILE + GAP) * 2, labelY);
+
+  // Footer
+  ctx.font = 'bold 20px "Inter", sans-serif';
+  ctx.fillStyle = 'rgba(100,116,139,0.5)';
+  ctx.fillText('KNOW BRAINER TRIVIA', SW / 2, SH - 28);
 }
 
-function downloadSlide(which) {
-  const c = document.getElementById('slide' + which);
-  const a = document.createElement('a');
-  a.href = c.toDataURL('image/png');
-  a.download = `kbt-morph-slide-${which}.png`;
-  a.click();
+// ── Downloads ─────────────────────────────────────────────────────────────
+
+function dlSlide(which) {
+  const canvas = document.getElementById('slide' + which);
+  const n1 = document.getElementById('name1').value.replace(/\s+/g, '') || 'FaceA';
+  const n2 = document.getElementById('name2').value.replace(/\s+/g, '') || 'FaceB';
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'kbt-morph-slide' + which + '-' + n1 + '-' + n2 + '.png';
+    a.click();
+  }, 'image/png');
 }
 </script>
 </body>
