@@ -3020,7 +3020,7 @@
                 const rows = await window.kbtData.getQuizItems(ev.id);
                 if (!rows || !rows.length) { console.log('[kbt] no quiz items for', code); return; }
                 const mapped = rows.map(function(r) {
-                    const q = r.question || {};
+                    const q = r.kbt_question || r.question || {};
                     let type = r.quiz_qtype || 'General';
                     const t = String(type).toUpperCase();
                     if (t === 'FREEBIE') type = 'Freebie';
