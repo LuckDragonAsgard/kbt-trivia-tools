@@ -835,7 +835,7 @@ async function loadStats(){
     dbCount('/questions?status=eq.active&question_type=neq.standard'),
     dbCount('/questions?status=eq.draft'),
     fetch(SB+'/questions?status=eq.active&select=category&limit=10000',{headers:H}).then(r=>r.json()),
-    dbCount('/kbt_loc'),dbCount('/kbt_event'),dbCount('/kbt_team'),dbCount('/kbt_sess'),
+    dbCount('/kbt_loc'),dbCount('/kbt_event'),dbCount('/kbt_teams'),dbCount('/kbt_sess'),
   ]);
   document.getElementById('s-q').textContent=qTotal.toLocaleString();
   document.getElementById('s-mm').textContent=qMM+' multimedia questions';
@@ -1504,7 +1504,7 @@ async function loadHosts(){
 
 // ── TEAMS ─────────────────────────────────────────────────────────────
 async function loadTeams(){
-  const teams=await db('/kbt_team?order=id.desc&limit=100&select=id,created_at,team_email,team_prevname');
+  const teams=await db('/kbt_teams?order=created_at.desc&limit=100&select=id,created_at,event_code,team_name,display_name,team_captain,team_code');
   document.getElementById('teams-tbl').innerHTML=`<table class="tbl"><thead><tr><th>ID</th><th>Email</th><th>Name</th><th>Joined</th></tr></thead>
     <tbody>${teams.map(t=>`<tr><td style="color:var(--muted);font-size:11px">${(t.id||'').substring(0,10)}…</td><td>${t.team_email||'—'}</td><td>${t.team_prevname||'—'}</td><td style="color:var(--muted)">${t.created_at?t.created_at.substring(0,10):'—'}</td></tr>`).join('')}</tbody></table>`;
 }
