@@ -548,6 +548,16 @@
             selectedClip: null
         };
 
+        // Preload canvas fonts (Bowlby + Inter) so ctx.font renders correctly
+        function loadFontsForCanvas() {
+            const fonts = [
+                new FontFace('Bowlby One SC', 'url(https://fonts.gstatic.com/s/bowlbyonesc/v22/DtVlJxerQqQm37tzN3wMug9Pzgj8owhNjuE.woff2)', {weight: '400'}),
+                new FontFace('Inter', 'url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2)', {weight: '400'}),
+                new FontFace('Inter', 'url(https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff2)', {weight: '700'}),
+            ];
+            fonts.forEach(f => f.load().then(loaded => document.fonts.add(loaded)).catch(() => {}));
+        }
+
         // Initialize
         function init() {
             state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
