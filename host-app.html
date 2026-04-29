@@ -2148,7 +2148,7 @@
                 try {
                     var all = await window.kbtData.getLiveAnswers(code);
                     if (Array.isArray(all)) {
-                        answers = all.filter(function(r){ return r.round_number == q.round && r.question_number == q.num; });
+                        answers = all.filter(function(r){ return (r.round == q.round || r.round_number == q.round) && r.question_number == q.num; });
                     }
                 } catch(e) { console.warn('[kbt] pairs fetch err', e); }
             }
@@ -2216,7 +2216,7 @@
             if (!code || !window.kbtData) return;
             var all = await window.kbtData.getLiveAnswers(code);
             if (!Array.isArray(all)) return;
-            var relevant = all.filter(function(r){ return r.round_number == round && r.question_number == qNum; });
+            var relevant = all.filter(function(r){ return (r.round == round || r.round_number == round) && r.question_number == qNum; });
             var applied = 0;
             for (var i = 0; i < relevant.length; i++) {
                 var r = relevant[i];
@@ -2696,7 +2696,7 @@
                 var autoCount = 0;
                 listEl.innerHTML = ungraded.map(function(r){
                     var safe = String(r.selected_option || '').replace(/[<>&"]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; });
-                    var correctAns = findCorrectAnswer(r.round_number, r.question_number);
+                    var correctAns = findCorrectAnswer(r.round_number || r.round, r.question_number);
                     var fm = correctAns ? fuzzyMatch(r.selected_option || '', correctAns) : null;
                     if (fm && fm.autoGrade) autoCount++;
                     var fmBadge = fm
