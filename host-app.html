@@ -2463,6 +2463,48 @@
             }
         }
 
+        // ── Incoming answers poller ──────────────────────────────────
+        var _incomingPollerStarted = false;
+        function startIncomingPoller() {
+            if (_incomingPollerStarted) return;
+            _incomingPollerStarted = true;
+            async function pollIncomingAnswers() {
+                if (!window.kbtData || !window.kbtData.getLiveAnswers) return;
+                var qp = document.getElementById('quizPage');
+                if (!qp || !qp.classList.contains('active')) return;
+                var code = window.kbtData.TARGET_EVENT_CODE;
+                var rows = await window.kbtData.getLiveAnswers(code);
+                if (!Array.isArray(rows)) return;
+                var ungraded = rows.filter(function(r){ return r.is_correct === null && r.selected_option; }).slice(0, 50);
+                var countEl = document.getElementById('incCount');
+                var listEl = document.getElementById('incomingList');
+                if (!countEl || !listEl) return;
+                countEl.textContent = ungraded.length;
+                if (!ungraded.length) {
+                    listEl.innerHTML = '<div style="color:#999">No pending answers</div>';
+                    return;
+                }
+                listEl.innerHTML = ungraded.map(function(r){
+                    var safe = String(r.selected_option || '').replace(/[<>&"]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; });
+                    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">'
+                        + '<span style="font-weight:600;min-width:90px;">' + (r.team_name || '?') + '</span>'
+                        + '<span style="background:#eef;padding:2px 6px;border-radius:4px;font-size:11px;">R' + (r.round || '?') + 'Q' + (r.question_number || '?') + '</span>'
+                        + '<span style="flex:1;">' + safe + '</span>'
+                        + '<button onclick="gradeIncoming(\'' + r.id + '\',true,1)" style="background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✓</button>'
+                        + '<button onclick="gradeIncoming(\'' + r.id + '\',false,0)" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✗</button>'
+                        + '</div>';
+                }).join('');
+            }
+            window.gradeIncoming = async function(id, ok, pts) {
+                if (window.kbtData && window.kbtData.gradeLiveAnswer) {
+                    await window.kbtData.gradeLiveAnswer(id, ok, pts);
+                    pollIncomingAnswers();
+                }
+            };
+            setInterval(pollIncomingAnswers, 3000);
+            pollIncomingAnswers(); // fire immediately on first call
+        }
+
         function displayQuestion() {
             const q = questions[currentQuestion];
             const display = document.getElementById('questionDisplay');
@@ -2497,47 +2539,6 @@
     <div style="color:#999">Waiting for player submissions…</div>
   </div>
 </div>
-<script>
-(function(){
-  var lastIds = new Set();
-  async function poll(){
-    if (!window.kbtData || !window.kbtData.getLiveAnswers) return;
-    var code = window.kbtData.TARGET_EVENT_CODE;
-    var rows = await window.kbtData.getLiveAnswers(code);
-    if (!Array.isArray(rows)) return;
-    // Show only ungraded + recent (last 50)
-    var ungraded = rows.filter(function(r){ return r.is_correct === null && r.selected_option; }).slice(0, 50);
-    document.getElementById('incCount').textContent = ungraded.length;
-    var listEl = document.getElementById('incomingList');
-    if (!ungraded.length) {
-      listEl.innerHTML = '<div style="color:#999">No pending answers</div>';
-      return;
-    }
-    listEl.innerHTML = ungraded.map(function(r){
-      var safe = String(r.selected_option || '').replace(/[<>&"]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; });
-      return ''
-        + '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eee;">'
-        + '<span style="font-weight:600;min-width:90px;">' + (r.team_name || '?') + '</span>'
-        + '<span style="background:#eef;padding:2px 6px;border-radius:4px;font-size:11px;">R' + (r.round || '?') + 'Q' + (r.question_number || '?') + '</span>'
-        + '<span style="flex:1;">' + safe + '</span>'
-        + '<button onclick="gradeIncoming(\''+r.id+'\',true,1)" style="background:#10b981;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✓</button>'
-        + '<button onclick="gradeIncoming(\''+r.id+'\',false,0)" style="background:#ef4444;color:#fff;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px;">✗</button>'
-        + '</div>';
-    }).join('');
-  }
-  window.gradeIncoming = async function(id, ok, pts){
-    if (window.kbtData && window.kbtData.gradeLiveAnswer) {
-      await window.kbtData.gradeLiveAnswer(id, ok, pts);
-      poll();
-    }
-  };
-  // Poll every 3 seconds while quiz tab is open
-  setInterval(function(){
-    var qp = document.getElementById('quizPage');
-    if (qp && qp.classList && qp.classList.contains('active')) poll();
-  }, 3000);
-})();
-<\/script>
 `}
                     <div class="fun-fact-toggle" onclick="this.classList.toggle('expanded')">
                         💡 Fun Fact
@@ -2546,6 +2547,7 @@
                 </div>
             `;
             if (q.type === 'Gambler') renderWagerPanel(q); else renderMarkPanel(q);
+            startIncomingPoller();
             document.getElementById('currentQuestion').textContent = currentQuestion + 1;
             document.getElementById('totalQuestions').textContent = questions.length;
             document.getElementById('prevBtn').disabled = currentQuestion === 0;
