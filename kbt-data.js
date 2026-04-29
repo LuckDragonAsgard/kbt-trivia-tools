@@ -325,6 +325,55 @@
       return live.gradeLiveAnswer ? live.gradeLiveAnswer(id, isCorrect, points) : null;
     },
 
+
+    async recordVenueUsage(eventCode, questions) {
+      // Batch-insert usage records for all questions in the current event+venue
+      // questions: array of { id: questionDbId, round, num, slot? }
+      // We need the event's loc_id — fetch it from kbt_event
+      if (getMode() !== 'live') return;
+      try {
+        const evRes = await fetch(
+          BASE + '/rest/v1/kbt_event?event_code=eq.' + encodeURIComponent(eventCode) + '&select=id,event_location_id&limit=1',
+          { headers: H }
+        );
+        const evRows = await evRes.json();
+        if (!evRows || !evRows.length) return;
+        const evId  = evRows[0].id;
+        const locId = evRows[0].event_location_id;
+        if (!locId) return;
+        const records = questions.map(function(q) {
+          return {
+            question_id: q.dbId || q.id,
+            loc_id:      locId,
+            event_id:    evId,
+            used_on:     new Date().toISOString().slice(0, 10),
+            slot:        (q.round ? 'R' + q.round + 'Q' + (q.num || q.number) : null)
+          };
+        }).filter(function(r){ return r.question_id; });
+        if (!records.length) return;
+        await fetch(BASE + '/rest/v1/kbt_question_venue_usage', {
+          method: 'POST',
+          headers: Object.assign({}, H, { Prefer: 'resolution=ignore-duplicates' }),
+          body: JSON.stringify(records)
+        });
+        console.log('[kbt] recorded venue usage for', records.length, 'questions at loc', locId);
+      } catch(e) { console.warn('[kbt] recordVenueUsage failed:', e.message); }
+    },
+
+    async getVenueCooldowns(questionIds, locId) {
+      // Returns array of { question_id, last_used, days_ago, in_cooldown } for any questions
+      // that have been used at this venue before
+      if (!questionIds || !questionIds.length || !locId) return [];
+      try {
+        const ids = questionIds.join(',');
+        const res = await fetch(
+          BASE + '/rest/v1/kbt_question_venue_cooldown?question_id=in.(' + ids + ')&loc_id=eq.' + locId,
+          { headers: H }
+        );
+        return await res.json();
+      } catch(e) { console.warn('[kbt] getVenueCooldowns failed:', e.message); return []; }
+    },
+
     shapeQuestion(row){
       const q = row.kbt_question || {};
       return {
