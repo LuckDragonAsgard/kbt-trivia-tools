@@ -2648,15 +2648,18 @@
             var s = submitted.toLowerCase().replace(/[^a-z0-9]/g,'');
             var c = correct.toLowerCase().replace(/[^a-z0-9]/g,'');
             if (!s || !c) return { score: 0, label: 'no answer', color: '#999' };
-            // Exact match bonus
-            if (s === c) return { score: 1.0, label: '✓ exact', color: '#059669', autoGrade: true };
-            // Check if correct is contained in submitted or vice versa
-            if (s.includes(c) || c.includes(s)) return { score: 0.9, label: '~exact', color: '#059669', autoGrade: true };
+            if (s === c) return { score: 1.0, label: '\u2713 exact', color: '#059669', autoGrade: true };
+            // Substring only counts if shorter string is >=80% the length of the longer
+            // (prevents "Sherlock" falsely matching "Sherlock Holmes")
+            if (s.includes(c) || c.includes(s)) {
+                var ratio = Math.min(s.length, c.length) / Math.max(s.length, c.length);
+                if (ratio >= 0.8) return { score: 0.9, label: '~exact', color: '#059669', autoGrade: true };
+            }
             var maxLen = Math.max(s.length, c.length);
             var dist = levenshtein(s, c);
             var score = 1 - (dist / maxLen);
-            if (score >= 0.8) return { score: score, label: Math.round(score*100)+'%', color: '#16a34a', autoGrade: true };
-            if (score >= 0.6) return { score: score, label: Math.round(score*100)+'%', color: '#ca8a04', autoGrade: false };
+            if (score >= 0.75) return { score: score, label: Math.round(score*100)+'%', color: '#16a34a', autoGrade: true };
+            if (score >= 0.55) return { score: score, label: Math.round(score*100)+'%', color: '#ca8a04', autoGrade: false };
             return { score: score, label: Math.round(score*100)+'%', color: '#dc2626', autoGrade: false };
         }
 
