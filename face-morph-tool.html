@@ -400,26 +400,35 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
     if (pts.length < 3) continue;
     const hull = convexHull(pts);
     const centroid = hull.reduce((acc,p)=>({x:acc.x+p.x/hull.length,y:acc.y+p.y/hull.length}),{x:0,y:0});
-    // Expand hull outward by ~30px for clean coverage
-    const pad = 32;
+    // Slight expansion so feathering starts just outside the landmark boundary
+    const pad = 14;
     const expanded = hull.map(p => {
       const dx=p.x-centroid.x, dy=p.y-centroid.y;
       const d=Math.hypot(dx,dy)||1;
       return {x:p.x+dx/d*pad, y:p.y+dy/d*pad};
     });
+    // Feathered erase: blur creates a soft gradient at the feature edge
+    // so the two faces blend seamlessly rather than hard-cutting
+    ctxB.filter = 'blur(22px)';
     ctxB.beginPath();
     ctxB.moveTo(expanded[0].x, expanded[0].y);
     for (let i=1;i<expanded.length;i++) ctxB.lineTo(expanded[i].x, expanded[i].y);
     ctxB.closePath();
     ctxB.fill();
+    ctxB.filter = 'none';
   }
 
   // ── Composite: Face A (base) + Face B (top, with erasures) ──
   const out = document.createElement('canvas');
   out.width = w; out.height = h;
   const ctx = out.getContext('2d');
-  ctx.drawImage(imgBase, 0, 0); // Face A
-  ctx.drawImage(cB, 0, 0);       // Face B (erased regions transparent → Face A shows)
+  ctx.drawImage(imgBase, 0, 0); // Face A base
+  ctx.drawImage(cB, 0, 0);       // Face B with feathered erasures (Face A shows through)
+  // Soft reconciliation pass: draw Face A at low opacity to blend any
+  // remaining hard seams at feature boundaries
+  ctx.globalAlpha = 0.10;
+  ctx.drawImage(imgBase, 0, 0);
+  ctx.globalAlpha = 1.0;
   return out;
 }
 
