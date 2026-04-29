@@ -2823,6 +2823,7 @@
             document.getElementById('currentQuestion').textContent = currentQuestion + 1;
             document.getElementById('totalQuestions').textContent = questions.length;
             document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = currentQuestion === questions.length - 1;
             const rl = document.getElementById('roundLabel');
             if (rl && q.round) rl.textContent = 'Round ' + q.round;
         }
