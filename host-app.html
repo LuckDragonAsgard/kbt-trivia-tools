@@ -93,6 +93,26 @@
         .wager-lock-btn { width: 100%; padding: 12px; background: #ff3860; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; }
         .wager-lock-btn:disabled { opacity: .5; cursor: not-allowed; }
         .wager-locked-status { background: #d4edda; color: #155724; padding: 8px; border-radius: 6px; text-align: center; font-size: 13px; margin-top: 8px; }
+        /* Gambler Pairs question type */
+        .badge-gambler-pairs { background: #7c3aed !important; color: #fff !important; }
+        .special-gambler-pairs { background: #ede9fe; color: #4c1d95; border: 1px solid #c4b5fd; }
+        .gambler-pairs-panel { background: #f5f3ff; border: 2px solid #7c3aed; border-radius: 12px; padding: 16px; margin: 16px 0; }
+        .gambler-pairs-panel h4 { color: #7c3aed; margin: 0 0 12px; font-size: 16px; }
+        .pairs-correct-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+        .pair-answer-badge { display: flex; flex-direction: column; align-items: center; background: #fff; border: 2px solid #7c3aed; border-radius: 8px; padding: 6px 10px; min-width: 58px; }
+        .pair-ltr { font-weight: 800; font-size: 18px; color: #7c3aed; line-height: 1; }
+        .pair-opt { font-weight: 700; font-size: 12px; color: #059669; margin-top: 2px; }
+        .pair-full-ans { font-size: 10px; color: #555; margin-top: 2px; text-align: center; max-width: 80px; word-break: break-word; }
+        .pairs-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+        .pairs-table th, .pairs-table td { padding: 6px 8px; border: 1px solid #e5e7eb; text-align: center; }
+        .pairs-table th { background: #ede9fe; color: #4c1d95; font-weight: 700; }
+        .pairs-table tr:nth-child(even) { background: #faf8ff; }
+        .pair-cell { padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 12px; }
+        .pair-correct { background: #d1fae5; color: #065f46; }
+        .pair-wrong   { background: #fee2e2; color: #991b1b; }
+        .pairs-apply-btn { width: 100%; padding: 11px; background: #7c3aed; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; }
+        .pairs-apply-btn:hover { background: #6d28d9; }
+        .pairs-status { background: #d1fae5; color: #065f46; padding: 8px; border-radius: 6px; text-align: center; font-size: 13px; margin-top: 8px; }
         .badge-bonus { background: #7c3aed !important; color: #fff !important; }
         .special-question-banner {
             margin: 12px 0; padding: 10px 14px; border-radius: 8px;
@@ -100,6 +120,7 @@
         }
         .special-freebie { background: #fef3c7; color: #92400e; }
         .special-gambler { background: #fee2e2; color: #991b1b; }
+        .special-gambler-pairs { background: #ede9fe; color: #4c1d95; }
         .special-bonus { background: #ede9fe; color: #5b21b6; }
 
         /* Scoring inputs */
@@ -2074,6 +2095,143 @@
             if (typeof renderScoreTable === 'function') renderScoreTable();
         }
 
+        // ── Gambler Pairs ──────────────────────────────────────────────────────────
+        function parseGamblerPairsAnswers(answerText) {
+            // e.g. "A1)\nB2)\nC2)\nD1)\nE1)" → { A:'1', B:'2', C:'2', D:'1', E:'1' }
+            var correct = {};
+            (answerText || '').split('\n').forEach(function(line) {
+                var m = line.match(/^([A-E])(\d)\)/);
+                if (m) correct[m[1]] = m[2];
+            });
+            return correct;
+        }
+
+        function parseTeamPairsSelection(text) {
+            // Accept: "A1,B2,C2,D1,E1" or "A1 B2 C2 D1 E1" or "A:1,B:2..."
+            var sel = {};
+            if (!text) return sel;
+            var parts = text.toUpperCase().split(/[,\s]+/);
+            parts.forEach(function(p) {
+                var m = p.match(/^([A-E]):?(\d)/);
+                if (m) sel[m[1]] = m[2];
+            });
+            return sel;
+        }
+
+        function calcGamblerPairsScore(teamSel, correct) {
+            var letters = Object.keys(teamSel);
+            if (!letters.length) return { score: 0, correct: 0, wrong: 0, details: {} };
+            var correctCount = 0, wrongCount = 0, details = {};
+            letters.forEach(function(ltr) {
+                if (correct[ltr]) {
+                    if (teamSel[ltr] === correct[ltr]) { correctCount++; details[ltr] = 'correct'; }
+                    else { wrongCount++; details[ltr] = 'wrong'; }
+                }
+            });
+            return { score: wrongCount > 0 ? 0 : correctCount, correct: correctCount, wrong: wrongCount, details: details };
+        }
+
+        async function renderGamblerPairsPanel(q) {
+            var panel = document.getElementById('gamblerPairsPanel');
+            if (!panel) return;
+            var correct = parseGamblerPairsAnswers(q.answer || '');
+            var pairLabels = ['A','B','C','D','E'];
+            var clues = (q.text || '').split('\n').filter(function(l){ return l.trim(); });
+            var fullAnswers = {};
+            (q.supportText || '').split('\n').forEach(function(line) {
+                var m = line.match(/^([A-E])\d\)\s*(.+)/);
+                if (m) fullAnswers[m[1]] = m[2];
+            });
+            var answers = [];
+            if (window.kbtData && window.kbtData.getLiveAnswers) {
+                var code = window.kbtData.TARGET_EVENT_CODE;
+                try {
+                    var all = await window.kbtData.getLiveAnswers(code);
+                    if (Array.isArray(all)) {
+                        answers = all.filter(function(r){ return r.round_number == q.round && r.question_number == q.num; });
+                    }
+                } catch(e) { console.warn('[kbt] pairs fetch err', e); }
+            }
+            var html = '<h4>\u{1F0CF} Gambler Pairs \u2014 Round ' + q.round + ', Q' + q.num + '</h4>';
+            html += '<div class="pairs-correct-row">';
+            pairLabels.forEach(function(ltr, i) {
+                var opt = correct[ltr] || '?';
+                var fa = fullAnswers[ltr] || '';
+                html += '<div class="pair-answer-badge" title="' + (clues[i]||'').replace(/"/g,"'") + '">'
+                     + '<span class="pair-ltr">' + ltr + '</span>'
+                     + '<span class="pair-opt">\u2713' + opt + '</span>'
+                     + (fa ? '<span class="pair-full-ans">' + fa + '</span>' : '')
+                     + '</div>';
+            });
+            html += '</div>';
+            if (!answers.length) {
+                html += '<div style="color:#999;font-size:13px;padding:8px 0;">No submissions yet for this question. Player answers will appear here.</div>';
+            } else {
+                html += '<table class="pairs-table"><thead><tr><th>Team</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>Score</th><th>Override</th><th>Apply</th></tr></thead><tbody>';
+                answers.forEach(function(r) {
+                    var teamSel = parseTeamPairsSelection(r.selected_option || '');
+                    var result  = calcGamblerPairsScore(teamSel, correct);
+                    html += '<tr>';
+                    html += '<td style="font-weight:600;text-align:left;">' + (r.team_name || '?') + '</td>';
+                    pairLabels.forEach(function(ltr) {
+                        if (teamSel[ltr]) {
+                            var ok = teamSel[ltr] === correct[ltr];
+                            html += '<td><span class="pair-cell ' + (ok ? 'pair-correct' : 'pair-wrong') + '">' + ltr + teamSel[ltr] + '</span></td>';
+                        } else {
+                            html += '<td style="color:#ccc;">\u2014</td>';
+                        }
+                    });
+                    var scoreDisp = result.wrong > 0
+                        ? '<span style="color:#dc3545;font-weight:700;">0 \u26a0</span>'
+                        : '<span style="color:#28a745;font-weight:700;">' + result.score + '</span>';
+                    html += '<td>' + scoreDisp + '</td>';
+                    html += '<td><input type="number" id="pairs_ov_' + r.id + '" min="0" max="5" value="' + result.score
+                         + '" style="width:42px;padding:3px;border:1px solid #ddd;border-radius:4px;font-size:12px;text-align:center;"></td>';
+                    html += '<td><button onclick="applyGamblerPairsScore(' + JSON.stringify(r.id) + ')" '
+                         + 'style="background:#7c3aed;color:#fff;border:none;padding:4px 9px;border-radius:4px;cursor:pointer;font-size:12px;">\u2713</button></td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+                html += '<button class="pairs-apply-btn" onclick="applyAllGamblerPairs(' + q.round + ',' + q.num + ')">Apply All Auto-Grades</button>';
+            }
+            html += '<div id="gamblerPairsStatus"></div>';
+            panel.innerHTML = html;
+        }
+
+        async function applyGamblerPairsScore(answerId) {
+            var ovEl = document.getElementById('pairs_ov_' + answerId);
+            var pts  = ovEl ? (parseInt(ovEl.value) || 0) : 0;
+            if (window.kbtData && window.kbtData.gradeLiveAnswer) {
+                await window.kbtData.gradeLiveAnswer(answerId, pts > 0, pts);
+            }
+            var st = document.getElementById('gamblerPairsStatus');
+            if (st) st.innerHTML = '<div class="pairs-status">\u2713 Score applied (' + pts + ' pts)</div>';
+        }
+
+        async function applyAllGamblerPairs(round, qNum) {
+            var q = questions[currentQuestion];
+            if (!q) return;
+            var correct = parseGamblerPairsAnswers(q.answer || '');
+            var code = window.kbtData && window.kbtData.TARGET_EVENT_CODE;
+            if (!code || !window.kbtData) return;
+            var all = await window.kbtData.getLiveAnswers(code);
+            if (!Array.isArray(all)) return;
+            var relevant = all.filter(function(r){ return r.round_number == round && r.question_number == qNum; });
+            var applied = 0;
+            for (var i = 0; i < relevant.length; i++) {
+                var r = relevant[i];
+                var teamSel = parseTeamPairsSelection(r.selected_option || '');
+                var result  = calcGamblerPairsScore(teamSel, correct);
+                var ovEl = document.getElementById('pairs_ov_' + r.id);
+                var pts = ovEl ? (parseInt(ovEl.value) || 0) : result.score;
+                await window.kbtData.gradeLiveAnswer(r.id, pts > 0, pts);
+                applied++;
+            }
+            var st = document.getElementById('gamblerPairsStatus');
+            if (st) st.innerHTML = '<div class="pairs-status">\u2713 Applied auto-grades for ' + applied + ' team(s)</div>';
+        }
+
+
         let teams = [];
         let _activeRounds = [1, 2, 3];
         let _questionMarks = {};
@@ -2476,7 +2634,10 @@
                 var rows = await window.kbtData.getLiveAnswers(code);
                 if (!Array.isArray(rows)) return;
                 var ungraded = rows.filter(function(r){ return r.is_correct === null && r.selected_option; }).slice(0, 50);
-                var countEl = document.getElementById('incCount');
+                // Refresh Gambler Pairs panel if that's the active type
+            var qNow = questions && questions[currentQuestion];
+            if (qNow && qNow.type === 'Gambler Pairs') { renderGamblerPairsPanel(qNow); }
+            var countEl = document.getElementById('incCount');
                 var listEl = document.getElementById('incomingList');
                 if (!countEl || !listEl) return;
                 countEl.textContent = ungraded.length;
@@ -2516,6 +2677,9 @@
             } else if (q.type === 'Gambler') {
                 badgeClass = 'badge-type badge-gambler';
                 banner = '<div class="special-question-banner special-gambler">🎲 Gambler — teams wager points on this one</div>';
+            } else if (q.type === 'Gambler Pairs') {
+                badgeClass = 'badge-type badge-gambler-pairs';
+                banner = '<div class="special-question-banner special-gambler-pairs">🃏 Gambler Pairs — teams pick 1 or 2 for each of 5 clues (all-or-nothing scoring)</div>';
             } else if (q.type === 'Bonus') {
                 badgeClass = 'badge-type badge-bonus';
                 banner = '<div class="special-question-banner special-bonus">🎯 Bonus round — separate answer sheet</div>';
@@ -2546,7 +2710,7 @@
                     </div>
                 </div>
             `;
-            if (q.type === 'Gambler') renderWagerPanel(q); else renderMarkPanel(q);
+            if (q.type === 'Gambler') renderWagerPanel(q); else if (q.type === 'Gambler Pairs') { renderGamblerPairsPanel(q); } else renderMarkPanel(q);
             startIncomingPoller();
             document.getElementById('currentQuestion').textContent = currentQuestion + 1;
             document.getElementById('totalQuestions').textContent = questions.length;
@@ -2761,6 +2925,7 @@
                     if (t === 'FREEBIE') type = 'Freebie';
                     else if (t === 'BONUS' || t === 'BONUS_HT') type = 'Bonus';
                     else if (t === 'GAMBLER') type = 'Gambler';
+                    else if (t === 'GAMBLER PAIRS') type = 'Gambler Pairs';
                     else type = type.charAt(0) + type.slice(1).toLowerCase();
                     return {
                         round: r.quiz_item_round,
@@ -2770,7 +2935,8 @@
                         text: (q.question_question_text || ''),
                         answer: (q.question_answer_text || ''),
                         type: type,
-                        funFact: (q.question_fun_fact || q.question_question_supporttext || '')
+                        funFact: (q.question_fun_fact || q.question_question_supporttext || ''),
+                        supportText: (q.question_answer_supporttext || '')
                     };
                 });
                 mapped.sort(function(a,b){
