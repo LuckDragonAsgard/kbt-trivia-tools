@@ -513,8 +513,8 @@ generateBtn.addEventListener('click', async () => {
     workCtx.drawImage(noBgImg, 0, 0, W, H);
     let noBgData = workCtx.getImageData(0, 0, W, H);
 
-    // Harden alpha
-    hardenAlpha(noBgData, 180);
+    // Soft edge clean: remove stray near-transparent pixels, feather remaining edges
+    smoothEdges(noBgData);
     workCtx.putImageData(noBgData, 0, 0);
 
     // Crop to head
@@ -627,6 +627,33 @@ function hardenAlpha(imageData, threshold) {
   }
 }
 
+function smoothEdges(imageData) {
+  // Pass 1: kill stray pixels (alpha < 30 → 0, alpha > 220 → 255)
+  const d = imageData.data;
+  const w = imageData.width, h = imageData.height;
+  for (let i = 3; i < d.length; i += 4) {
+    if (d[i] < 30) d[i] = 0;
+    else if (d[i] > 220) d[i] = 255;
+  }
+  // Pass 2: 3×3 box blur on alpha only (softens the jagged edge)
+  const alpha = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) alpha[i] = d[i * 4 + 3];
+  const blurred = new Uint8Array(w * h);
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let sum = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++)
+          sum += alpha[(y + dy) * w + (x + dx)];
+      blurred[y * w + x] = Math.round(sum / 9);
+    }
+  }
+  // Copy blurred alpha back, preserving fully transparent
+  for (let i = 0; i < w * h; i++) {
+    if (alpha[i] > 0) d[i * 4 + 3] = blurred[i];
+  }
+}
+
 function buildSplineCut(leftCenter, rightCenter, leftTop, rightTop, leftEyePts, rightEyePts, fx, fy, fw, fh, imgW, imgH) {
   const leftEyeW = Math.max(...leftEyePts.map(p => p.x)) - Math.min(...leftEyePts.map(p => p.x));
   const rightEyeW = Math.max(...rightEyePts.map(p => p.x)) - Math.min(...rightEyePts.map(p => p.x));
@@ -720,7 +747,7 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   contentCtx.drawImage(srcCanvas, bounds.left, bounds.top, contentW, contentH, 0, 0, contentW, contentH);
 
   // Add white outline (dilate alpha, draw white behind)
-  const OUTLINE = 9;
+  const OUTLINE = 12;
   const outlinedW = contentW + OUTLINE * 2;
   const outlinedH = contentH + OUTLINE * 2;
 
@@ -742,7 +769,7 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
 
   // Turn the expanded area white
   outlineCtx.globalCompositeOperation = 'source-in';
-  outlineCtx.fillStyle = '#e5e7eb';
+  outlineCtx.fillStyle = '#ffffff';
   outlineCtx.fillRect(0, 0, outlinedW, outlinedH);
 
   // Draw original on top
@@ -750,7 +777,7 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   outlineCtx.drawImage(contentCanvas, OUTLINE, OUTLINE);
 
   // Add drop shadow
-  const SHADOW_OX = 14, SHADOW_OY = 16, SHADOW_BLUR = 20, SHADOW_OPACITY = 0.43;
+  const SHADOW_OX = 10, SHADOW_OY = 14, SHADOW_BLUR = 28, SHADOW_OPACITY = 0.55;
   const pad = SHADOW_BLUR * 2 + Math.max(SHADOW_OX, SHADOW_OY);
   const shadowW = outlinedW + pad * 2;
   const shadowH = outlinedH + pad * 2;
@@ -853,29 +880,4 @@ function setupDownload(btnId, canvas, filename) {
 }
 
 async function generateCelebHints() {
-  const nameInput = document.getElementById('nameInput');
-  const celebrity = nameInput ? nameInput.value.trim() : '';
-  if (!celebrity) { alert('Enter the celebrity name first!'); return; }
-  const btn = document.getElementById('aiHintBtn');
-  const panel = document.getElementById('aiHintPanel');
-  btn.disabled = true; btn.textContent = '⏳ Writing hints...';
-  try {
-    const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ tool: 'brain-hint', celebrity })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);panel.innerHTML = data.hints || data.text || data.result || JSON.stringify(data);
-    panel.style.display = 'block';
-  } catch(e) {
-    panel.innerHTML = '⚠️ ' + e.message;
-    panel.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '🤖 AI Generate Hints for Host';
-  }
-}
-</script>
-</body>
-</html>
+  const nameInput = document
