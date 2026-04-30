@@ -506,14 +506,9 @@
             const canvas = document.getElementById('export-canvas');
             const answer = document.getElementById('answer').value.trim();
 
-            // Set preview to correct version
-            if (version === 'A') {
-                document.getElementById('rebus-container').style.display = 'flex';
-                document.getElementById('answer-reveal').style.display = 'none';
-            } else {
-                document.getElementById('rebus-container').style.display = 'none';
-                document.getElementById('answer-reveal').style.display = 'block';
-            }
+            // Set preview to correct version and populate content
+            currentPreview = version;
+            updatePreview();
 
             const wrapper = document.getElementById('canvas-wrapper');
             // Reset transform for capture
