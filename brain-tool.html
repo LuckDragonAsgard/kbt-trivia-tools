@@ -266,7 +266,7 @@
 
 <div class="container">
   <div class="first-load-warning" id="firstLoadWarn">
-    ⚡ First run downloads the AI model (~40MB). After that it's cached and instant.
+    ⚡ First run downloads the AI model (~170MB high-quality). After that it's cached and instant.
   </div>
 
   <div class="drop-zone" id="dropZone">
@@ -314,7 +314,7 @@
 <!-- face-api.js for face/eye detection -->
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 <script type="module">
-import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
+import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
 
 // ── State ──
 let uploadedFile = null;
@@ -450,7 +450,7 @@ generateBtn.addEventListener('click', async () => {
     let blob;
     try {
       blob = await withTimeout(
-        removeBackground(uploadedFile, { output: { format: 'image/png' } }),
+        removeBackground(uploadedFile, { model: 'isnet', output: { format: 'image/png' } }),
         180000,
         'Background removal timed out after 3 minutes — try a smaller image or check your connection'
       );
@@ -515,6 +515,8 @@ generateBtn.addEventListener('click', async () => {
 
     // Soft edge clean: remove stray near-transparent pixels, feather remaining edges
     smoothEdges(noBgData);
+    // Erode mask by 1px to strip colour fringing at edges
+    erodeMask(noBgData, 1);
     workCtx.putImageData(noBgData, 0, 0);
 
     // Crop to head
@@ -651,6 +653,31 @@ function smoothEdges(imageData) {
   // Copy blurred alpha back, preserving fully transparent
   for (let i = 0; i < w * h; i++) {
     if (alpha[i] > 0) d[i * 4 + 3] = blurred[i];
+  }
+}
+
+function erodeMask(imageData, radius) {
+  // Shrink the alpha mask by `radius` pixels to eliminate colour fringing
+  const d = imageData.data;
+  const w = imageData.width, h = imageData.height;
+  const orig = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) orig[i] = d[i * 4 + 3];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (orig[y * w + x] === 0) continue; // already transparent
+      // If any neighbour within radius is transparent, zero this pixel
+      let erode = false;
+      outer: for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h || orig[ny * w + nx] === 0) {
+            erode = true;
+            break outer;
+          }
+        }
+      }
+      if (erode) d[(y * w + x) * 4 + 3] = 0;
+    }
   }
 }
 
@@ -840,44 +867,4 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   const y = Math.round(SAFE_TOP + (SAFE_ZONE_H - finalH) / 2);
 
   finalCtx.drawImage(shadowCanvas,
-    sBounds.left, sBounds.top, sContentW, sContentH,
-    x, y, finalW, finalH
-  );
-
-  return finalCanvas;
-}
-
-function getAlphaBounds(imageData) {
-  const w = imageData.width, h = imageData.height, d = imageData.data;
-  let top = h, bottom = 0, left = w, right = 0;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      if (d[(y * w + x) * 4 + 3] > 10) {
-        if (y < top) top = y;
-        if (y > bottom) bottom = y;
-        if (x < left) left = x;
-        if (x > right) right = x;
-      }
-    }
-  }
-  if (top > bottom) return null;
-  return { top, bottom, left, right };
-}
-
-function setupDownload(btnId, canvas, filename) {
-  const btn = document.getElementById(btnId);
-  btn.onclick = (e) => {
-    e.preventDefault();
-    canvas.toBlob(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/png');
-  };
-}
-
-async function generateCelebHints() {
-  const nameInput = document
+    sBounds.left, sBounds.top, sContentW, 
