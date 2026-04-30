@@ -21,7 +21,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
 
         header {
-            background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
@@ -55,7 +55,7 @@
 
         .panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #2dd4bf;
+            color: #2563eb;
             font-size: 1.4em;
             margin-bottom: 16px;
             border-bottom: 2px solid #ddd;
@@ -80,7 +80,7 @@
             font-family: 'Londrina Solid', cursive;
             font-size: 1.1em;
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2dd4bf; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2563eb; }
 
         textarea { min-height: 80px; resize: vertical; }
 
@@ -106,8 +106,8 @@
             transition: border-color 0.2s;
         }
 
-        .image-slot:hover { border-color: #2dd4bf; }
-        .image-slot.loaded { border-style: solid; border-color: #2dd4bf; }
+        .image-slot:hover { border-color: #2563eb; }
+        .image-slot.loaded { border-style: solid; border-color: #2563eb; }
 
         .image-slot img {
             width: 100%;
@@ -169,14 +169,14 @@
             margin-top: 10px;
         }
 
-        .btn-export { background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); color: #fff; }
+        .btn-export { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; }
         .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); }
         .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .add-slot-btn {
             background: rgba(0, 102, 204, 0.1);
-            border: 2px solid #2dd4bf;
-            color: #2dd4bf;
+            border: 2px solid #2563eb;
+            color: #2563eb;
             border-radius: 8px;
             padding: 8px;
             font-family: 'Luckiest Guy', cursive;
@@ -205,7 +205,7 @@
         .preview-header h2 {
             margin: 0;
             font-family: 'Luckiest Guy', cursive;
-            color: #2dd4bf;
+            color: #2563eb;
             font-size: 1.3em;
             border: none;
             padding: 0;
@@ -228,9 +228,9 @@
         }
 
         .toggle-btn.active {
-            background: #2dd4bf;
+            background: #2563eb;
             color: #fff;
-            border-color: #2dd4bf;
+            border-color: #2563eb;
         }
 
         .canvas-wrapper {
@@ -261,7 +261,7 @@
             border: 1px solid #ddd;
             margin-top: 12px;
         }
-        .export-hint strong { color: #2dd4bf; }
+        .export-hint strong { color: #2563eb; }
 
         .kbt-watermark {
             position: absolute;
@@ -276,15 +276,14 @@
         #export-canvas {
             width: 1920px;
             height: 1080px;
-            background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+            background: #ffffff;
             position: relative;
             font-family: 'Bowlby One SC', cursive;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-image: linear-gradient(0deg, rgba(45,212,191,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(45,212,191,0.04) 1px, transparent 1px);
-            background-size: 40px 40px;
+            
         }
 
         #export-canvas::before {
@@ -292,7 +291,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 7px;
-            background: #2dd4bf;
+            background: #2563eb;
             z-index: 10;
         }
 
@@ -311,8 +310,8 @@
             border-radius: 12px;
             object-fit: contain;
             background: rgba(0, 0, 0, 0.05);
-            outline: 8px solid #ffffff;
-            filter: drop-shadow(0 12px 28px rgba(0,0,0,0.45));
+            outline: 8px solid #e5e7eb;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
         }
 
         .answer-text {
@@ -330,7 +329,7 @@
             top: 80px;
             font-family: 'Bowlby One SC', cursive;
             font-size: 36px;
-            color: #2dd4bf;
+            color: #2563eb;
             text-align: center;
             max-width: 90%;
         }
@@ -339,18 +338,18 @@
 <body>
     <div class="container">
         <header>
-            <h1>🔐 CRACK THE CODE ✨ AI-Powered</h1>
-            <div class="header-subtitle">Upload rebus images — players guess the answer!</div>
+            <h1>ð CRACK THE CODE â¨ AI-Powered</h1>
+            <div class="header-subtitle">Upload rebus images â players guess the answer!</div>
         </header>
 
         <div class="main-content">
             <!-- LEFT PANEL -->
             <div class="panel">
-                <h2>⚙️ Setup</h2>
+                <h2>âï¸ Setup</h2>
 
                 <label>Answer (What players guess)</label>
                 <input type="text" id="answer" placeholder="e.g. Sandra Bullock" maxlength="50" />
-                <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Rebus Ideas</button>
+                <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Suggest Rebus Ideas</button>
                 <div id="aiRebusPanel" style="display:none;margin-top:10px;background:#1a0a2e;border:1px solid #6c3fc5;border-radius:10px;padding:14px;font-size:13px;color:#d4b8ff;line-height:1.7;white-space:pre-wrap;"></div>
 
                 <label>Rebus Images (Click to add)</label>
@@ -363,12 +362,12 @@
                 <div class="status-bar" id="status-bar">Add at least 1 image to export</div>
 
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
-                    <div style="font-family: 'Bowlby One SC', cursive; color: #2dd4bf; margin-bottom: 8px;">Export Images</div>
+                    <div style="font-family: 'Bowlby One SC', cursive; color: #2563eb; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
-                        🔴 Export A — Question
+                        ð´ Export A â Question
                     </button>
                     <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
-                        🟢 Export B — Reveal
+                        ð¢ Export B â Reveal
                     </button>
                 </div>
 
@@ -381,10 +380,10 @@
             <!-- RIGHT PANEL: PREVIEW -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <h2>👁️ Preview</h2>
+                    <h2>ðï¸ Preview</h2>
                     <div class="preview-toggle">
-                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
-                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A â Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B â Reveal</button>
                     </div>
                 </div>
 
@@ -399,7 +398,7 @@
                 </div>
 
                 <div class="export-hint">
-                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
+                    Preview is scaled â export files are <strong>1920 Ã 1080 px</strong> full resolution.
                 </div>
             </div>
         </div>
@@ -421,8 +420,8 @@
             const container = document.getElementById('image-slots');
             container.innerHTML = images.map((img, i) => `
                 <label class="image-slot ${img ? 'loaded' : ''}">
-                    ${img ? `<img src="${img}" alt="Rebus ${i+1}">` : '<div class="slot-placeholder"><div class="slot-icon">🖼️</div>Click to upload</div>'}
-                    ${img ? `<button class="slot-remove" onclick="removeImage(${i})">✕</button>` : ''}
+                    ${img ? `<img src="${img}" alt<Rebus ${i+1}">` : '<div class="slot-placeholder"><div class="slot-icon">ð¼ï¸</div>Click to upload</div>'}
+                    ${img ? `<button class="slot-remove" onclick="removeImage(${i})">â</button>` : ''}
                     <input type="file" accept="image/*" onchange="handleImageUpload(event, ${i})">
                 </label>
             `).join('');
@@ -454,7 +453,7 @@
             const hasImages = images.length > 0;
             if (hasImages && answer) {
                 status.classList.add('ready');
-                status.textContent = '✓ Ready to export!';
+                status.textContent = 'â Ready to export!';
                 document.getElementById('btn-export-a').disabled = false;
                 document.getElementById('btn-export-b').disabled = false;
             } else {
@@ -520,7 +519,7 @@
           if (!answer) { alert('Enter the answer first!'); return; }
           const btn = document.getElementById('aiRebusBtnEl');
           const panel = document.getElementById('aiRebusPanel');
-          btn.disabled = true; btn.textContent = '⏳ Thinking...';
+          btn.disabled = true; btn.textContent = 'â³ Thinking...';
           panel.style.display = 'none';
           try {
             const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
@@ -535,7 +534,7 @@
           } catch(err) {
             alert('AI error: ' + err.message);
           } finally {
-            btn.disabled = false; btn.textContent = '🤖 AI Suggest Rebus Ideas';
+            btn.disabled = false; btn.textContent = 'ð¤ AI Suggest Rebus Ideas';
           }
         }
 
