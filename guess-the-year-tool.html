@@ -21,7 +21,7 @@
         .container { max-width: 1400px; margin: 0 auto; }
 
         header {
-            background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+            background: linear-gradient(135deg, #db2777 0%, #9d174d 100%);
             border-radius: 12px;
             padding: 30px;
             margin-bottom: 30px;
@@ -55,7 +55,7 @@
 
         .panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            color: #2dd4bf;
+            color: #db2777;
             font-size: 1.4em;
             margin-bottom: 16px;
             border-bottom: 2px solid #ddd;
@@ -80,7 +80,7 @@
             font-family: 'Londrina Solid', cursive;
             font-size: 1.1em;
         }
-        input[type="text"]:focus, textarea:focus { outline: none; border-color: #2dd4bf; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: #db2777; }
 
         textarea { min-height: 120px; resize: vertical; }
 
@@ -115,7 +115,7 @@
             margin-top: 10px;
         }
 
-        .btn-export { background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); color: #fff; }
+        .btn-export { background: linear-gradient(135deg, #db2777 0%, #9d174d 100%); color: #fff; }
         .btn-export:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3); }
         .btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -138,7 +138,7 @@
         .preview-header h2 {
             margin: 0;
             font-family: 'Luckiest Guy', cursive;
-            color: #2dd4bf;
+            color: #db2777;
             font-size: 1.3em;
             border: none;
             padding: 0;
@@ -161,9 +161,9 @@
         }
 
         .toggle-btn.active {
-            background: #2dd4bf;
+            background: #db2777;
             color: #fff;
-            border-color: #2dd4bf;
+            border-color: #db2777;
         }
 
         .canvas-wrapper {
@@ -194,12 +194,12 @@
             border: 1px solid #ddd;
             margin-top: 12px;
         }
-        .export-hint strong { color: #2dd4bf; }
+        .export-hint strong { color: #db2777; }
 
         #export-canvas {
             width: 1920px;
             height: 1080px;
-            background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+            background: #ffffff;
             position: relative;
             overflow: hidden;
             font-family: 'Bowlby One SC', cursive;
@@ -210,7 +210,7 @@
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 8px;
-            background: linear-gradient(90deg, #2dd4bf, #0f766e, #2dd4bf);
+            background: #db2777;
         }
 
         .canvas-content {
@@ -227,11 +227,11 @@
         .question-header {
             font-family: 'Bowlby One SC', cursive;
             font-size: 52px;
-            color: #2dd4bf;
+            color: #db2777;
             text-align: center;
             margin-bottom: 50px;
             max-width: 90%;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            text-shadow: none;
             letter-spacing: 1px;
         }
 
@@ -241,8 +241,8 @@
             gap: 24px;
             max-width: 78%;
             text-align: left;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(219,39,119,0.04);
+            border: 1px solid rgba(0,0,0,0.1);
             border-radius: 16px;
             padding: 40px 50px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.4);
@@ -252,19 +252,19 @@
             font-family: 'Inter', sans-serif;
             font-weight: 500;
             font-size: 30px;
-            color: #e2e8f0;
+            color: #1e293b;
             padding-left: 52px;
             position: relative;
             line-height: 1.4;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+            text-shadow: none;
         }
 
         .event-item::before {
-            content: '•';
+            content: 'â¢';
             position: absolute;
             left: 0;
             font-size: 38px;
-            color: #2dd4bf;
+            color: #db2777;
         }
 
         .year-display {
@@ -274,7 +274,7 @@
             font-size: 72px;
             color: #fbbf24;
             text-align: center;
-            text-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            text-shadow: none;
         }
 
         .kbt-watermark {
@@ -291,19 +291,19 @@
 <body>
     <div class="container">
         <header>
-            <h1>📅 GUESS THE YEAR ✨ AI-Powered</h1>
-            <div class="header-subtitle">Add events from a specific year — players guess when it was</div>
+            <h1>ð GUESS THE YEAR â¨ AI-Powered</h1>
+            <div class="header-subtitle">Add events from a specific year â players guess when it was</div>
         </header>
 
         <div class="main-content">
             <!-- LEFT PANEL -->
             <div class="panel">
-                <h2>⚙️ Setup</h2>
+                <h2>âï¸ Setup</h2>
 
                 <label>The Year (Answer)</label>
                 <input type="text" id="year" placeholder="e.g. 2011" maxlength="4" />
-                <button id="aiEventsBtn" onclick="generateEvents()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Events for this Year</button>
-                <div id="aiEventsStatus" style="display:none;font-size:12px;color:#9a6fd8;margin-top:6px;text-align:center;">⏳ Generating events...</div>
+                <button id="aiEventsBtn" onclick="generateEvents()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Generate Events for this Year</button>
+                <div id="aiEventsStatus" style="display:none;font-size:12px;color:#9a6fd8;margin-top:6px;text-align:center;">â³ Generating events...</div>
 
                 <label>Events that occurred this year</label>
                 <textarea id="events" placeholder="Enter each event on a new line:&#10;The movie 'Harry Potter and the Deathly Hallows: Part 2' comes out&#10;The song 'Paradise' by Coldplay is released&#10;Barack Obama visits Australia"></textarea>
@@ -312,12 +312,12 @@
                 <div class="status-bar" id="status-bar">Add year and events to export</div>
 
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
-                    <div style="font-family: 'Luckiest Guy', cursive; color: #2dd4bf; margin-bottom: 8px;">Export Images</div>
+                    <div style="font-family: 'Luckiest Guy', cursive; color: #db2777; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
-                        🔴 Export A — Question
+                        ð´ Export A â Question
                     </button>
                     <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
-                        🟢 Export B — Reveal
+                        ð¢ Export B â Reveal
                     </button>
                 </div>
 
@@ -330,10 +330,10 @@
             <!-- RIGHT PANEL: PREVIEW -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <h2>👁️ Preview</h2>
+                    <h2>ðï¸ Preview</h2>
                     <div class="preview-toggle">
-                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
-                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A â Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B â Reveal</button>
                     </div>
                 </div>
 
@@ -347,7 +347,7 @@
                 </div>
 
                 <div class="export-hint">
-                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
+                    Preview is scaled â export files are <strong>1920 Ã 1080 px</strong> full resolution.
                 </div>
             </div>
         </div>
@@ -368,7 +368,7 @@
             const events = parseEvents();
             if (year && events.length > 0) {
                 status.classList.add('ready');
-                status.textContent = '✓ Ready to export!';
+                status.textContent = 'â Ready to export!';
                 document.getElementById('btn-export-a').disabled = false;
                 document.getElementById('btn-export-b').disabled = false;
             } else {
@@ -438,7 +438,7 @@
           if (!year) { alert('Enter a year first!'); return; }
           const btn = document.getElementById('aiEventsBtn');
           const status = document.getElementById('aiEventsStatus');
-          btn.disabled = true; btn.textContent = '⏳ Generating...';
+          btn.disabled = true; btn.textContent = 'â³ Generating...';
           status.style.display = 'block';
           try {
             const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
@@ -453,7 +453,7 @@
           } catch(err) {
             alert('AI error: ' + err.message);
           } finally {
-            btn.disabled = false; btn.textContent = '🤖 AI Generate Events for this Year';
+            btn.disabled = false; btn.textContent = 'ð¤ AI Generate Events for this Year';
             status.style.display = 'none';
           }
         }
