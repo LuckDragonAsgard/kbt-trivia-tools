@@ -513,9 +513,8 @@ generateBtn.addEventListener('click', async () => {
     workCtx.drawImage(noBgImg, 0, 0, W, H);
     let noBgData = workCtx.getImageData(0, 0, W, H);
 
-    // Soft edge clean: remove stray near-transparent pixels, feather remaining edges
+    // Soft edge clean + 1px erosion to remove colour fringing
     smoothEdges(noBgData);
-    // Erode mask by 1px to strip colour fringing at edges
     erodeMask(noBgData, 1);
     workCtx.putImageData(noBgData, 0, 0);
 
@@ -630,14 +629,14 @@ function hardenAlpha(imageData, threshold) {
 }
 
 function smoothEdges(imageData) {
-  // Pass 1: kill stray pixels (alpha < 30 → 0, alpha > 220 → 255)
   const d = imageData.data;
   const w = imageData.width, h = imageData.height;
+  // Kill stray near-transparent pixels; keep soft edges from bg-removal
   for (let i = 3; i < d.length; i += 4) {
     if (d[i] < 30) d[i] = 0;
     else if (d[i] > 220) d[i] = 255;
   }
-  // Pass 2: 3×3 box blur on alpha only (softens the jagged edge)
+  // 3×3 box blur on alpha to soften jagged edges
   const alpha = new Uint8Array(w * h);
   for (let i = 0; i < w * h; i++) alpha[i] = d[i * 4 + 3];
   const blurred = new Uint8Array(w * h);
@@ -650,29 +649,26 @@ function smoothEdges(imageData) {
       blurred[y * w + x] = Math.round(sum / 9);
     }
   }
-  // Copy blurred alpha back, preserving fully transparent
   for (let i = 0; i < w * h; i++) {
     if (alpha[i] > 0) d[i * 4 + 3] = blurred[i];
   }
 }
 
 function erodeMask(imageData, radius) {
-  // Shrink the alpha mask by `radius` pixels to eliminate colour fringing
+  // Shrink the alpha mask by `radius` pixels — strips colour fringing at edges
   const d = imageData.data;
   const w = imageData.width, h = imageData.height;
   const orig = new Uint8Array(w * h);
   for (let i = 0; i < w * h; i++) orig[i] = d[i * 4 + 3];
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      if (orig[y * w + x] === 0) continue; // already transparent
-      // If any neighbour within radius is transparent, zero this pixel
+      if (orig[y * w + x] === 0) continue;
       let erode = false;
       outer: for (let dy = -radius; dy <= radius; dy++) {
         for (let dx = -radius; dx <= radius; dx++) {
           const nx = x + dx, ny = y + dy;
           if (nx < 0 || ny < 0 || nx >= w || ny >= h || orig[ny * w + nx] === 0) {
-            erode = true;
-            break outer;
+            erode = true; break outer;
           }
         }
       }
@@ -867,4 +863,69 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   const y = Math.round(SAFE_TOP + (SAFE_ZONE_H - finalH) / 2);
 
   finalCtx.drawImage(shadowCanvas,
-    sBounds.left, sBounds.top, sContentW, 
+    sBounds.left, sBounds.top, sContentW, sContentH,
+    x, y, finalW, finalH
+  );
+
+  return finalCanvas;
+}
+
+function getAlphaBounds(imageData) {
+  const w = imageData.width, h = imageData.height, d = imageData.data;
+  let top = h, bottom = 0, left = w, right = 0;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (d[(y * w + x) * 4 + 3] > 10) {
+        if (y < top) top = y;
+        if (y > bottom) bottom = y;
+        if (x < left) left = x;
+        if (x > right) right = x;
+      }
+    }
+  }
+  if (top > bottom) return null;
+  return { top, bottom, left, right };
+}
+
+function setupDownload(btnId, canvas, filename) {
+  const btn = document.getElementById(btnId);
+  btn.onclick = (e) => {
+    e.preventDefault();
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/png');
+  };
+}
+
+async function generateCelebHints() {
+  const nameInput = document.getElementById('nameInput');
+  const celebrity = nameInput ? nameInput.value.trim() : '';
+  if (!celebrity) { alert('Enter the celebrity name first!'); return; }
+  const btn = document.getElementById('aiHintBtn');
+  const panel = document.getElementById('aiHintPanel');
+  btn.disabled = true; btn.textContent = '⏳ Writing hints...';
+  try {
+    const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ tool: 'brain-hint', celebrity })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);panel.innerHTML = data.hints || data.text || data.result || JSON.stringify(data);
+    panel.style.display = 'block';
+  } catch(e) {
+    panel.innerHTML = '⚠️ ' + e.message;
+    panel.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 AI Generate Hints for Host';
+  }
+}
+</script>
+</body>
+</html>
