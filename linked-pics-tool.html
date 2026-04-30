@@ -269,6 +269,7 @@
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
             flex: 1;
+            min-height: 0; /* critical: lets flex child shrink so 1fr rows respect 1080px canvas */
             gap: 16px;
             padding: 16px;
         }
