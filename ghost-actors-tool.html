@@ -632,6 +632,27 @@
             reader.readAsDataURL(file);
         }
 
+
+        function resizeCanvasTo(source, targetW, targetH) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetW;
+            canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+            const srcW = source.width || source.naturalWidth || 0;
+            const srcH = source.height || source.naturalHeight || 0;
+            if (!srcW || !srcH) return canvas;
+            // Scale to cover full target (crop if needed)
+            const scale = Math.max(targetW / srcW, targetH / srcH);
+            const w = srcW * scale;
+            const h = srcH * scale;
+            const x = (targetW - w) / 2;
+            const y = (targetH - h) / 2;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, targetW, targetH);
+            ctx.drawImage(source, x, y, w, h);
+            return canvas;
+        }
+
         function createCanvasFromImage(img) {
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
