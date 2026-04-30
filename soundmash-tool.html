@@ -27,7 +27,7 @@
 
         /* Header */
         header {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
             padding: 30px;
             border-radius: 15px;
             margin-bottom: 30px;
@@ -49,7 +49,7 @@
         /* Upload Zone */
         .upload-section {
             background: #252545;
-            border: 2px dashed #ffc107;
+            border: 2px dashed #ea580c;
             border-radius: 15px;
             padding: 40px;
             text-align: center;
@@ -70,7 +70,7 @@
 
         .upload-section.dragover {
             background: rgba(71, 181, 208, 0.1);
-            border-color: #ffc107;
+            border-color: #ea580c;
             transform: scale(1.02);
         }
 
@@ -98,7 +98,7 @@
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.8em;
             margin-bottom: 20px;
-            color: #ffc107;
+            color: #ea580c;
         }
 
         .clips-grid {
@@ -109,7 +109,7 @@
 
         .clip-card {
             background: #252545;
-            border: 2px solid #ffc107;
+            border: 2px solid #ea580c;
             border-radius: 12px;
             padding: 20px;
             transition: all 0.3s ease;
@@ -130,7 +130,7 @@
         .clip-number {
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.5em;
-            color: #ffc107;
+            color: #ea580c;
         }
 
         .clip-delete {
@@ -181,7 +181,7 @@
             width: 100%;
             padding: 10px;
             background: #f5f5f5;
-            border: 1px solid #ffc107;
+            border: 1px solid #ea580c;
             border-radius: 6px;
             color: #333;
             font-family: 'Londrina Solid', cursive;
@@ -205,7 +205,7 @@
         /* Mode Selector */
         .mode-section {
             background: #252545;
-            border: 2px solid #ffc107;
+            border: 2px solid #ea580c;
             border-radius: 12px;
             padding: 25px;
             margin-bottom: 30px;
@@ -215,7 +215,7 @@
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.5em;
             margin-bottom: 20px;
-            color: #ffc107;
+            color: #ea580c;
         }
 
         .mode-buttons {
@@ -226,7 +226,7 @@
 
         .mode-btn {
             padding: 15px;
-            border: 2px solid #ffc107;
+            border: 2px solid #ea580c;
             background: transparent;
             color: #333;
             border-radius: 8px;
@@ -243,7 +243,7 @@
         }
 
         .mode-btn.active {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
             border-color: #333;
             font-weight: 700;
         }
@@ -274,7 +274,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
             color: #333;
         }
 
@@ -291,7 +291,7 @@
         /* Results Section */
         .results-section {
             background: #252545;
-            border: 2px solid #ffc107;
+            border: 2px solid #ea580c;
             border-radius: 12px;
             padding: 25px;
             margin-top: 30px;
@@ -306,7 +306,7 @@
             font-family: 'Luckiest Guy', cursive;
             font-size: 1.8em;
             margin-bottom: 25px;
-            color: #ffc107;
+            color: #ea580c;
         }
 
         .audio-player {
@@ -325,7 +325,7 @@
         }
 
         .preview-btn {
-            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
             color: white;
             padding: 12px 25px;
             border: none;
@@ -351,7 +351,7 @@
 
         .image-container {
             background: #f5f5f5;
-            border: 1px solid #ffc107;
+            border: 1px solid #ea580c;
             border-radius: 8px;
             overflow: hidden;
         }
@@ -361,7 +361,7 @@
             padding: 10px;
             text-align: center;
             font-weight: 700;
-            border-bottom: 1px solid #ffc107;
+            border-bottom: 1px solid #ea580c;
         }
 
         canvas {
@@ -379,7 +379,7 @@
 
         .btn-download {
             background: rgba(71, 181, 208, 0.2);
-            border: 2px solid #ffc107;
+            border: 2px solid #ea580c;
             color: #333;
             padding: 12px 20px;
             border-radius: 8px;
@@ -401,7 +401,7 @@
             height: 20px;
             border: 3px solid rgba(71, 181, 208, 0.3);
             border-radius: 50%;
-            border-top-color: #ffc107;
+            border-top-color: #ea580c;
             animation: spin 0.8s linear infinite;
             margin-right: 10px;
         }
@@ -722,7 +722,7 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Draw waveform
-            ctx.strokeStyle = '#ffc107';
+            ctx.strokeStyle = '#ea580c';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(0, amp);
@@ -763,7 +763,7 @@
             ctx.fillRect(startX, 0, endX - startX, canvas.height);
 
             // Trim handles
-            ctx.fillStyle = '#ffc107';
+            ctx.fillStyle = '#ea580c';
             ctx.fillRect(startX - 2, 0, 4, canvas.height);
             ctx.fillRect(endX - 2, 0, 4, canvas.height);
         }
@@ -900,27 +900,27 @@
 
             // KBT background
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(0, '#1a1a2e');
             gradient.addColorStop(1, '#1e293b');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Teal accent bar
-            ctx.fillStyle = '#2dd4bf';
+            ctx.fillStyle = '#ea580c';
             ctx.fillRect(0, 0, canvas.width, 7);
 
             // KBT logo (top-left)
             ctx.font = 'bold 26px "Bowlby One SC", cursive';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#e2e8f0';
+            ctx.fillStyle = '#ffffff';
             ctx.fillText('KNOW', 48, 68);
-            ctx.fillStyle = '#2dd4bf';
+            ctx.fillStyle = '#ea580c';
             ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
 
             // Title
             ctx.font = 'bold 128px "Bowlby One SC", cursive';
-            ctx.fillStyle = '#2dd4bf';
+            ctx.fillStyle = '#ea580c';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('SOUNDMASH', canvas.width / 2, 290);
@@ -962,7 +962,7 @@
 
             // KBT background
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(0, '#1a1a2e');
             gradient.addColorStop(1, '#1e293b');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -975,9 +975,9 @@
             ctx.font = 'bold 26px "Bowlby One SC", cursive';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#e2e8f0';
+            ctx.fillStyle = '#ffffff';
             ctx.fillText('KNOW', 48, 68);
-            ctx.fillStyle = '#2dd4bf';
+            ctx.fillStyle = '#ea580c';
             ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
 
             // Title
@@ -1000,11 +1000,11 @@
                 const x = xBase + col * colW;
                 const y = 290 + row * 160;
                 ctx.font = 'bold 54px "Bowlby One SC", cursive';
-                ctx.fillStyle = '#e2e8f0';
+                ctx.fillStyle = '#ffffff';
                 ctx.textBaseline = 'top';
                 ctx.fillText(`${i + 1}. ${clip.title}`, x, y);
                 ctx.font = '400 38px "Inter", sans-serif';
-                ctx.fillStyle = '#2dd4bf';
+                ctx.fillStyle = '#ea580c';
                 ctx.fillText(`    ${clip.artist}`, x, y + 64);
                 row++;
             });
