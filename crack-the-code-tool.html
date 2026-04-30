@@ -239,10 +239,8 @@
             border-radius: 12px;
             border: 2px solid #ddd;
             padding: 16px;
-            overflow: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            overflow: hidden;
+            position: relative;
             min-height: 400px;
         }
 
@@ -277,7 +275,9 @@
             width: 1920px;
             height: 1080px;
             background: #ffffff;
-            position: relative;
+            position: absolute;
+            top: 0; left: 0;
+            transform-origin: top left;
             font-family: 'Bowlby One SC', cursive;
             display: flex;
             flex-direction: column;
@@ -491,6 +491,17 @@
             }
         }
 
+        function scaleCanvas() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const canvas = document.getElementById('export-canvas');
+            const scale = wrapper.clientWidth / 1920;
+            canvas.style.transform = `scale(${scale})`;
+            wrapper.style.height = (1080 * scale) + 'px';
+        }
+
+        window.addEventListener('resize', scaleCanvas);
+        window.addEventListener('load', scaleCanvas);
+
         async function exportImage(version) {
             const canvas = document.getElementById('export-canvas');
             const answer = document.getElementById('answer').value.trim();
@@ -504,13 +515,21 @@
                 document.getElementById('answer-reveal').style.display = 'block';
             }
 
+            const wrapper = document.getElementById('canvas-wrapper');
+            // Reset transform for capture
+            canvas.style.transform = 'scale(1)';
+            wrapper.style.height = '1080px';
+            wrapper.style.overflow = 'visible';
+
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            html2canvas(canvas, { scale: 1, useCORS: true, logging: false }).then(renderedCanvas => {
+            html2canvas(canvas, { scale: 1, useCORS: true, logging: false, width: 1920, height: 1080, backgroundColor: '#ffffff' }).then(renderedCanvas => {
                 const link = document.createElement('a');
                 link.download = version === 'A' ? 'CrackTheCodeA.png' : `CrackTheCodeB_${answer.replace(/\s+/g, '_')}.png`;
                 link.href = renderedCanvas.toDataURL('image/png');
                 link.click();
+                wrapper.style.overflow = 'hidden';
+                scaleCanvas();
             });
         }
 
@@ -541,6 +560,7 @@
         document.getElementById('answer').addEventListener('input', updateStatus);
         renderImageSlots();
         updatePreview();
+        scaleCanvas();
     </script>
 </body>
 </html>
