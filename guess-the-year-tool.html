@@ -252,7 +252,7 @@
             font-family: 'Inter', sans-serif;
             font-weight: 500;
             font-size: 30px;
-            color: #1e293b;
+            color: #111827;
             padding-left: 52px;
             position: relative;
             line-height: 1.4;
@@ -260,7 +260,7 @@
         }
 
         .event-item::before {
-            content: 'â¢';
+            content: '•';
             position: absolute;
             left: 0;
             font-size: 38px;
@@ -272,7 +272,7 @@
             bottom: 80px;
             font-family: 'Bowlby One SC', cursive;
             font-size: 72px;
-            color: #fbbf24;
+            color: #db2777;
             text-align: center;
             text-shadow: none;
         }
@@ -291,19 +291,19 @@
 <body>
     <div class="container">
         <header>
-            <h1>ð GUESS THE YEAR â¨ AI-Powered</h1>
-            <div class="header-subtitle">Add events from a specific year â players guess when it was</div>
+            <h1>📅 GUESS THE YEAR ✨ AI-Powered</h1>
+            <div class="header-subtitle">Add events from a specific year — players guess when it was</div>
         </header>
 
         <div class="main-content">
             <!-- LEFT PANEL -->
             <div class="panel">
-                <h2>âï¸ Setup</h2>
+                <h2>⚙️ Setup</h2>
 
                 <label>The Year (Answer)</label>
                 <input type="text" id="year" placeholder="e.g. 2011" maxlength="4" />
-                <button id="aiEventsBtn" onclick="generateEvents()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Generate Events for this Year</button>
-                <div id="aiEventsStatus" style="display:none;font-size:12px;color:#9a6fd8;margin-top:6px;text-align:center;">â³ Generating events...</div>
+                <button id="aiEventsBtn" onclick="generateEvents()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Events for this Year</button>
+                <div id="aiEventsStatus" style="display:none;font-size:12px;color:#9a6fd8;margin-top:6px;text-align:center;">⏳ Generating events...</div>
 
                 <label>Events that occurred this year</label>
                 <textarea id="events" placeholder="Enter each event on a new line:&#10;The movie 'Harry Potter and the Deathly Hallows: Part 2' comes out&#10;The song 'Paradise' by Coldplay is released&#10;Barack Obama visits Australia"></textarea>
@@ -314,10 +314,10 @@
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
                     <div style="font-family: 'Luckiest Guy', cursive; color: #db2777; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
-                        ð´ Export A â Question
+                        🔴 Export A — Question
                     </button>
                     <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
-                        ð¢ Export B â Reveal
+                        🟢 Export B — Reveal
                     </button>
                 </div>
 
@@ -330,10 +330,10 @@
             <!-- RIGHT PANEL: PREVIEW -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <h2>ðï¸ Preview</h2>
+                    <h2>👁️ Preview</h2>
                     <div class="preview-toggle">
-                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A â Question</button>
-                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B â Reveal</button>
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
                     </div>
                 </div>
 
@@ -347,7 +347,7 @@
                 </div>
 
                 <div class="export-hint">
-                    Preview is scaled â export files are <strong>1920 Ã 1080 px</strong> full resolution.
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
                 </div>
             </div>
         </div>
@@ -368,7 +368,7 @@
             const events = parseEvents();
             if (year && events.length > 0) {
                 status.classList.add('ready');
-                status.textContent = 'â Ready to export!';
+                status.textContent = '✓ Ready to export!';
                 document.getElementById('btn-export-a').disabled = false;
                 document.getElementById('btn-export-b').disabled = false;
             } else {
@@ -438,7 +438,7 @@
           if (!year) { alert('Enter a year first!'); return; }
           const btn = document.getElementById('aiEventsBtn');
           const status = document.getElementById('aiEventsStatus');
-          btn.disabled = true; btn.textContent = 'â³ Generating...';
+          btn.disabled = true; btn.textContent = '⏳ Generating...';
           status.style.display = 'block';
           try {
             const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
@@ -453,7 +453,7 @@
           } catch(err) {
             alert('AI error: ' + err.message);
           } finally {
-            btn.disabled = false; btn.textContent = 'ð¤ AI Generate Events for this Year';
+            btn.disabled = false; btn.textContent = '🤖 AI Generate Events for this Year';
             status.style.display = 'none';
           }
         }

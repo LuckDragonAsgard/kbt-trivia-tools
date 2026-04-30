@@ -898,14 +898,11 @@
             const canvas = document.getElementById('questionCanvas');
             const ctx = canvas.getContext('2d');
 
-            // KBT background
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(1, '#1e293b');
-            ctx.fillStyle = gradient;
+            // White background
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Teal accent bar
+            // Orange accent bar
             ctx.fillStyle = '#ea580c';
             ctx.fillRect(0, 0, canvas.width, 7);
 
@@ -913,7 +910,7 @@
             ctx.font = 'bold 26px "Bowlby One SC", cursive';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#1a1a2e';
             ctx.fillText('KNOW', 48, 68);
             ctx.fillStyle = '#ea580c';
             ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
@@ -951,7 +948,7 @@
                 const x = startX + i * spacing;
                 const barHeight = Math.abs(Math.sin(i / 4.5)) * 140 + 28;
                 const alpha = 0.15 + 0.25 * (Math.abs(Math.sin(i / 4.5)));
-                ctx.fillStyle = `rgba(45, 212, 191, ${alpha})`;
+                ctx.fillStyle = `rgba(234, 88, 12, ${alpha})`;
                 ctx.fillRect(x, centreY - barHeight / 2, barWidth, barHeight);
             }
         }
@@ -960,29 +957,26 @@
             const canvas = document.getElementById('answerCanvas');
             const ctx = canvas.getContext('2d');
 
-            // KBT background
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(1, '#1e293b');
-            ctx.fillStyle = gradient;
+            // White background
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Gold accent bar
-            ctx.fillStyle = '#fbbf24';
+            // Orange accent bar
+            ctx.fillStyle = '#ea580c';
             ctx.fillRect(0, 0, canvas.width, 7);
 
             // KBT logo (top-left)
             ctx.font = 'bold 26px "Bowlby One SC", cursive';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#1a1a2e';
             ctx.fillText('KNOW', 48, 68);
             ctx.fillStyle = '#ea580c';
             ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
 
             // Title
             ctx.font = 'bold 104px "Bowlby One SC", cursive';
-            ctx.fillStyle = '#fbbf24';
+            ctx.fillStyle = '#ea580c';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             ctx.fillText('THE ANSWERS', canvas.width / 2, 100);
@@ -1000,7 +994,7 @@
                 const x = xBase + col * colW;
                 const y = 290 + row * 160;
                 ctx.font = 'bold 54px "Bowlby One SC", cursive';
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = '#1a1a2e';
                 ctx.textBaseline = 'top';
                 ctx.fillText(`${i + 1}. ${clip.title}`, x, y);
                 ctx.font = '400 38px "Inter", sans-serif';
@@ -1069,5 +1063,56 @@
 
             return URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/wav' }));
         }
+        function downloadAudio() {
+            if (!state.mashupBuffer) return;
+            const url = bufferToWavUrl(state.mashupBuffer);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'soundmash.wav';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
 
-        function do
+        function downloadQuestion() {
+            const canvas = document.getElementById('questionCanvas');
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'soundmash-question.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        function downloadAnswer() {
+            const canvas = document.getElementById('answerCanvas');
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'soundmash-answer.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        // Initialize on load
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

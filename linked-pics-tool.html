@@ -235,7 +235,7 @@
             color: #2563eb;
         }
 
-        /* Canvas wrapper â letterboxed 16:9 */
+        /* Canvas wrapper — letterboxed 16:9 */
         .canvas-wrapper {
             width: 100%;
             aspect-ratio: 16/9;
@@ -250,7 +250,7 @@
             position: relative;
         }
 
-        /* The actual export canvas â always 1920Ã1080 internally, scaled via CSS */
+        /* The actual export canvas — always 1920×1080 internally, scaled via CSS */
         #export-canvas {
             position: absolute;
             top: 0; left: 0;
@@ -299,7 +299,7 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6);
         }
 
-        /* Bottom banner â always present */
+        /* Bottom banner — always present */
         .canvas-banner {
             height: 120px;
             background: linear-gradient(135deg, #f8fafc, #f1f5f9);
@@ -382,21 +382,21 @@
 <body>
     <div class="container">
         <header>
-            <h1>ð LINKED PICS</h1>
-            <div class="header-subtitle">Upload 4 images â players spot the hidden connection</div>
+            <h1>🔗 LINKED PICS</h1>
+            <div class="header-subtitle">Upload 4 images — players spot the hidden connection</div>
         </header>
 
         <div class="main-content">
             <!-- LEFT PANEL -->
             <div class="panel">
-                <h2>âï¸ Setup</h2>
+                <h2>⚙️ Setup</h2>
 
                 <label>Subject / Round Label</label>
                 <input type="text" id="subject" placeholder="e.g. Honolulu, Aussie Icons..." />
 
                 <label>Connection Answer</label>
                 <input type="text" id="connection" placeholder="e.g. All born in 1975" />
-                <button id="aiConnBtn" onclick="suggestConnection()" style="margin-top:8px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Suggest Connection</button>
+                <button id="aiConnBtn" onclick="suggestConnection()" style="margin-top:8px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Connection</button>
                 <div id="aiConnPanel" style="display:none;margin-top:10px;background:#1c0f00;border:1px solid #f59e0b;border-radius:10px;padding:14px;font-size:13px;color:#fcd34d;line-height:1.7;white-space:pre-wrap;"></div>
 
                 <label>Upload 4 Images</label>
@@ -405,37 +405,37 @@
                         <span class="slot-label">A</span>
                         <input type="file" id="file-0" accept="image/*" onchange="loadImage(0, event)" />
                         <div class="slot-placeholder">
-                            <div class="slot-icon">ð·</div>
+                            <div class="slot-icon">📷</div>
                             <div>Click to upload</div>
                         </div>
-                        <button class="slot-remove" onclick="removeImage(event,0)">â</button>
+                        <button class="slot-remove" onclick="removeImage(event,0)">✕</button>
                     </div>
                     <div class="image-slot" id="slot-1" onclick="triggerUpload(1)">
                         <span class="slot-label">B</span>
                         <input type="file" id="file-1" accept="image/*" onchange="loadImage(1, event)" />
                         <div class="slot-placeholder">
-                            <div class="slot-icon">ð·</div>
+                            <div class="slot-icon">📷</div>
                             <div>Click to upload</div>
                         </div>
-                        <button class="slot-remove" onclick="removeImage(event,1)">â</button>
+                        <button class="slot-remove" onclick="removeImage(event,1)">✕</button>
                     </div>
                     <div class="image-slot" id="slot-2" onclick="triggerUpload(2)">
                         <span class="slot-label">C</span>
                         <input type="file" id="file-2" accept="image/*" onchange="loadImage(2, event)" />
                         <div class="slot-placeholder">
-                            <div class="slot-icon">ð·</div>
+                            <div class="slot-icon">📷</div>
                             <div>Click to upload</div>
                         </div>
-                        <button class="slot-remove" onclick="removeImage(event,2)">â</button>
+                        <button class="slot-remove" onclick="removeImage(event,2)">✕</button>
                     </div>
                     <div class="image-slot" id="slot-3" onclick="triggerUpload(3)">
                         <span class="slot-label">D</span>
                         <input type="file" id="file-3" accept="image/*" onchange="loadImage(3, event)" />
                         <div class="slot-placeholder">
-                            <div class="slot-icon">ð·</div>
+                            <div class="slot-icon">📷</div>
                             <div>Click to upload</div>
                         </div>
-                        <button class="slot-remove" onclick="removeImage(event,3)">â</button>
+                        <button class="slot-remove" onclick="removeImage(event,3)">✕</button>
                     </div>
                 </div>
 
@@ -444,10 +444,10 @@
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
                     <div style="font-family: 'Bowlby One SC', cursive; color: #2563eb; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export-a" id="btn-export-a" disabled onclick="exportImage('A')">
-                        ð´ Export A â Question
+                        🔴 Export A — Question
                     </button>
                     <button class="btn btn-export-b" id="btn-export-b" disabled onclick="exportImage('B')">
-                        ð¢ Export B â Reveal
+                        🟢 Export B — Reveal
                     </button>
                 </div>
 
@@ -460,10 +460,10 @@
             <!-- RIGHT PANEL: PREVIEW -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <h2>ðï¸ Preview</h2>
+                    <h2>👁️ Preview</h2>
                     <div class="preview-toggle">
-                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A â Question</button>
-                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B â Reveal</button>
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
                     </div>
                 </div>
 
@@ -495,7 +495,7 @@
                 </div>
 
                 <div class="export-hint">
-                    Preview is scaled â export files are <strong>1920 Ã 1080 px</strong> full resolution.
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
                 </div>
             </div>
         </div>
@@ -566,7 +566,7 @@
             const loaded = images.filter(i => i !== null).length;
 
             if (allLoaded) {
-                status.textContent = 'â All 4 images loaded â ready to export!';
+                status.textContent = '✓ All 4 images loaded — ready to export!';
                 status.className = 'status-bar ready';
                 document.getElementById('btn-export-a').disabled = false;
                 document.getElementById('btn-export-b').disabled = false;
@@ -677,7 +677,7 @@
             }
         }
 
-        // âââ AI Suggest Connection ââââââââââââââââââââââââââââââââââââââââââââ
+        // ─── AI Suggest Connection ────────────────────────────────────────────
         async function suggestConnection() {
           const subjectEl = document.getElementById('subject') || document.querySelector('input[id*="subject" i]') || document.querySelector('input[id*="label" i]');
           const connEl = document.getElementById('connection') || document.getElementById('answer') || document.querySelector('input[id*="connect" i]') || document.querySelector('input[id*="answer" i]');
@@ -685,7 +685,7 @@
           const connection = connEl ? connEl.value.trim() : '';
           const btn = document.getElementById('aiConnBtn');
           const panel = document.getElementById('aiConnPanel');
-          btn.disabled = true; btn.textContent = 'â³ Thinking...';
+          btn.disabled = true; btn.textContent = '⏳ Thinking...';
           try {
             const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
               method: 'POST',
@@ -697,7 +697,7 @@
             panel.textContent = data.result;
             panel.style.display = 'block';
           } catch(err) { alert('AI error: ' + err.message); }
-          finally { btn.disabled = false; btn.textContent = 'ð¤ AI Suggest Connection'; }
+          finally { btn.disabled = false; btn.textContent = '🤖 AI Suggest Connection'; }
         }
     </script>
 </body>

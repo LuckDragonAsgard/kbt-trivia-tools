@@ -319,7 +319,7 @@
             bottom: 60px;
             font-family: 'Bowlby One SC', cursive;
             font-size: 48px;
-            color: #fbbf24;
+            color: #2563eb;
             text-align: center;
             max-width: 80%;
         }
@@ -338,18 +338,18 @@
 <body>
     <div class="container">
         <header>
-            <h1>ð CRACK THE CODE â¨ AI-Powered</h1>
-            <div class="header-subtitle">Upload rebus images â players guess the answer!</div>
+            <h1>🔐 CRACK THE CODE ✨ AI-Powered</h1>
+            <div class="header-subtitle">Upload rebus images — players guess the answer!</div>
         </header>
 
         <div class="main-content">
             <!-- LEFT PANEL -->
             <div class="panel">
-                <h2>âï¸ Setup</h2>
+                <h2>⚙️ Setup</h2>
 
                 <label>Answer (What players guess)</label>
                 <input type="text" id="answer" placeholder="e.g. Sandra Bullock" maxlength="50" />
-                <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Suggest Rebus Ideas</button>
+                <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Rebus Ideas</button>
                 <div id="aiRebusPanel" style="display:none;margin-top:10px;background:#1a0a2e;border:1px solid #6c3fc5;border-radius:10px;padding:14px;font-size:13px;color:#d4b8ff;line-height:1.7;white-space:pre-wrap;"></div>
 
                 <label>Rebus Images (Click to add)</label>
@@ -364,10 +364,10 @@
                 <div style="margin-top: 20px; border-top: 2px solid #ddd; padding-top: 16px;">
                     <div style="font-family: 'Bowlby One SC', cursive; color: #2563eb; margin-bottom: 8px;">Export Images</div>
                     <button class="btn btn-export" id="btn-export-a" disabled onclick="exportImage('A')">
-                        ð´ Export A â Question
+                        🔴 Export A — Question
                     </button>
                     <button class="btn btn-export" id="btn-export-b" disabled onclick="exportImage('B')">
-                        ð¢ Export B â Reveal
+                        🟢 Export B — Reveal
                     </button>
                 </div>
 
@@ -380,10 +380,10 @@
             <!-- RIGHT PANEL: PREVIEW -->
             <div class="preview-panel">
                 <div class="preview-header">
-                    <h2>ðï¸ Preview</h2>
+                    <h2>👁️ Preview</h2>
                     <div class="preview-toggle">
-                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A â Question</button>
-                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B â Reveal</button>
+                        <button class="toggle-btn active" id="toggle-a" onclick="setPreview('A')">A — Question</button>
+                        <button class="toggle-btn" id="toggle-b" onclick="setPreview('B')">B — Reveal</button>
                     </div>
                 </div>
 
@@ -398,7 +398,7 @@
                 </div>
 
                 <div class="export-hint">
-                    Preview is scaled â export files are <strong>1920 Ã 1080 px</strong> full resolution.
+                    Preview is scaled — export files are <strong>1920 × 1080 px</strong> full resolution.
                 </div>
             </div>
         </div>
@@ -420,8 +420,8 @@
             const container = document.getElementById('image-slots');
             container.innerHTML = images.map((img, i) => `
                 <label class="image-slot ${img ? 'loaded' : ''}">
-                    ${img ? `<img src="${img}" alt<Rebus ${i+1}">` : '<div class="slot-placeholder"><div class="slot-icon">ð¼ï¸</div>Click to upload</div>'}
-                    ${img ? `<button class="slot-remove" onclick="removeImage(${i})">â</button>` : ''}
+                    ${img ? `<img src="${img}" alt<"Rebus ${i+1}">` : '<div class="slot-placeholder"><div class="slot-icon">🖼️</div>Click to upload</div>'}
+                    ${img ? `<button class="slot-remove" onclick="removeImage(${i})">✕</button>` : ''}
                     <input type="file" accept="image/*" onchange="handleImageUpload(event, ${i})">
                 </label>
             `).join('');
@@ -453,7 +453,7 @@
             const hasImages = images.length > 0;
             if (hasImages && answer) {
                 status.classList.add('ready');
-                status.textContent = 'â Ready to export!';
+                status.textContent = '✓ Ready to export!';
                 document.getElementById('btn-export-a').disabled = false;
                 document.getElementById('btn-export-b').disabled = false;
             } else {
@@ -519,7 +519,7 @@
           if (!answer) { alert('Enter the answer first!'); return; }
           const btn = document.getElementById('aiRebusBtnEl');
           const panel = document.getElementById('aiRebusPanel');
-          btn.disabled = true; btn.textContent = 'â³ Thinking...';
+          btn.disabled = true; btn.textContent = '⏳ Thinking...';
           panel.style.display = 'none';
           try {
             const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
@@ -534,7 +534,7 @@
           } catch(err) {
             alert('AI error: ' + err.message);
           } finally {
-            btn.disabled = false; btn.textContent = 'ð¤ AI Suggest Rebus Ideas';
+            btn.disabled = false; btn.textContent = '🤖 AI Suggest Rebus Ideas';
           }
         }
 

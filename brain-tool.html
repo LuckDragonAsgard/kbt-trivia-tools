@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT â Name The Brain Generator</title>
+<title>KBT — Name The Brain Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Londrina+Solid:wght@400;900&display=swap" rel="stylesheet">
 <style>
@@ -141,10 +141,10 @@
 
   .status .step.active { opacity: 1; color: #16a34a; }
   .status .step.done { opacity: 1; color: #4ade80; }
-  .status .step.done::before { content: 'â '; }
+  .status .step.done::before { content: '✓ '; }
   .status .step.active::before { content: ''; }
   .status .step.error { opacity: 1; color: #f87171; }
-  .status .step.error::before { content: 'â '; }
+  .status .step.error::before { content: '✗ '; }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner {
@@ -243,13 +243,13 @@
   }
 
   .first-load-warning {
-    background: rgba(250, 204, 21, 0.1);
-    border: 1px solid rgba(250, 204, 21, 0.3);
+    background: rgba(22, 163, 74, 0.1);
+    border: 1px solid rgba(22, 163, 74, 0.3);
     border-radius: 8px;
     padding: 12px 16px;
     margin-bottom: 20px;
     font-size: 0.95em;
-    color: #fbbf24;
+    color: #16a34a;
     text-align: center;
     display: none;
   }
@@ -260,25 +260,25 @@
 <body>
 
 <div class="header">
-  <h1>ð§  Name The Brain</h1>
-  <p>Drag in a celebrity photo â Get BrainA + BrainB PNGs</p>
+  <h1>🧠 Name The Brain</h1>
+  <p>Drag in a celebrity photo → Get BrainA + BrainB PNGs</p>
 </div>
 
 <div class="container">
   <div class="first-load-warning" id="firstLoadWarn">
-    â¡ First run downloads the AI model (~40MB). After that it's cached and instant.
+    ⚡ First run downloads the AI model (~40MB). After that it's cached and instant.
   </div>
 
   <div class="drop-zone" id="dropZone">
     <h2>Drop Photo Here</h2>
-    <p>or click to browse â JPG, PNG, WebP</p>
+    <p>or click to browse — JPG, PNG, WebP</p>
     <img id="preview" alt="Preview">
     <input type="file" id="fileInput" accept="image/*" style="display:none">
   </div>
 
   <input type="text" class="name-input" id="nameInput" placeholder="Celebrity name (e.g. Taylor Swift)" maxlength="100">
 
-  <button id="aiHintBtn" onclick="generateCelebHints()" style="margin-top:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">ð¤ AI Generate Hints for Host</button>
+  <button id="aiHintBtn" onclick="generateCelebHints()" style="margin-top:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Hints for Host</button>
   <div id="aiHintPanel" style="display:none;margin-top:10px;background:#0f0a1e;border:1px solid #7c3aed;border-radius:10px;padding:14px;font-size:13px;color:#c4b5fd;line-height:1.8;white-space:pre-wrap;"></div>
 
   <button class="btn" id="generateBtn" disabled>Generate Brain Images</button>
@@ -298,12 +298,12 @@
     <h2>Results</h2>
     <div class="result-pair">
       <div class="result-card">
-        <h3>BrainA â Question (Hair)</h3>
+        <h3>BrainA — Question (Hair)</h3>
         <canvas id="canvasA" width="1920" height="1080"></canvas>
         <a class="download-btn" id="dlA">Download BrainA</a>
       </div>
       <div class="result-card">
-        <h3>BrainB â Answer (Head)</h3>
+        <h3>BrainB — Answer (Head)</h3>
         <canvas id="canvasB" width="1920" height="1080"></canvas>
         <a class="download-btn" id="dlB">Download BrainB</a>
       </div>
@@ -316,7 +316,7 @@
 <script type="module">
 import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm';
 
-// ââ State ââ
+// ── State ──
 let uploadedFile = null;
 let modelLoaded = false;
 
@@ -331,7 +331,7 @@ const loadingBar = document.getElementById('loadingBar');
 const loadingFill = document.getElementById('loadingFill');
 const firstLoadWarn = document.getElementById('firstLoadWarn');
 
-// ââ File Handling ââ
+// ── File Handling ──
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
@@ -352,7 +352,7 @@ function handleFile(file) {
   preview.style.display = 'block';
   dropZone.classList.add('has-image');
   dropZone.querySelector('h2').textContent = file.name;
-  dropZone.querySelector('p').textContent = `${(file.size / 1024).toFixed(0)}KB â click or drop to replace`;
+  dropZone.querySelector('p').textContent = `${(file.size / 1024).toFixed(0)}KB — click or drop to replace`;
   checkReady();
 }
 
@@ -361,7 +361,7 @@ function checkReady() {
   generateBtn.disabled = !(uploadedFile && nameInput.value.trim());
 }
 
-// ââ Load face-api models ââ
+// ── Load face-api models ──
 let modelLoadPromise = null;
 function loadFaceModels() {
   if (!modelLoadPromise) {
@@ -378,7 +378,7 @@ function loadFaceModels() {
 // Start loading face models immediately
 loadFaceModels().catch(e => console.warn('Face model load:', e));
 
-// ââ Steps UI ââ
+// ── Steps UI ──
 let stepTimers = {};
 function setStep(n, state) {
   const el = document.getElementById('step' + n);
@@ -403,7 +403,7 @@ function setProgress(pct) {
   loadingFill.style.width = pct + '%';
 }
 
-// ââ Timeout helper ââ
+// ── Timeout helper ──
 function withTimeout(promise, ms, msg) {
   return Promise.race([
     promise,
@@ -411,7 +411,7 @@ function withTimeout(promise, ms, msg) {
   ]);
 }
 
-// ââ Main Pipeline ââ
+// ── Main Pipeline ──
 generateBtn.addEventListener('click', async () => {
   if (!uploadedFile || !nameInput.value.trim()) return;
 
@@ -452,11 +452,11 @@ generateBtn.addEventListener('click', async () => {
       blob = await withTimeout(
         removeBackground(uploadedFile, { output: { format: 'image/png' } }),
         180000,
-        'Background removal timed out after 3 minutes â try a smaller image or check your connection'
+        'Background removal timed out after 3 minutes — try a smaller image or check your connection'
       );
     } catch (bgErr) {
       if (window.location.protocol === 'file:') {
-        throw new Error('Background removal blocked â open via a web server instead of double-clicking the HTML file');
+        throw new Error('Background removal blocked — open via a web server instead of double-clicking the HTML file');
       }
       throw bgErr;
     }
@@ -479,10 +479,10 @@ generateBtn.addEventListener('click', async () => {
     // Step 3: Face detection
     setStep(3, 'active');
 
-    if (!modelLoaded) await withTimeout(loadFaceModels(), 60000, 'Face model download timed out â check your connection');
+    if (!modelLoaded) await withTimeout(loadFaceModels(), 60000, 'Face model download timed out — check your connection');
 
     const detection = await faceapi.detectSingleFace(img).withFaceLandmarks();
-    if (!detection) throw new Error('No face detected â try a clearer photo');
+    if (!detection) throw new Error('No face detected — try a clearer photo');
 
     const box = detection.detection.box;
     const landmarks = detection.landmarks;
@@ -532,7 +532,7 @@ generateBtn.addEventListener('click', async () => {
     const headCtx = headCanvas.getContext('2d');
     headCtx.drawImage(workCanvas, cropLeft, cropTop, cw, ch, 0, 0, cw, ch);
 
-    // Apply outline + shadow â fit to 1920x1080
+    // Apply outline + shadow → fit to 1920x1080
     const brainB = applyEffectsAndFit(headCanvas, 0.95);
 
     // Draw to output
@@ -565,7 +565,7 @@ generateBtn.addEventListener('click', async () => {
     }
     hairCtx.putImageData(hairData, 0, 0);
 
-    // Apply outline + shadow â fit to canvas
+    // Apply outline + shadow → fit to canvas
     const brainA = applyEffectsAndFit(hairCanvas, 0.85);
 
     const canvasA = document.getElementById('canvasA');
@@ -593,7 +593,7 @@ generateBtn.addEventListener('click', async () => {
       const el = document.getElementById('step' + i);
       if (el.classList.contains('active')) {
         el.className = 'step error';
-        el.textContent += ' â ' + err.message;
+        el.textContent += ' — ' + err.message;
         break;
       }
     }
@@ -602,7 +602,7 @@ generateBtn.addEventListener('click', async () => {
   generateBtn.disabled = false;
 });
 
-// ââ Helpers ââ
+// ── Helpers ──
 
 function avgPoint(points) {
   const x = points.reduce((s, p) => s + p.x, 0) / points.length;
@@ -693,7 +693,7 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   const bounds = getAlphaBounds(srcData);
 
   if (!bounds) {
-    // No content â return empty canvas
+    // No content — return empty canvas
     const c = document.createElement('canvas');
     c.width = 1920; c.height = 1080;
     return c;
@@ -848,7 +848,7 @@ async function generateCelebHints() {
   if (!celebrity) { alert('Enter the celebrity name first!'); return; }
   const btn = document.getElementById('aiHintBtn');
   const panel = document.getElementById('aiHintPanel');
-  btn.disabled = true; btn.textContent = 'â³ Writing hints...';
+  btn.disabled = true; btn.textContent = '⏳ Writing hints...';
   try {
     const res = await fetch('https://kbt-api.pgallivan.workers.dev/api/ai-text', {
       method: 'POST',
@@ -856,5 +856,16 @@ async function generateCelebHints() {
       body: JSON.stringify({ tool: 'brain-hint', celebrity })
     });
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    pan
+    if (data.error) throw new Error(data.error);panel.innerHTML = data.hints || data.text || data.result || JSON.stringify(data);
+    panel.style.display = 'block';
+  } catch(e) {
+    panel.innerHTML = '⚠️ ' + e.message;
+    panel.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 AI Generate Hints for Host';
+  }
+}
+</script>
+</body>
+</html>

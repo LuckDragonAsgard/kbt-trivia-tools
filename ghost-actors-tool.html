@@ -971,8 +971,8 @@
         }
 
         function kbtDrawChrome(ctx, W, H, type) {
-            // type: 'question' → teal accents; 'answer' → gold accents
-            const accent = type === 'answer' ? '#fbbf24' : '#2dd4bf';
+            // type: 'question'/'answer' → purple accent
+            const accent = '#7c3aed';
             const titleText = type === 'answer' ? 'THE ANSWER' : "WHO'S THE GHOST?";
 
             // Semi-transparent dark overlay bar at top
@@ -1041,9 +1041,9 @@
                 const rh = rect.h * scaleY / 2;
 
                 // Glowing teal ellipse
-                bCtx.shadowColor = '#2dd4bf';
+                bCtx.shadowColor = '#7c3aed';
                 bCtx.shadowBlur = 30;
-                bCtx.strokeStyle = '#2dd4bf';
+                bCtx.strokeStyle = '#7c3aed';
                 bCtx.lineWidth = 8;
                 bCtx.globalAlpha = 0.95;
                 bCtx.beginPath();
@@ -1054,7 +1054,7 @@
 
                 // Actor name below the circle
                 if (state.actorName) {
-                    bCtx.fillStyle = '#fbbf24';
+                    bCtx.fillStyle = '#7c3aed';
                     bCtx.font = 'bold 52px "Bowlby One SC", cursive';
                     bCtx.textAlign = 'center';
                     bCtx.textBaseline = 'top';
@@ -1063,3 +1063,36 @@
                     bCtx.fillStyle = 'rgba(15,23,42,0.75)';
                     const nameY = cy + rh + 30;
                     bCtx.fillRect(cx - nameW / 2 - 16, nameY - 4, nameW + 32, 66);
+
+                    bCtx.fillStyle = '#7c3aed';
+                    bCtx.fillText(state.actorName, cx, nameY);
+                }
+            }
+            kbtDrawChrome(bCtx, targetWidth, targetHeight, 'answer');
+            ghostBCanvas.width = targetWidth;
+            ghostBCanvas.height = targetHeight;
+            ghostBCanvas.getContext('2d').drawImage(state.ghostBCanvas, 0, 0);
+
+            // Setup downloads
+            downloadGhostA.onclick = () => {
+                ghostACanvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `GhostA_${(state.actorName||'ghost').replace(/[^A-Za-z0-9]/g,'')}.png`;
+                    a.click(); URL.revokeObjectURL(url);
+                }, 'image/png');
+            };
+            downloadGhostB.onclick = () => {
+                state.ghostBCanvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `GhostB_${(state.actorName||'ghost').replace(/[^A-Za-z0-9]/g,'')}.png`;
+                    a.click(); URL.revokeObjectURL(url);
+                }, 'image/png');
+            };
+        }
+        </script>
+        </body>
+        </html>
