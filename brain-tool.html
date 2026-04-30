@@ -602,6 +602,16 @@ generateBtn.addEventListener('click', async () => {
   generateBtn.disabled = false;
 });
 
+// ── Test injection hook (allows external JS to inject a file into the module scope) ──
+window._brainTestInject = async function(dataURL, name) {
+    const res = await fetch(dataURL);
+    const blob = await res.blob();
+    const file = new File([blob], 'test-face.png', { type: 'image/png' });
+    handleFile(file);
+    nameInput.value = name || 'Test Celebrity';
+    nameInput.dispatchEvent(new Event('input'));
+};
+
 // ── Helpers ──
 
 function avgPoint(points) {
