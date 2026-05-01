@@ -556,7 +556,8 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   const ctx = out.getContext('2d');
   ctx.drawImage(cAclean, 0, 0);
   ctx.drawImage(cBmasked, 0, 0);
-  return out;
+  // Clean ghost pixels: semi-transparent bleed outside face → hard cut
+  return cleanAlpha(out);
 }
 
 // ── Sticker treatment (white border + shadow) ──────────────────────────────
