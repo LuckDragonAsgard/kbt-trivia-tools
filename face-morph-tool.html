@@ -634,7 +634,7 @@ function renderQ(morphSt, label) {
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,SW,SH);
 
   // Center morph image (80% height max, slightly right of center to clear header)
-  const maxH = SH - 80, maxW = SW * 0.82;
+  const maxH = SH - 40, maxW = SW * 0.88;
   const sc = Math.min(maxW/morphSt.width, maxH/morphSt.height);
   const dw = morphSt.width*sc, dh = morphSt.height*sc;
   ctx.drawImage(morphSt, (SW-dw)/2, (SH-dh)/2+10, dw, dh);
@@ -699,10 +699,10 @@ function cropToFace(imgCanvas, lm, origW, origH) {
   }
   const fW = maxX - minX, fH = maxY - minY;
   // Generous top/side padding for hair, minimal below chin
-  const x0 = Math.max(0, Math.round(minX - fW * 0.30));
-  const y0 = Math.max(0, Math.round(minY - fH * 0.50));
-  const x1 = Math.min(w, Math.round(maxX + fW * 0.30));
-  const y1 = Math.min(h, Math.round(maxY + fH * 0.22));
+  const x0 = Math.max(0, Math.round(minX - fW * 0.38));
+  const y0 = Math.max(0, Math.round(minY - fH * 0.58));
+  const x1 = Math.min(w, Math.round(maxX + fW * 0.38));
+  const y1 = Math.min(h, Math.round(maxY + fH * 0.42));
   const cw = x1 - x0, ch = y1 - y0;
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
