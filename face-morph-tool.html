@@ -687,22 +687,45 @@ function renderA(stA, morphSt, stB, answer, label) {
 }
 
 // ── Crop rembg output to just the face (removes clothing below chin) ──────
+// Uses MediaPipe landmark 152 (chin tip) as hard bottom boundary — clothing-proof.
+// All 478 landmarks for horizontal extent (catches hair/ears).
+// Face-oval landmarks for vertical top (catches forehead/hair top).
 function cropToFace(imgCanvas, lm, origW, origH) {
   const w = imgCanvas.naturalWidth || imgCanvas.width;
   const h = imgCanvas.naturalHeight || imgCanvas.height;
   const sx = w / origW, sy = h / origH;
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  // All landmarks → horizontal extent (ears + hair)
+  let minX = Infinity, maxX = -Infinity;
+  // Face-oval top landmarks → top extent (forehead/hair)
+  // MediaPipe face oval indices (top half — forehead and sides)
+  const TOP_OVAL = [10,338,297,332,284,251,389,356,454,323,361,288,
+                    397,365,379,378,400,377,148,176,149,150,136,172,
+                    58,132,93,234,127,162,21,54,103,67,109];
+  let minY = Infinity;
   for (const pt of lm) {
-    const px = pt.x * origW * sx, py = pt.y * origH * sy;
-    if (px < minX) minX = px; if (px > maxX) maxX = px;
-    if (py < minY) minY = py; if (py > maxY) maxY = py;
+    const px = pt.x * origW * sx;
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
   }
-  const fW = maxX - minX, fH = maxY - minY;
-  // Generous top/side padding for hair, minimal below chin
-  const x0 = Math.max(0, Math.round(minX - fW * 0.38));
-  const y0 = Math.max(0, Math.round(minY - fH * 0.58));
-  const x1 = Math.min(w, Math.round(maxX + fW * 0.38));
-  const y1 = Math.min(h, Math.round(maxY + fH * 0.28));
+  for (const idx of TOP_OVAL) {
+    if (!lm[idx]) continue;
+    const py = lm[idx].y * origH * sy;
+    if (py < minY) minY = py;
+  }
+
+  const fW = maxX - minX;
+  const fH_top = (lm[152] ? lm[152].y * origH * sy : 0) - minY; // forehead to chin
+
+  // Hard bottom = chin tip (lm 152) + small fixed neck pad
+  const chinY  = lm[152] ? lm[152].y * origH * sy : minY + fH_top;
+  const neckPad = Math.round(fH_top * 0.14); // 14% of face height = short neck strip
+
+  const x0 = Math.max(0, Math.round(minX - fW * 0.40));
+  const y0 = Math.max(0, Math.round(minY - fH_top * 0.55)); // generous hair top
+  const x1 = Math.min(w, Math.round(maxX + fW * 0.40));
+  const y1 = Math.min(h, Math.round(chinY + neckPad));
+
   const cw = x1 - x0, ch = y1 - y0;
   const out = document.createElement('canvas');
   out.width = cw; out.height = ch;
