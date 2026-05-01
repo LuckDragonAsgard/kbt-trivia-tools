@@ -93,7 +93,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
   <div class="panel-title">Feature assignment — which face contributes each region</div>
   <div class="feat-grid" id="featGrid"></div>
   <div style="font-size:12px;color:var(--muted)">
-    🟣 = Face A &nbsp;&nbsp; 🟡 = Face B &nbsp;&nbsp; Result: Face B is on top; erased regions reveal Face A underneath.
+    🟣 = Face A &nbsp;&nbsp; 🟡 = Face B &nbsp;&nbsp; Default is 50/50 blend everywhere (inc. hair). Toggle shifts each region A or B dominant.
   </div>
 </div>
 
@@ -107,7 +107,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
   <div class="step" id="s0"><span class="dot"></span> Detecting facial landmarks…</div>
   <div class="step" id="s1"><span class="dot"></span> Computing alignment transform…</div>
   <div class="step" id="s2"><span class="dot"></span> Removing backgrounds…</div>
-  <div class="step" id="s3"><span class="dot"></span> Compositing morph (landmark erasure)…</div>
+  <div class="step" id="s3"><span class="dot"></span> Compositing morph (50/50 alpha blend)…</div>
   <div class="step" id="s4"><span class="dot"></span> Applying white border + shadow…</div>
   <div class="step" id="s5"><span class="dot"></span> Rendering KBT slides…</div>
 </div>
@@ -371,21 +371,26 @@ function convexHull(pts) {
   return h;
 }
 
-// ── Compositing ────────────────────────────────────────────────────────────
-// imgBase: rembg'd Face A (transparent)
-// imgOver: rembg'd Face B (transparent), aligned via T
-// lmOver: landmarks of Face B (on original image dimensions)
-// Features assigned to 'A': erase from Face B layer → Face A shows through
+// ── Compositing (true 50/50 alpha blend) ─────────────────────────────────
+// imgBase: rembg'd Face A (transparent bg)
+// imgOver: rembg'd Face B (transparent bg), will be aligned via T
+// lmOver:  landmarks of Face B (on original image dimensions)
+// feats:   per-region toggle 'A' → Face A dominant, 'B' → Face B dominant
+// Default blend is 50/50 across ALL regions including hair.
 function compositeMorph(imgBase, imgOver, lmOver, T) {
-  const w = imgBase.naturalWidth||imgBase.width;
-  const h = imgBase.naturalHeight||imgBase.height;
+  const w = imgBase.naturalWidth || imgBase.width;
+  const h = imgBase.naturalHeight || imgBase.height;
   const wo = T.wd, ho = T.hd;
 
-  // ── Layer: Face B (aligned, full) ──
+  // ── Face A canvas ──
+  const cA = document.createElement('canvas');
+  cA.width = w; cA.height = h;
+  cA.getContext('2d').drawImage(imgBase, 0, 0);
+
+  // ── Face B canvas (aligned to Face A landmark positions) ──
   const cB = document.createElement('canvas');
   cB.width = w; cB.height = h;
   const ctxB = cB.getContext('2d');
-
   ctxB.save();
   ctxB.translate(T.anchorX, T.anchorY);
   ctxB.rotate(T.rot);
@@ -394,46 +399,65 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   ctxB.drawImage(imgOver, 0, 0, wo, ho);
   ctxB.restore();
 
-  // ── Erase features from Face B that belong to Face A ──
-  ctxB.globalCompositeOperation = 'destination-out';
+  // ── Per-pixel blend mask for Face B ──
+  // Pixel alpha = how much of Face B shows at that location.
+  // BLEND_DEFAULT = 0.5  → true 50/50 blend (hair, forehead, neck, background edge)
+  // BLEND_A       = 0.12 → Face A dominates in that feature region
+  // BLEND_B       = 0.88 → Face B dominates in that feature region
+  const BLEND_DEFAULT = 0.5;
+  const BLEND_A       = 0.12;
+  const BLEND_B       = 0.88;
+
+  const cMask = document.createElement('canvas');
+  cMask.width = w; cMask.height = h;
+  const ctxM = cMask.getContext('2d');
+
+  // Fill entire mask with 50/50 — covers hair, sides, forehead, etc.
+  ctxM.fillStyle = `rgba(0,0,0,${BLEND_DEFAULT})`;
+  ctxM.fillRect(0, 0, w, h);
+
+  // Per-feature region: paint toggle weight with heavy feather for smooth seams
   for (const [feat, owner] of Object.entries(feats)) {
-    if (owner !== 'A') continue; // only erase if A contributes this feature
     const idxs = LM[feat];
     if (!idxs) continue;
-    // Map Face B landmark positions through transform T into canvas space
     const pts = idxs.map(i => lmToPx(lmOver, i, wo, ho, T)).filter(Boolean);
     if (pts.length < 3) continue;
     const hull = convexHull(pts);
-    const centroid = hull.reduce((acc,p)=>({x:acc.x+p.x/hull.length,y:acc.y+p.y/hull.length}),{x:0,y:0});
-    // Slight expansion so feathering starts just outside the landmark boundary
-    const pad = 14;
+    const centroid = hull.reduce(
+      (a, p) => ({ x: a.x + p.x / hull.length, y: a.y + p.y / hull.length }),
+      { x: 0, y: 0 }
+    );
+    const pad = 16;
     const expanded = hull.map(p => {
-      const dx=p.x-centroid.x, dy=p.y-centroid.y;
-      const d=Math.hypot(dx,dy)||1;
-      return {x:p.x+dx/d*pad, y:p.y+dy/d*pad};
+      const dx = p.x - centroid.x, dy = p.y - centroid.y;
+      const d = Math.hypot(dx, dy) || 1;
+      return { x: p.x + (dx / d) * pad, y: p.y + (dy / d) * pad };
     });
-    // Feathered erase: blur creates a soft gradient at the feature edge
-    // so the two faces blend seamlessly rather than hard-cutting
-    ctxB.filter = 'blur(22px)';
-    ctxB.beginPath();
-    ctxB.moveTo(expanded[0].x, expanded[0].y);
-    for (let i=1;i<expanded.length;i++) ctxB.lineTo(expanded[i].x, expanded[i].y);
-    ctxB.closePath();
-    ctxB.fill();
-    ctxB.filter = 'none';
+    const w8 = owner === 'A' ? BLEND_A : BLEND_B;
+    ctxM.filter = 'blur(28px)';
+    ctxM.fillStyle = `rgba(0,0,0,${w8})`;
+    ctxM.beginPath();
+    ctxM.moveTo(expanded[0].x, expanded[0].y);
+    for (let i = 1; i < expanded.length; i++) ctxM.lineTo(expanded[i].x, expanded[i].y);
+    ctxM.closePath();
+    ctxM.fill();
+    ctxM.filter = 'none';
   }
 
-  // ── Composite: Face A (base) + Face B (top, with erasures) ──
+  // ── Mask Face B by the blend weight canvas ──
+  const cBmasked = document.createElement('canvas');
+  cBmasked.width = w; cBmasked.height = h;
+  const ctxBM = cBmasked.getContext('2d');
+  ctxBM.drawImage(cB, 0, 0);
+  ctxBM.globalCompositeOperation = 'destination-in';
+  ctxBM.drawImage(cMask, 0, 0); // mask alpha = Face B opacity per pixel
+
+  // ── Final: Face A (base) + masked Face B ──
   const out = document.createElement('canvas');
   out.width = w; out.height = h;
   const ctx = out.getContext('2d');
-  ctx.drawImage(imgBase, 0, 0); // Face A base
-  ctx.drawImage(cB, 0, 0);       // Face B with feathered erasures (Face A shows through)
-  // Soft reconciliation pass: draw Face A at low opacity to blend any
-  // remaining hard seams at feature boundaries
-  ctx.globalAlpha = 0.10;
-  ctx.drawImage(imgBase, 0, 0);
-  ctx.globalAlpha = 1.0;
+  ctx.drawImage(cA, 0, 0);       // Face A: full opacity base
+  ctx.drawImage(cBmasked, 0, 0); // Face B: blended per region
   return out;
 }
 
