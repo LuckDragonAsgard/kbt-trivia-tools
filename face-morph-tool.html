@@ -560,56 +560,55 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
 }
 
 // ── Sticker treatment (white border + shadow) ──────────────────────────────
-function sticker(img, borderPx) {
-  const sw = img.naturalWidth||img.width;
-  const sh = img.naturalHeight||img.height;
-  const pad = borderPx + 28;
-
+// Shared sticker helper — works on both HTMLImageElement and canvas
+function _applySticker(drawFn, sw, sh, borderPx) {
+  const BORDER = borderPx;          // actual white border pixels
+  const pad    = BORDER * 5 + 24;   // padding for border + shadow
   const c = document.createElement('canvas');
   c.width = sw + pad*2; c.height = sh + pad*2;
   const ctx = c.getContext('2d');
 
-  // White silhouette (scaled up = border)
+  // ── White border via blur-expansion of the face silhouette ──
   const sil = document.createElement('canvas');
   sil.width = sw; sil.height = sh;
   const sc = sil.getContext('2d');
-  sc.drawImage(img, 0, 0);
+  drawFn(sc);                               // draw face onto silhouette canvas
   sc.globalCompositeOperation = 'source-in';
-  sc.fillStyle = 'white'; sc.fillRect(0,0,sw,sh);
+  sc.fillStyle = 'white'; sc.fillRect(0,0,sw,sh); // fill opaque pixels white
 
-  const s = 1 + (borderPx * 2.2) / Math.min(sw,sh);
-  const bw = sw*s, bh = sh*s;
-  ctx.drawImage(sil, pad+(sw-bw)/2, pad+(sh-bh)/2, bw, bh);
+  // Blur-expand the white silhouette to form a visible white border
+  ctx.filter = `blur(${BORDER * 0.9}px)`;
+  ctx.drawImage(sil, pad, pad);
+  ctx.filter = 'none';
 
-  // Shadow + original
+  // Clamp to pure white (blur creates grey fringe — make it fully white)
+  const d = ctx.getImageData(0,0,c.width,c.height);
+  for (let i=0; i<d.data.length; i+=4) {
+    if (d.data[i+3] > 20) { d.data[i]=255; d.data[i+1]=255; d.data[i+2]=255; d.data[i+3]=Math.min(255,d.data[i+3]*4); }
+  }
+  ctx.putImageData(d,0,0);
+
+  // ── Drop shadow + face ──
   ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=28; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
-  ctx.drawImage(img, pad, pad);
+  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=30; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
+  drawFn(ctx, pad, pad);
   ctx.restore();
   return c;
 }
 
+function sticker(img, borderPx) {
+  const sw = img.naturalWidth||img.width, sh = img.naturalHeight||img.height;
+  return _applySticker(
+    (ctx, ox=0, oy=0) => ctx.drawImage(img, ox, oy),
+    sw, sh, borderPx
+  );
+}
+
 function stickerFromCanvas(can, borderPx) {
-  // same as sticker() but input is a canvas (already transparent)
-  const sw = can.width, sh = can.height;
-  const pad = borderPx + 28;
-  const c = document.createElement('canvas');
-  c.width = sw+pad*2; c.height = sh+pad*2;
-  const ctx = c.getContext('2d');
-  const sil = document.createElement('canvas');
-  sil.width = sw; sil.height = sh;
-  const sc = sil.getContext('2d');
-  sc.drawImage(can, 0, 0);
-  sc.globalCompositeOperation = 'source-in';
-  sc.fillStyle='white'; sc.fillRect(0,0,sw,sh);
-  const s = 1+(borderPx*2.2)/Math.min(sw,sh);
-  const bw=sw*s, bh=sh*s;
-  ctx.drawImage(sil, pad+(sw-bw)/2, pad+(sh-bh)/2, bw, bh);
-  ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=28; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
-  ctx.drawImage(can, pad, pad);
-  ctx.restore();
-  return c;
+  return _applySticker(
+    (ctx, ox=0, oy=0) => ctx.drawImage(can, ox, oy),
+    can.width, can.height, borderPx
+  );
 }
 
 // ── KBT slide rendering ────────────────────────────────────────────────────
@@ -750,9 +749,9 @@ async function generate() {
 
     // S4: sticker treatment on all three
     sOn('s4');
-    const morphSt  = stickerFromCanvas(morphCanvas, 9);
-    const stA = sticker(cutA, 7);
-    const stB = sticker(cutB, 7);
+    const morphSt  = stickerFromCanvas(morphCanvas, 18);
+    const stA = sticker(cutA, 14);
+    const stB = sticker(cutB, 14);
     sOk('s4');
 
     // Cache results so toggles can re-render instantly
@@ -787,7 +786,7 @@ function rerender() {
   if (!_morphCache) return;
   const { cutA, cutB, lmB, T, stA, stB, label, answer } = _morphCache;
   const morphCanvas = compositeMorph(cutA, cutB, lmB, T);
-  const morphSt = stickerFromCanvas(morphCanvas, 9);
+  const morphSt = stickerFromCanvas(morphCanvas, 18);
   renderQ(morphSt, label || 'R1Q1');
   renderA(stA, morphSt, stB, answer || '', label || 'R1Q1');
   document.getElementById('outBox').style.display = 'block';
