@@ -213,8 +213,45 @@ function loadFace(ev, slot) {
 
 function showPreview(dropId, src) {
   const d = document.getElementById(dropId);
-  d.innerHTML = '<img src="' + src + '">';
+  d.innerHTML = '<img src="' + src + '" style="display:block">';
   d.classList.add('has-img');
+}
+
+// Draw coloured landmark dots on the preview to confirm feature alignment
+const DOT_COLOURS = {
+  eyeL:'#3b82f6', eyeR:'#22c55e', nose:'#ef4444',
+  mouth:'#eab308', sideL:'#a855f7', sideR:'#f97316'
+};
+function drawDotsOnPreview(slot, lm, img) {
+  const dropId = 'drop' + slot;
+  const d = document.getElementById(dropId);
+  if (!d) return;
+  const prevImg = d.querySelector('img');
+  if (!prevImg) return;
+  const pw = prevImg.offsetWidth || 200;
+  const ph = prevImg.offsetHeight || 200;
+  const iw = img.naturalWidth || img.width;
+  const ih = img.naturalHeight || img.height;
+  // Remove old dot canvas if any
+  const old = d.querySelector('canvas.lm-dots');
+  if (old) old.remove();
+  const cv = document.createElement('canvas');
+  cv.className = 'lm-dots';
+  cv.width = pw; cv.height = ph;
+  cv.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none';
+  d.style.position = 'relative';
+  d.appendChild(cv);
+  const cx = cv.getContext('2d');
+  for (const [feat, idxs] of Object.entries(LM)) {
+    cx.fillStyle = DOT_COLOURS[feat] || '#fff';
+    for (const idx of idxs) {
+      const p = lm[idx];
+      if (!p) continue;
+      cx.beginPath();
+      cx.arc(p.x * pw, p.y * ph, 2.5, 0, Math.PI*2);
+      cx.fill();
+    }
+  }
 }
 
 // Drag/drop
@@ -409,29 +446,35 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   ctxB.drawImage(imgOver, 0, 0, wo, ho);
   ctxB.restore();
 
-  // ── Blend mask: alpha at each pixel = how much Face B shows ──
-  const BLEND_DEFAULT = 0.5;   // 50/50 everywhere (hair, forehead, neck)
-  const BLEND_A       = 0.03;  // Face A dominant  (Face B at only 3%)
-  const BLEND_B       = 0.97;  // Face B dominant  (Face B at 97%)
-  const BLUR          = 14;    // feather radius in px
+  // ── Blend mask ──────────────────────────────────────────────────────────────
+  // RULE: No opacity in the final result.
+  // Opacity is used ONLY during alignment. In the final composite:
+  //   - Each feature region = HARD CUT: 100% Face A or 100% Face B
+  //   - Hair/background = 50/50 colour average (combined silhouette)
+  //   - Seam smoothing: single small blur on the COMPLETE mask after all hard cuts
+  //     → interior of each region stays clean, only boundary has a ~12px feather
+  const BLEND_HAIR = 0.5;  // hair + background: genuine 50/50 colour average
+  const BLEND_A    = 0.0;  // feature region: 100% Face A, 0% Face B
+  const BLEND_B    = 1.0;  // feature region: 100% Face B, 0% Face A
+  const SEAM_BLUR  = 6;    // blur applied to WHOLE mask ONCE at end — seams only
 
+  // Hard mask canvas (no blur applied during drawing)
   const cMask = document.createElement('canvas');
   cMask.width = w; cMask.height = h;
   const ctxM = cMask.getContext('2d');
 
-  // Step 1: Fill everything at 50/50 (covers hair, sides, forehead)
-  ctxM.fillStyle = `rgba(0,0,0,${BLEND_DEFAULT})`;
+  // Fill entire canvas at 50/50 for hair + background
+  ctxM.fillStyle = `rgba(0,0,0,${BLEND_HAIR})`;
   ctxM.fillRect(0, 0, w, h);
 
-  // Helper: draw a hull path on ctxM
-  function hullPath(expanded) {
-    ctxM.beginPath();
-    ctxM.moveTo(expanded[0].x, expanded[0].y);
-    for (let i = 1; i < expanded.length; i++) ctxM.lineTo(expanded[i].x, expanded[i].y);
-    ctxM.closePath();
+  function hullPath(ctx2d, pts) {
+    ctx2d.beginPath();
+    ctx2d.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx2d.lineTo(pts[i].x, pts[i].y);
+    ctx2d.closePath();
   }
 
-  // Step 2: For each feature, REPLACE alpha by erase-then-redraw
+  // Hard-cut each feature region — erase then redraw at 0 or 1, NO blur
   for (const [feat, owner] of Object.entries(feats)) {
     const idxs = LM[feat];
     if (!idxs) continue;
@@ -442,45 +485,71 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
       (a, p) => ({ x: a.x + p.x / hull.length, y: a.y + p.y / hull.length }),
       { x: 0, y: 0 }
     );
-    // Expand hull outward for generous coverage
     const expanded = hull.map(p => {
       const dx = p.x - centroid.x, dy = p.y - centroid.y;
       const d = Math.hypot(dx, dy) || 1;
-      return { x: p.x + (dx / d) * 20, y: p.y + (dy / d) * 20 };
+      return { x: p.x + (dx / d) * 22, y: p.y + (dy / d) * 22 };
     });
     const w8 = owner === 'A' ? BLEND_A : BLEND_B;
 
-    // Erase region back to transparent (destination-out), feathered
+    // Erase (hard, no blur) then redraw at 0.0 or 1.0 (hard, no blur)
     ctxM.save();
-    ctxM.filter = `blur(${BLUR}px)`;
     ctxM.globalCompositeOperation = 'destination-out';
     ctxM.fillStyle = 'rgba(0,0,0,1)';
-    hullPath(expanded);
-    ctxM.fill();
+    hullPath(ctxM, expanded); ctxM.fill();
     ctxM.restore();
 
-    // Redraw region at correct target weight (source-over onto cleared area), feathered
-    ctxM.save();
-    ctxM.filter = `blur(${BLUR}px)`;
     ctxM.fillStyle = `rgba(0,0,0,${w8})`;
-    hullPath(expanded);
-    ctxM.fill();
-    ctxM.restore();
+    hullPath(ctxM, expanded); ctxM.fill();
   }
 
-  // ── Apply mask to Face B (mask alpha controls Face B opacity per pixel) ──
+  // Single seam-smoothing blur on the complete mask — only affects boundaries
+  const cMaskSmooth = document.createElement('canvas');
+  cMaskSmooth.width = w; cMaskSmooth.height = h;
+  const ctxMS = cMaskSmooth.getContext('2d');
+  ctxMS.filter = `blur(${SEAM_BLUR}px)`;
+  ctxMS.drawImage(cMask, 0, 0);
+  ctxMS.filter = 'none';
+
+  // ── Clean up rembg noise: resolve semi-transparent pixels onto white ──
+  function resolveOnWhite(img) {
+    const cc = document.createElement('canvas');
+    cc.width = img.naturalWidth||img.width; cc.height = img.naturalHeight||img.height;
+    const cx = cc.getContext('2d');
+    cx.fillStyle = '#ffffff';
+    cx.fillRect(0, 0, cc.width, cc.height);
+    cx.drawImage(img, 0, 0);
+    return cc;
+  }
+  const cAclean = resolveOnWhite(imgBase);
+  const cBclean = document.createElement('canvas');
+  cBclean.width = w; cBclean.height = h;
+  const ctxBc = cBclean.getContext('2d');
+  ctxBc.fillStyle = '#ffffff';
+  ctxBc.fillRect(0, 0, w, h);
+  ctxBc.save();
+  ctxBc.translate(T.anchorX, T.anchorY);
+  ctxBc.rotate(T.rot);
+  ctxBc.scale(T.scale, T.scale);
+  ctxBc.translate(-T.pivotX, -T.pivotY);
+  ctxBc.drawImage(imgOver, 0, 0, wo, ho);
+  ctxBc.restore();
+
+  // ── Apply smooth mask to clean Face B ──
   const cBmasked = document.createElement('canvas');
   cBmasked.width = w; cBmasked.height = h;
   const ctxBM = cBmasked.getContext('2d');
-  ctxBM.drawImage(cB, 0, 0);
+  ctxBM.drawImage(cBclean, 0, 0);
   ctxBM.globalCompositeOperation = 'destination-in';
-  ctxBM.drawImage(cMask, 0, 0);
+  ctxBM.drawImage(cMaskSmooth, 0, 0);
 
-  // ── Final: Face A (full opacity) + masked Face B on top ──
+  // ── Final: clean Face A base + masked Face B on top, on white ──
   const out = document.createElement('canvas');
   out.width = w; out.height = h;
   const ctx = out.getContext('2d');
-  ctx.drawImage(cA, 0, 0);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(cAclean, 0, 0);
   ctx.drawImage(cBmasked, 0, 0);
   return out;
 }
@@ -627,6 +696,9 @@ async function generate() {
     lmA = detectLM(imgA);
     lmB = detectLM(imgB);
     sOk('s0');
+    // Show landmark dots on previews to confirm alignment
+    try { drawDotsOnPreview('A', lmA, imgA); } catch(e) {}
+    try { drawDotsOnPreview('B', lmB, imgB); } catch(e) {}
 
     // S1: compute alignment (Face B aligned onto Face A)
     sOn('s1');
