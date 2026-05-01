@@ -488,7 +488,7 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
     const expanded = hull.map(p => {
       const dx = p.x - centroid.x, dy = p.y - centroid.y;
       const d = Math.hypot(dx, dy) || 1;
-      return { x: p.x + (dx / d) * 28, y: p.y + (dy / d) * 28 };
+      return { x: p.x + (dx / d) * 50, y: p.y + (dy / d) * 50 };
     });
     const w8 = owner === 'A' ? BLEND_A : BLEND_B;
 
@@ -511,22 +511,27 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   ctxMS.drawImage(cMask, 0, 0);
   ctxMS.filter = 'none';
 
-  // ── Clean up rembg noise: resolve semi-transparent pixels onto white ──
-  function resolveOnWhite(img) {
+  // ── Clean up rembg semi-transparent noise via alpha threshold (preserves transparency for sticker) ──
+  function cleanAlpha(imgOrCanvas) {
+    const sw = imgOrCanvas.naturalWidth || imgOrCanvas.width;
+    const sh = imgOrCanvas.naturalHeight || imgOrCanvas.height;
     const cc = document.createElement('canvas');
-    cc.width = img.naturalWidth||img.width; cc.height = img.naturalHeight||img.height;
+    cc.width = sw; cc.height = sh;
     const cx = cc.getContext('2d');
-    cx.fillStyle = '#ffffff';
-    cx.fillRect(0, 0, cc.width, cc.height);
-    cx.drawImage(img, 0, 0);
+    cx.drawImage(imgOrCanvas, 0, 0);
+    const d = cx.getImageData(0, 0, sw, sh);
+    for (let i = 3; i < d.data.length; i += 4) {
+      d.data[i] = d.data[i] > 180 ? 255 : 0;
+    }
+    cx.putImageData(d, 0, 0);
     return cc;
   }
-  const cAclean = resolveOnWhite(imgBase);
+  const cAclean = cleanAlpha(imgBase);
+
+  // Face B on transparent canvas (no white fill — keeps alpha for mask to work correctly)
   const cBclean = document.createElement('canvas');
   cBclean.width = w; cBclean.height = h;
   const ctxBc = cBclean.getContext('2d');
-  ctxBc.fillStyle = '#ffffff';
-  ctxBc.fillRect(0, 0, w, h);
   ctxBc.save();
   ctxBc.translate(T.anchorX, T.anchorY);
   ctxBc.rotate(T.rot);
@@ -534,21 +539,21 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   ctxBc.translate(-T.pivotX, -T.pivotY);
   ctxBc.drawImage(imgOver, 0, 0, wo, ho);
   ctxBc.restore();
+  const cBcleanAlpha = cleanAlpha(cBclean);
 
   // ── Apply smooth mask to clean Face B ──
   const cBmasked = document.createElement('canvas');
   cBmasked.width = w; cBmasked.height = h;
   const ctxBM = cBmasked.getContext('2d');
-  ctxBM.drawImage(cBclean, 0, 0);
+  ctxBM.drawImage(cBcleanAlpha, 0, 0);
   ctxBM.globalCompositeOperation = 'destination-in';
   ctxBM.drawImage(cMaskSmooth, 0, 0);
 
-  // ── Final: clean Face A base + masked Face B on top, on white ──
+  // ── Final: transparent bg — Face A base + masked Face B on top ──
+  // (NO white fill — sticker() needs the face shape alpha to draw border)
   const out = document.createElement('canvas');
   out.width = w; out.height = h;
   const ctx = out.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, w, h);
   ctx.drawImage(cAclean, 0, 0);
   ctx.drawImage(cBmasked, 0, 0);
   return out;
@@ -578,7 +583,7 @@ function sticker(img, borderPx) {
 
   // Shadow + original
   ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.28)'; ctx.shadowBlur=18; ctx.shadowOffsetX=4; ctx.shadowOffsetY=9;
+  ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=28; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
   ctx.drawImage(img, pad, pad);
   ctx.restore();
   return c;
@@ -601,7 +606,7 @@ function stickerFromCanvas(can, borderPx) {
   const bw=sw*s, bh=sh*s;
   ctx.drawImage(sil, pad+(sw-bw)/2, pad+(sh-bh)/2, bw, bh);
   ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.28)'; ctx.shadowBlur=18; ctx.shadowOffsetX=4; ctx.shadowOffsetY=9;
+  ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=28; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
   ctx.drawImage(can, pad, pad);
   ctx.restore();
   return c;
@@ -681,6 +686,30 @@ function renderA(stA, morphSt, stB, answer, label) {
   drawHeader(ctx, label);
 }
 
+// ── Crop rembg output to just the face (removes clothing below chin) ──────
+function cropToFace(imgCanvas, lm, origW, origH) {
+  const w = imgCanvas.naturalWidth || imgCanvas.width;
+  const h = imgCanvas.naturalHeight || imgCanvas.height;
+  const sx = w / origW, sy = h / origH;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const pt of lm) {
+    const px = pt.x * origW * sx, py = pt.y * origH * sy;
+    if (px < minX) minX = px; if (px > maxX) maxX = px;
+    if (py < minY) minY = py; if (py > maxY) maxY = py;
+  }
+  const fW = maxX - minX, fH = maxY - minY;
+  // Generous top/side padding for hair, minimal below chin
+  const x0 = Math.max(0, Math.round(minX - fW * 0.22));
+  const y0 = Math.max(0, Math.round(minY - fH * 0.40));
+  const x1 = Math.min(w, Math.round(maxX + fW * 0.22));
+  const y1 = Math.min(h, Math.round(maxY + fH * 0.08));
+  const cw = x1 - x0, ch = y1 - y0;
+  const out = document.createElement('canvas');
+  out.width = cw; out.height = ch;
+  out.getContext('2d').drawImage(imgCanvas, x0, y0, cw, ch, 0, 0, cw, ch);
+  return out;
+}
+
 // ── Main pipeline ──────────────────────────────────────────────────────────
 async function generate() {
   if (!imgA || !imgB) return;
@@ -708,7 +737,10 @@ async function generate() {
     // S2: rembg both source images in parallel
     sOn('s2');
     const [urlA, urlB] = await Promise.all([rembg(imgToB64(imgA)), rembg(imgToB64(imgB))]);
-    const [cutA, cutB] = await Promise.all([urlToImg(urlA), urlToImg(urlB)]);
+    let [cutA, cutB] = await Promise.all([urlToImg(urlA), urlToImg(urlB)]);
+    // Crop to face — removes clothing/body below chin using landmark bounding box
+    cutA = cropToFace(cutA, lmA, imgA.naturalWidth||imgA.width, imgA.naturalHeight||imgA.height);
+    cutB = cropToFace(cutB, lmB, imgB.naturalWidth||imgB.width, imgB.naturalHeight||imgB.height);
     sOk('s2');
 
     // S3: composite (Face B aligned + feature erasure → Face A shows through)
