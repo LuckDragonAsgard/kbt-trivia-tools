@@ -1,80 +1,109 @@
-# KBT Face Morph Tool — Full Brief & Requirements
+# KBT Face Morph Tool — Architecture Brief
 
-## Game Concept
-Two celebrity faces are blended into one morph. Players must identify both people.
+> Last updated: 2026-05-01  
+> Commit: 6febe4b  
+> Live: https://kbt.luckdragon.io/face-morph-tool
 
-## Slides Output
-- **Q slide (1920×1080):** Just the morphed face. White background. No names.
-- **A slide (1920×1080):** Three faces side by side — Face A (left), Morph (centre), Face B (right). Answer text "Name A & Name B" in purple bordered box below. White background.
+---
 
-## The Morph — How It Must Work
+## Pipeline
 
-### Step 1: Alignment (opacity used HERE ONLY)
-- Both photos pre-processed: face detected, cropped, resized to same scale (640×720)
-- Landmark dots overlaid on preview so host can SEE where eyes/nose/mouth align
-- Face B rotated and scaled to match Face A's eye positions
-- Opacity overlay used ONLY at this stage to confirm features line up visually
-- **Opacity is then removed entirely from the final result**
+```
+Upload A + B
+  → S0: MediaPipe 478-pt face landmark detection (client-side WASM)
+  → S1: computeTransform — align B eye-landmarks to A (scale/rotate/translate)
+  → S2: rembg — background removal via kbt-api.luckdragon.io/rembg (parallel A+B)
+  → S3: cropToFace — crop rembg output to face only (chin-landmark boundary)
+  → S4: compositeMorph — hard-cut per-region mask + single seam blur
+  → S5: stickerFromCanvas — white border + drop shadow
+  → S6: renderQ + renderA — 1920×1080 KBT slides
+```
 
-### Step 2: Feature Region Toggles
-Six independently toggled regions:
-- Left Eye, Right Eye, Nose, Mouth, Left Side/Ear, Right Side/Ear
-- Each toggle = A or B → that region shows 100% of that person's feature
-- NO opacity mixing in the feature regions in final output
-- Only the seam boundary (~10px) has a soft feathered blend for natural transition
-- Hair/background: genuine 50/50 colour average (creates combined hair silhouette)
+---
 
-### Step 3: Compositing Rules
-- Each feature region = HARD CUT (0% or 100% of Face B), NOT a washy semi-transparent overlay
-- Seam feathering: small blur (6px) applied to the FULL mask AFTER hard assignments
-- Interior of each region is fully clean — no ghosting of the other face
-- Result should look like a real face, not two faces overlaid
+## cropToFace — clothing-proof crop
 
-### Step 4: Sticker Treatment
-- White border around the cut-out face
-- Drop shadow behind the face
-- Applied to morph and to both individual face thumbnails on A slide
+Uses **MediaPipe landmark 152 (chin tip)** as the hard bottom boundary.
 
-### Step 5: Output
-- PNG, 1920×1080, white background, fully opaque (no transparency in final PNG)
-- Purple (#7c3aed) KBT header with round label top-left
-- Download Q and Download A buttons in the tool
+```js
+const chinY   = lm[152].y * origH * sy;   // anatomically exact chin tip
+const fH_top  = chinY - minY;             // forehead-to-chin height
+const neckPad = Math.round(fH_top * 0.07); // 7% = just neck skin, never collar
+const y1      = Math.min(h, Math.round(chinY + neckPad));
+```
 
-## UI Requirements
-- Upload drop zones for Face A and Face B (with photo previews)
-- Landmark dot overlay on each uploaded photo showing the 6 feature regions (coloured dots per region)
-- Toggle panel: 6 buttons (A|B) for each feature, updates slide instantly after first generate
-- Shuffle button to randomise toggles
-- Name fields for Face A and Face B
-- Round label field (e.g. R1Q1)
-- Generate Morph button (runs rembg + landmark detection — ~20 seconds)
-- After first generate: toggles re-render instantly (cached rembg + landmarks)
-- Download Q / Download A buttons
+- **Sides**: 40% of face width padding (catches hair/ears)
+- **Top**: 55% of fH_top above minY (catches forehead/hair top)
+- **Bottom**: `chinY + 7% of fH_top` — tested safe on suit collars and dress straps
 
-## Technical Pipeline
-1. S0: MediaPipe 478-point face landmark detection (client-side, no server)
-2. S1: computeTransform — align Face B eye positions to Face A eye positions (scale + rotate + translate)
-3. S2: rembg via kbt-api.luckdragon.io — background removal (both faces in parallel)
-4. S3: compositeMorph — hard-cut per-region mask + seam blur + composite
-5. S4: sticker — white border + drop shadow on morph and thumbnails
-6. S5: renderQ + renderA — draw final 1920×1080 slides
+**Why not percentage-based?**  
+Any fixed percentage of bounding box height includes clothing on photos with neck/body in frame. `lm[152]` is anatomically precise regardless of framing.
 
-## Alignment Preview (Landmark Dots)
-After uploading each photo, draw coloured dots on the preview image showing:
-- 🔵 Blue: Left Eye landmarks
-- 🟢 Green: Right Eye landmarks  
-- 🔴 Red: Nose landmarks
-- 🟡 Yellow: Mouth landmarks
-- 🟣 Purple: Left Side/Ear landmarks
-- 🟠 Orange: Right Side/Ear landmarks
+---
 
-This lets the host confirm faces are properly aligned before generating.
+## compositeMorph — hard cuts, no opacity
 
-## Photo Requirements
-- High-res source photos preferred (Google Images → Tools → Large)
-- Pre-align: crop to face, resize both to same scale
-- Aligned test photos: kbt.luckdragon.io/taylor_aligned.jpg + kbt.luckdragon.io/brad_aligned.jpg
+```
+cA = Face A (rembg)  
+cB = Face B (rembg, aligned via T transform)
+cMask = 50/50 BLEND_HAIR fill (background + hair: genuine colour average)
 
-## Hosted At
-- Tool: https://kbt.luckdragon.io/face-morph-tool
-- Source: LuckDragonAsgard/kbt-trivia-tools → face-morph-tool.html
+For each region (eyeL, eyeR, nose, mouth, sideL, sideR):
+  1. ERASE region hull (destination-out, no blur) → clears to transparent
+  2. REDRAW region hull (source-over, BLEND_A=0.0 or BLEND_B=1.0) → hard cut
+
+Apply blur(SEAM_BLUR=6px) to full cMask → softens seam lines only
+Apply cMask to cB (destination-in)
+Final: white → drawImage(cAclean) → drawImage(cBmasked)
+return cleanAlpha(out)  ← CRITICAL: eliminates ghost pixels
+```
+
+### Ghost artifact fix
+`cleanAlpha(out)` MUST be called on the compositeMorph output:
+- **Cause**: 50/50 mask lets Face B bleed at 50% opacity into areas where Face A was transparent (rembg background) → ghost silhouette appears on white slide
+- **Fix**: threshold alpha >180→255, else→0. All semi-transparent bleed pixels vanish.
+- **Never remove this line.** The inputs can be pre-cleaned but the OUTPUT must also be cleaned.
+
+### Parameters
+| Constant | Value | Meaning |
+|----------|-------|---------|
+| BLEND_HAIR | 0.5 | Background + hair: 50/50 blend |
+| BLEND_A | 0.0 | Region = 100% Face A |
+| BLEND_B | 1.0 | Region = 100% Face B |
+| SEAM_BLUR | 6px | Single blur on full mask after all hard assignments |
+| Hull expand | 22px | Outward from centroid per feature hull |
+
+---
+
+## Toggle system
+
+6 regions: eyeL, eyeR, nose, mouth, sideL, sideR  
+Default: `eyeL:'A', eyeR:'B', nose:'A', mouth:'B', sideL:'B', sideR:'A'`  
+Instant re-render after first generate (cached in `_morphCache`).  
+`shuffleFeatures()` randomises all 6 at once.
+
+---
+
+## Slide output
+
+**Q slide (1920×1080):** blended morph only, white bg, no answer text  
+**A slide (1920×1080):** Face A thumb (left) + morph (centre) + Face B thumb (right) + answer in purple box  
+
+Faces are large — morph fills ~88% of slide width / nearly full height on Q slide.  
+Purple accent: `#7c3aed` (KBT brand).
+
+---
+
+## Test images
+
+Pre-aligned to 640×720, deployed on same origin (no CORS):
+- `taylor_aligned.jpg` — Taylor Swift
+- `brad_aligned.jpg` — Brad Pitt (suit + white collar, hardest case for clothing)
+
+---
+
+## Known quirks
+
+- **Tab freezes during upload**: MediaPipe WASM init + rembg API = 1-3 min freeze. Normal. Upload one image, wait for landmark dots to appear, then upload second.
+- **White border invisible on white slides**: KBT only uses white slides so the sticker border has no visual effect — only the drop shadow renders. This is by design.
+- **Chrome extension CDP timeout**: 45s timeout fires before rembg completes. The page is working; just wait.
