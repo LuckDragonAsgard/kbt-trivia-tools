@@ -140,13 +140,13 @@ let lmA = null, lmB = null; // 478 normalized landmarks each
 
 // Feature assignment: which face (A or B) contributes each region
 // L/R = viewer's perspective (L = left side of image)
-let feats = { eyeL:'A', eyeR:'B', nose:'A', mouth:'B', sideL:'B', sideR:'A' };
+let feats = { eyeL:'B', eyeR:'A', nose:'A', mouth:'B', sideL:'A', sideR:'B' };
 let _morphCache = null; // cached after generate() so toggles can re-render instantly
 
 const FEAT_LABELS = {
   eyeL:'Left Eye', eyeR:'Right Eye',
   nose:'Nose', mouth:'Mouth',
-  sideL:'Left Side / Ear', sideR:'Right Side / Ear'
+  sideL:'Left Ear / Hair', sideR:'Right Ear / Hair'
 };
 
 // MediaPipe 478-point face mesh landmark index groups
@@ -456,7 +456,7 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
   const BLEND_HAIR = 0.5;  // hair + background: genuine 50/50 colour average
   const BLEND_A    = 0.0;  // feature region: 100% Face A, 0% Face B
   const BLEND_B    = 1.0;  // feature region: 100% Face B, 0% Face A
-  const SEAM_BLUR  = 6;    // blur applied to WHOLE mask ONCE at end — seams only
+  const SEAM_BLUR  = 14;   // blur applied to WHOLE mask ONCE at end — seams only
 
   // Hard mask canvas (no blur applied during drawing)
   const cMask = document.createElement('canvas');
@@ -488,7 +488,7 @@ function compositeMorph(imgBase, imgOver, lmOver, T) {
     const expanded = hull.map(p => {
       const dx = p.x - centroid.x, dy = p.y - centroid.y;
       const d = Math.hypot(dx, dy) || 1;
-      return { x: p.x + (dx / d) * 22, y: p.y + (dy / d) * 22 };
+      return { x: p.x + (dx / d) * 28, y: p.y + (dy / d) * 28 };
     });
     const w8 = owner === 'A' ? BLEND_A : BLEND_B;
 
