@@ -257,17 +257,13 @@
             width: 1920px;
             height: 1080px;
             transform-origin: top left;
-            background: #ffffff;
+            background: #cccccc;
             font-family: 'Bowlby One SC', cursive;
             display: flex;
             flex-direction: column;
-            background-image: 
-                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
-                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
-            background-size: 60px 60px;
-            background-image: 
-                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
-                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
+            background-image:
+                linear-gradient(to right, #d8d8d8 1px, transparent 1px),
+                linear-gradient(to bottom, #d8d8d8 1px, transparent 1px);
             background-size: 60px 60px;
         }
 
@@ -312,9 +308,9 @@
             overflow: hidden;
             border-radius: 2px;
             position: relative;
-            background: #eee;
-            outline: 8px solid #e2e8f0;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+            background: rgba(255, 255, 255, 0.15);
+            outline: 8px solid rgba(255, 255, 255, 0.35);
+            filter: drop-shadow(0 4px 16px rgba(0,0,0,0.25));
         }
 
         .canvas-grid-cell img {
@@ -337,8 +333,8 @@
         /* Bottom banner — always present */
         .canvas-banner {
             height: 120px;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-top: 4px solid #2563eb;
+            background: linear-gradient(135deg, #b8b8b8, #c4c4c4);
+            border-top: 4px solid #e91e8c;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -349,7 +345,7 @@
         .banner-question {
             font-family: 'Bowlby One SC', cursive;
             font-size: 3.2em;
-            color: #2563eb;
+            color: #e91e8c;
             letter-spacing: 3px;
         }
 
@@ -509,8 +505,8 @@
                     <!-- Scaled canvas lives here -->
                     <div id="export-canvas">
                         <div class="kbt-header-bar">
-                            <div class="kbt-label-pill" id="kbt-label" style="background: #2563eb;">R1Q1</div>
-                            <div class="kbt-tool-title" id="kbt-tool-title" style="color: #2563eb;">LINKED PICS</div>
+                            <div class="kbt-label-pill" id="kbt-label" style="background: #e91e8c;">R1Q1</div>
+                            <div class="kbt-tool-title" id="kbt-tool-title" style="color: #e91e8c;">LINKED PICS</div>
                         </div>
                         <div class="canvas-grid" id="canvas-grid">
                             <div class="canvas-grid-cell" id="cell-0">
@@ -744,3 +740,4 @@
     </script>
 </body>
 </html>
+                                                                                                                                                                                    
