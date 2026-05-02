@@ -466,9 +466,15 @@
                 <h2 class="section-title" style="margin-top: 30px;">2. Actor Info</h2>
                 <div class="controls">
                     <div class="control-group">
+                        <label for="slideLabel">Slide Label</label>
+                        <input type="text" id="slideLabel" value="R1Q1" maxlength="10" disabled>
+                    </div>
+                    <div class="control-group">
                         <label for="actorName">Actor Name</label>
                         <input type="text" id="actorName" placeholder="e.g., Tom Hanks" disabled>
                     </div>
+                </div>
+                <div class="controls">
                     <div class="control-group">
                         <label for="titleName">Movie/Show Title</label>
                         <input type="text" id="titleName" placeholder="e.g., Forrest Gump" disabled>
@@ -621,6 +627,7 @@
                     drawCanvas.height = img.height;
 
                     redrawCanvas();
+                    document.getElementById('slideLabel').disabled = false;
                     actorNameInput.disabled = false;
                     titleNameInput.disabled = false;
                     dropZone.classList.add('drag-over');
@@ -1028,40 +1035,115 @@
             ctx.fillText('KNOW BRAINER TRIVIA', W / 2, H - 18);
         }
 
+        // ── KBT white+grid helpers ──────────────────────────────────────────
+        function drawKBTGrid(ctx, W, H) {
+            ctx.save();
+            ctx.strokeStyle = '#e4e4e4';
+            ctx.lineWidth = 1;
+            for (let x = 0; x <= W; x += 60) {
+                ctx.beginPath(); ctx.moveTo(x+0.5, 0); ctx.lineTo(x+0.5, H); ctx.stroke();
+            }
+            for (let y = 0; y <= H; y += 60) {
+                ctx.beginPath(); ctx.moveTo(0, y+0.5); ctx.lineTo(W, y+0.5); ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawKBTPill(ctx, W, H, accent, toolName, slideLabel) {
+            ctx.save();
+            const label = slideLabel || 'R1Q1';
+            ctx.font = 'bold 28px "Inter", sans-serif';
+            const tw = ctx.measureText(label).width;
+            const pw = tw + 36, ph = 44, px = 32, py = 24;
+            ctx.fillStyle = accent;
+            ctx.beginPath();
+            ctx.arc(px + ph/2, py + ph/2, ph/2, Math.PI/2, 3*Math.PI/2);
+            ctx.arc(px + pw - ph/2, py + ph/2, ph/2, -Math.PI/2, Math.PI/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, px + pw/2, py + ph/2);
+            ctx.font = 'bold 22px "Inter", sans-serif';
+            ctx.fillStyle = accent;
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(toolName, W - 36, py + ph/2);
+            ctx.restore();
+        }
+
+        function fitPhotoOnKBTSlide(sourceCanvas, W, H, accent, toolName, slideLabel) {
+            // Creates a white+grid slide with the photo fitted within safe area
+            const SAFE_TOP = 92, SAFE_SIDE = 40, SAFE_BOTTOM = 40;
+            const availW = W - SAFE_SIDE * 2;
+            const availH = H - SAFE_TOP - SAFE_BOTTOM;
+            
+            const scale = Math.min(availW / sourceCanvas.width, availH / sourceCanvas.height);
+            const imgW = Math.round(sourceCanvas.width * scale);
+            const imgH = Math.round(sourceCanvas.height * scale);
+            const imgX = Math.round((W - imgW) / 2);
+            const imgY = Math.round(SAFE_TOP + (availH - imgH) / 2);
+            
+            const out = document.createElement('canvas');
+            out.width = W; out.height = H;
+            const ctx = out.getContext('2d');
+            
+            // White bg
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, W, H);
+            
+            // Grid
+            drawKBTGrid(ctx, W, H);
+            
+            // Photo
+            ctx.drawImage(sourceCanvas, imgX, imgY, imgW, imgH);
+            
+            // Pill header on top
+            drawKBTPill(ctx, W, H, accent, toolName, slideLabel);
+            
+            return out;
+        }
+
         // Create result canvases
         async function createResults() {
-            await kbtLoadFont();
             const targetWidth = 1920;
             const targetHeight = 1080;
+            const slideLabel = document.getElementById('slideLabel') ? document.getElementById('slideLabel').value || 'R1Q1' : 'R1Q1';
 
             // GhostA — inpainted (question): "Who's the Ghost?"
-            state.ghostACanvas = resizeCanvasTo(state.workingImage, targetWidth, targetHeight);
+            const ghostAFitted = fitPhotoOnKBTSlide(state.workingImage, targetWidth, targetHeight, '#7c3aed', "WHO'S THE GHOST?", slideLabel);
             ghostACanvas.width = targetWidth;
             ghostACanvas.height = targetHeight;
-            const aCtx = ghostACanvas.getContext('2d');
-            aCtx.drawImage(state.ghostACanvas, 0, 0);
-            kbtDrawChrome(aCtx, targetWidth, targetHeight, 'question');
+            ghostACanvas.getContext('2d').drawImage(ghostAFitted, 0, 0);
+            state.ghostACanvas = ghostAFitted;
 
             // GhostB — original with circle highlight (answer): "The Answer"
-            const originalResized = resizeCanvasTo(state.originalCanvas, targetWidth, targetHeight);
-            state.ghostBCanvas = document.createElement('canvas');
-            state.ghostBCanvas.width = targetWidth;
-            state.ghostBCanvas.height = targetHeight;
-            const bCtx = state.ghostBCanvas.getContext('2d');
-            bCtx.drawImage(originalResized, 0, 0);
+            const origFitted = fitPhotoOnKBTSlide(state.originalCanvas, targetWidth, targetHeight, '#7c3aed', 'THE ANSWER', slideLabel);
+            state.ghostBCanvas = origFitted;
 
-            // Draw highlight circle around selection
+            // Now draw the highlight on top
             if (state.selectionRect) {
+                const bCtx = state.ghostBCanvas.getContext('2d');
                 const rect = state.selectionRect;
-                const scaleX = targetWidth / state.workingImage.width;
-                const scaleY = targetHeight / state.workingImage.height;
-
-                const cx = (rect.x + rect.w / 2) * scaleX;
-                const cy = (rect.y + rect.h / 2) * scaleY;
-                const rw = rect.w * scaleX / 2;
-                const rh = rect.h * scaleY / 2;
-
-                // Glowing teal ellipse
+                
+                // Compute the same scaling that fitPhotoOnKBTSlide used
+                const SAFE_TOP = 92, SAFE_SIDE = 40, SAFE_BOTTOM = 40;
+                const availW = targetWidth - SAFE_SIDE * 2;
+                const availH = targetHeight - SAFE_TOP - SAFE_BOTTOM;
+                const scale = Math.min(availW / state.originalCanvas.width, availH / state.originalCanvas.height);
+                const imgW = Math.round(state.originalCanvas.width * scale);
+                const imgH = Math.round(state.originalCanvas.height * scale);
+                const imgX = Math.round((targetWidth - imgW) / 2);
+                const imgY = Math.round(SAFE_TOP + (availH - imgH) / 2);
+                
+                // Map selectionRect from original image coords to slide coords
+                const cx = imgX + (rect.x + rect.w / 2) * scale;
+                const cy = imgY + (rect.y + rect.h / 2) * scale;
+                const rw = rect.w * scale / 2;
+                const rh = rect.h * scale / 2;
+                
+                // Draw ellipse highlight
                 bCtx.shadowColor = '#7c3aed';
                 bCtx.shadowBlur = 30;
                 bCtx.strokeStyle = '#7c3aed';
@@ -1072,24 +1154,24 @@
                 bCtx.stroke();
                 bCtx.shadowBlur = 0;
                 bCtx.globalAlpha = 1;
-
-                // Actor name below the circle
+                
+                // Actor name below ellipse
                 if (state.actorName) {
-                    bCtx.fillStyle = '#7c3aed';
-                    bCtx.font = 'bold 52px "Bowlby One SC", cursive';
+                    const nameY = cy + rh + 30;
+                    bCtx.font = 'bold 52px "Inter", sans-serif';
                     bCtx.textAlign = 'center';
                     bCtx.textBaseline = 'top';
-                    // Dark pill behind name for legibility
                     const nameW = bCtx.measureText(state.actorName).width;
-                    bCtx.fillStyle = 'rgba(15,23,42,0.75)';
-                    const nameY = cy + rh + 30;
+                    bCtx.fillStyle = 'rgba(255,255,255,0.9)';
                     bCtx.fillRect(cx - nameW / 2 - 16, nameY - 4, nameW + 32, 66);
-
                     bCtx.fillStyle = '#7c3aed';
                     bCtx.fillText(state.actorName, cx, nameY);
                 }
+                
+                // Redraw pill header on top (it was drawn by fitPhotoOnKBTSlide but highlight may have covered it)
+                drawKBTPill(bCtx, targetWidth, targetHeight, '#7c3aed', 'THE ANSWER', slideLabel);
             }
-            kbtDrawChrome(bCtx, targetWidth, targetHeight, 'answer');
+
             ghostBCanvas.width = targetWidth;
             ghostBCanvas.height = targetHeight;
             ghostBCanvas.getContext('2d').drawImage(state.ghostBCanvas, 0, 0);
@@ -1112,6 +1194,8 @@
                     a.download = `GhostB_${(state.actorName||'ghost').replace(/[^A-Za-z0-9]/g,'')}.png`;
                     a.click(); URL.revokeObjectURL(url);
                 }, 'image/png');
+            };
+        }, 'image/png');
             };
         }
         </script>
