@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT Face Morph Tool v8.1 — Landmark Blend</title>
+<title>KBT Face Morph Tool v8.2 — Landmark Blend</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="module">
 import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs';
@@ -64,7 +64,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
 <div class="wrap">
 
 <div class="hdr">
-  <h1>Facemorph. Tool v8.1</h1>
+  <h1>Facemorph. Tool v8.2</h1>
   <p>MediaPipe landmark alignment · selective feature compositing · KBT white slide output</p>
 </div>
 
@@ -602,7 +602,10 @@ function _applySticker(drawFn, sw, sh, borderPx) {
   // Clamp to pure white (blur creates grey fringe — make it fully white)
   const d = ctx.getImageData(0,0,c.width,c.height);
   for (let i=0; i<d.data.length; i+=4) {
-    if (d.data[i+3] > 20) { d.data[i]=255; d.data[i+1]=255; d.data[i+2]=255; d.data[i+3]=Math.min(255,d.data[i+3]*4); }
+    if (d.data[i+3] > 15) {
+      d.data[i]=255; d.data[i+1]=255; d.data[i+2]=255;
+      d.data[i+3] = d.data[i+3] < 80 ? 0 : 255; // hard threshold — no grey fringe
+    }
   }
   ctx.putImageData(d,0,0);
 
@@ -642,14 +645,20 @@ function drawGrid(ctx) {
 
 function drawHeader(ctx, label) {
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = PURPLE;
-  // R_Q_ label
-  ctx.font = '500 30px Inter, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(label, 52, 58);
+  // Label pill (purple bg, white text)
+  ctx.font = 'bold 26px Inter, sans-serif';
+  const lw = ctx.measureText(label).width + 28;
+  ctx.fillStyle = PURPLE;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(36, 30, lw, 46, 10); else ctx.rect(36,30,lw,46);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(label, 50, 53);
   // "Facemorph." title
-  ctx.font = 'bold 68px Inter, sans-serif';
-  ctx.fillText('Facemorph.', 170, 60);
+  ctx.fillStyle = PURPLE;
+  ctx.font = 'bold 72px Inter, sans-serif';
+  ctx.fillText('Facemorph.', 36 + lw + 18, 56);
 }
 
 function renderQ(morphSt, label) {
@@ -663,7 +672,7 @@ function renderQ(morphSt, label) {
   const maxH = SH - 40, maxW = SW * 0.88;
   const sc = Math.min(maxW/morphSt.width, maxH/morphSt.height);
   const dw = morphSt.width*sc, dh = morphSt.height*sc;
-  ctx.drawImage(morphSt, (SW-dw)/2, (SH-dh)/2+10, dw, dh);
+  ctx.drawImage(morphSt, (SW-dw)/2, (SH-dh)/2, dw, dh);
 
   drawHeader(ctx, label);
 }
@@ -676,21 +685,22 @@ function renderA(stA, morphSt, stB, answer, label) {
   drawGrid(ctx);
 
   // Three faces: side · morph(big) · side
-  const availH = SH - 260;
+  const HEADER_H = 100, FOOTER_H = 180;
+  const availH = SH - HEADER_H - FOOTER_H;
   const cH = Math.min(availH, 860);
   const cW = cH * (morphSt.width/morphSt.height);
-  const sH = cH * 0.76;
+  const sH = cH * 0.72;
   const sWa = sH * (stA.width/stA.height);
   const sWb = sH * (stB.width/stB.height);
-  const gutter = 24;
+  const gutter = 36;
   const totalW = sWa + gutter + cW + gutter + sWb;
   const startX = (SW - totalW) / 2;
-  const topY = (SH - 220 - cH) / 2 + 60;
+  const topY = HEADER_H + (availH - cH) / 2;
 
-  // Side faces (slightly lower = stacked look)
-  ctx.drawImage(stA, startX, topY + (cH-sH)/2 + 18, sWa, sH);
-  ctx.drawImage(stB, startX + sWa + gutter + cW + gutter, topY + (cH-sH)/2 + 18, sWb, sH);
-  // Center morph (on top)
+  // Side faces — vertically centred with morph
+  ctx.drawImage(stA, startX, topY + (cH-sH)/2, sWa, sH);
+  ctx.drawImage(stB, startX + sWa + gutter + cW + gutter, topY + (cH-sH)/2, sWb, sH);
+  // Center morph
   ctx.drawImage(morphSt, startX + sWa + gutter, topY, cW, cH);
 
   // Answer box (purple border + bold text)
@@ -698,7 +708,7 @@ function renderA(stA, morphSt, stB, answer, label) {
     ctx.font = 'bold 42px Inter, sans-serif';
     const tw = ctx.measureText(answer).width;
     const bw = Math.min(SW-120, tw+100), bh = 82;
-    const bx = (SW-bw)/2, by = SH-150;
+    const bx = (SW-bw)/2, by = SH-120;
     ctx.fillStyle = PURPLE;
     ctx.beginPath();
     if (ctx.roundRect) ctx.roundRect(bx,by,bw,bh,12);
@@ -710,13 +720,14 @@ function renderA(stA, morphSt, stB, answer, label) {
   }
 
   // Name labels under thumbnails
-  ctx.font = '500 30px Inter, sans-serif';
+  ctx.font = '500 28px Inter, sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillStyle = PURPLE;
   const nameALabel = answer ? answer.split(' + ')[0] : 'Face A';
   const nameBLabel = answer ? answer.split(' + ')[1] || 'Face B' : 'Face B';
-  ctx.fillText(nameALabel, startX + sWa/2, topY + (cH-sH)/2 + 18 + sH + 14);
-  ctx.fillText(nameBLabel, startX + sWa + gutter + cW + gutter + sWb/2, topY + (cH-sH)/2 + 18 + sH + 14);
+  const thumbBotY = topY + (cH-sH)/2 + sH + 10;
+  ctx.fillText(nameALabel, startX + sWa/2, thumbBotY);
+  ctx.fillText(nameBLabel, startX + sWa + gutter + cW + gutter + sWb/2, thumbBotY);
 
   drawHeader(ctx, label);
 }
