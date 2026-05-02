@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT Face Morph Tool v8 — Landmark Blend</title>
+<title>KBT Face Morph Tool v8.1 — Landmark Blend</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="module">
 import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs';
@@ -64,7 +64,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
 <div class="wrap">
 
 <div class="hdr">
-  <h1>Facemorph. Tool v8</h1>
+  <h1>Facemorph. Tool v8.1</h1>
   <p>MediaPipe landmark alignment · selective feature compositing · KBT white slide output</p>
 </div>
 
@@ -100,13 +100,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
 <div class="bar">
   <button class="btn btn-p" id="btnGo" onclick="generate()" disabled>Generate Morph</button>
   <button class="btn btn-s" onclick="shuffleFeatures()">🎲 Shuffle</button>
+  <button class="btn btn-s" onclick="loadTestFaces()" title="Load Taylor Swift + Brad Pitt test images">🧪 Test Faces</button>
   <div class="lbl-row"><label>Slide label:</label><input type="text" id="slideLabel" value="R1Q1" maxlength="8"></div>
 </div>
 
 <div class="status-box" id="statusBox">
   <div class="step" id="s0"><span class="dot"></span> Detecting facial landmarks…</div>
   <div class="step" id="s1"><span class="dot"></span> Computing alignment transform…</div>
-  <div class="step" id="s2"><span class="dot"></span> Removing backgrounds…</div>
+  <div class="step" id="s2"><span class="dot"></span> Removing backgrounds… <span id="s2hint" style="font-size:11px;color:#94a3b8"></span></div>
   <div class="step" id="s3"><span class="dot"></span> Compositing morph (50/50 alpha blend)…</div>
   <div class="step" id="s4"><span class="dot"></span> Applying white border + shadow…</div>
   <div class="step" id="s5"><span class="dot"></span> Rendering KBT slides…</div>
@@ -363,21 +364,25 @@ function lmToPx(lm, idx, w, h, T) {
 }
 
 // ── rembg helpers ──────────────────────────────────────────────────────────
-function imgToB64(img) {
-  const c = document.createElement('canvas');
-  c.width = img.naturalWidth||img.width; c.height = img.naturalHeight||img.height;
-  c.getContext('2d').drawImage(img,0,0);
-  return c.toDataURL('image/jpeg',.93).split(',')[1];
+function imgToB64(img, maxPx=1024) {
+  const ow = img.naturalWidth||img.width, oh = img.naturalHeight||img.height;
+  const s  = Math.min(1, maxPx / Math.max(ow, oh));
+  const dw = Math.round(ow*s), dh = Math.round(oh*s);
+  const c  = document.createElement('canvas');
+  c.width = dw; c.height = dh;
+  c.getContext('2d').drawImage(img, 0, 0, dw, dh);
+  // Return full data URI — API expects data:image/jpeg;base64,... prefix
+  return c.toDataURL('image/jpeg', .92);
 }
 
-async function rembg(b64) {
+async function rembg(dataUri) {
   const r = await fetch(API+'/api/fal-rembg', {
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({image:b64})
+    body: JSON.stringify({image: dataUri})
   });
   const d = await r.json();
   if (!r.ok) throw new Error(d.error||'rembg failed');
-  return d.url;
+  return d.url || d.image_url || d.result;
 }
 
 async function urlToImg(url) {
@@ -603,7 +608,7 @@ function _applySticker(drawFn, sw, sh, borderPx) {
 
   // ── Drop shadow + face ──
   ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=30; ctx.shadowOffsetX=6; ctx.shadowOffsetY=12;
+  ctx.shadowColor='rgba(0,0,0,0.65)'; ctx.shadowBlur=40; ctx.shadowOffsetX=8; ctx.shadowOffsetY=16;
   drawFn(ctx, pad, pad);
   ctx.restore();
   return c;
@@ -692,15 +697,14 @@ function renderA(stA, morphSt, stB, answer, label) {
   if (answer) {
     ctx.font = 'bold 42px Inter, sans-serif';
     const tw = ctx.measureText(answer).width;
-    const bw = Math.min(SW-120, tw+80), bh = 78;
-    const bx = (SW-bw)/2, by = SH-155;
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = PURPLE; ctx.lineWidth = 4;
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(bx,by,bw,bh,8);
-    else { ctx.rect(bx,by,bw,bh); }
-    ctx.fill(); ctx.stroke();
+    const bw = Math.min(SW-120, tw+100), bh = 82;
+    const bx = (SW-bw)/2, by = SH-150;
     ctx.fillStyle = PURPLE;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx,by,bw,bh,12);
+    else { ctx.rect(bx,by,bw,bh); }
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(answer, SW/2, by+bh/2);
   }
@@ -790,6 +794,7 @@ async function generate() {
 
     // S2: rembg sequentially — parallel triggers simultaneous WASM+API freeze
     sOn('s2');
+    document.getElementById('s2hint').textContent = '(this takes 30–90s — tab may freeze briefly)';
     const urlA = await rembg(imgToB64(imgA));
     const urlB = await rembg(imgToB64(imgB));
     let cutA = await urlToImg(urlA);
@@ -806,9 +811,9 @@ async function generate() {
 
     // S4: sticker treatment on all three
     sOn('s4');
-    const morphSt  = stickerFromCanvas(morphCanvas, 18);
-    const stA = sticker(cutA, 14);
-    const stB = sticker(cutB, 14);
+    const morphSt  = stickerFromCanvas(morphCanvas, 24);
+    const stA = stickerFromCanvas(cutA, 16);
+    const stB = stickerFromCanvas(cutB, 16);
     sOk('s4');
 
     // Cache results so toggles can re-render instantly
@@ -843,10 +848,26 @@ function rerender() {
   if (!_morphCache) return;
   const { cutA, cutB, lmB, T, stA, stB, label, answer } = _morphCache;
   const morphCanvas = compositeMorph(cutA, cutB, lmB, T);
-  const morphSt = stickerFromCanvas(morphCanvas, 18);
+  const morphSt = stickerFromCanvas(morphCanvas, 24);
   renderQ(morphSt, label || 'R1Q1');
   renderA(stA, morphSt, stB, answer || '', label || 'R1Q1');
   document.getElementById('outBox').style.display = 'block';
+}
+
+function loadTestFaces() {
+  const BASE = 'https://kbt.luckdragon.io/';
+  ['A','B'].forEach((slot, i) => {
+    const url = BASE + (i===0 ? 'taylor_aligned.jpg' : 'brad_aligned.jpg');
+    const name = i===0 ? 'Taylor Swift' : 'Brad Pitt';
+    const img = new Image(); img.crossOrigin='anonymous';
+    img.onload = () => {
+      if (slot==='A') { imgA=img; document.getElementById('nameA').value=name; }
+      else            { imgB=img; document.getElementById('nameB').value=name; }
+      showPreview('drop'+slot, url);
+      if (imgA && imgB) { document.getElementById('btnGo').disabled=false; renderFeatPanel(); }
+    };
+    img.src = url;
+  });
 }
 
 function dlSlide(id, name) {
