@@ -672,6 +672,11 @@
                     </div>
 
                     <div class="form-group">
+                        <label>Slide Label</label>
+                        <input type="text" id="slideLabel" value="R1Q1" maxlength="10" oninput="drawQuestionSlide(); drawAnswerSlide();" />
+                    </div>
+
+                    <div class="form-group">
                         <label>Song Title</label>
                         <input type="text" placeholder="e.g., Bohemian Rhapsody"
                                value="${clip.title}"
@@ -894,6 +899,45 @@
             }
         }
 
+        function drawKBTGrid(ctx, W, H) {
+          ctx.save();
+          ctx.strokeStyle = '#e4e4e4';
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 1;
+          for (let x = 0; x <= W; x += 60) {
+            ctx.beginPath(); ctx.moveTo(x+0.5, 0); ctx.lineTo(x+0.5, H); ctx.stroke();
+          }
+          for (let y = 0; y <= H; y += 60) {
+            ctx.beginPath(); ctx.moveTo(0, y+0.5); ctx.lineTo(W, y+0.5); ctx.stroke();
+          }
+          ctx.restore();
+        }
+        function drawKBTPill(ctx, W, H, accent, toolName, slideLabel) {
+          ctx.save();
+          const label = slideLabel || 'R1Q1';
+          ctx.font = 'bold 28px "Inter", sans-serif';
+          const tw = ctx.measureText(label).width;
+          const pw = tw + 36, ph = 44, px = 32, py = 24;
+          // Draw pill
+          ctx.fillStyle = accent;
+          ctx.beginPath();
+          ctx.arc(px + ph/2, py + ph/2, ph/2, Math.PI/2, 3*Math.PI/2);
+          ctx.arc(px + pw - ph/2, py + ph/2, ph/2, -Math.PI/2, Math.PI/2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, px + pw/2, py + ph/2);
+          // Tool name right
+          ctx.font = 'bold 22px "Inter", sans-serif';
+          ctx.fillStyle = accent;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(toolName, W - 36, py + ph/2);
+          ctx.restore();
+        }
+
         function drawQuestionSlide() {
             const canvas = document.getElementById('questionCanvas');
             const ctx = canvas.getContext('2d');
@@ -902,18 +946,9 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Orange accent bar
-            ctx.fillStyle = '#ea580c';
-            ctx.fillRect(0, 0, canvas.width, 7);
+            // Grid overlay
+            drawKBTGrid(ctx, canvas.width, canvas.height);
 
-            // KBT logo (top-left)
-            ctx.font = 'bold 26px "Bowlby One SC", cursive';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillText('KNOW', 48, 68);
-            ctx.fillStyle = '#ea580c';
-            ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
 
             // Title
             ctx.font = 'bold 128px "Bowlby One SC", cursive';
@@ -930,11 +965,6 @@
 
             // Decorative waveform bars
             drawWaveformBars(ctx, canvas.width, canvas.height);
-
-            // Footer
-            ctx.font = 'bold 20px "Inter", sans-serif';
-            ctx.fillStyle = 'rgba(100,116,139,0.5)';
-            ctx.fillText('KNOW BRAINER TRIVIA', canvas.width / 2, canvas.height - 28);
         }
 
         function drawWaveformBars(ctx, width, height) {
@@ -951,8 +981,10 @@
                 ctx.fillStyle = `rgba(234, 88, 12, ${alpha})`;
                 ctx.fillRect(x, centreY - barHeight / 2, barWidth, barHeight);
             }
-        }
 
+            const smLabel = document.getElementById(\'slideLabel\') ? document.getElementById(\'slideLabel\').value || \'R1Q1\' : \'R1Q1\';
+            drawKBTPill(ctx, canvas.width, canvas.height, \'#ea580c\', \'SOUNDMASH\', smLabel);
+        }
         function drawAnswerSlide() {
             const canvas = document.getElementById('answerCanvas');
             const ctx = canvas.getContext('2d');
@@ -961,18 +993,11 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Orange accent bar
+            // Grid overlay
+            drawKBTGrid(ctx, canvas.width, canvas.height);
+
             ctx.fillStyle = '#ea580c';
             ctx.fillRect(0, 0, canvas.width, 7);
-
-            // KBT logo (top-left)
-            ctx.font = 'bold 26px "Bowlby One SC", cursive';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillText('KNOW', 48, 68);
-            ctx.fillStyle = '#ea580c';
-            ctx.fillText(' BRAINER', 48 + ctx.measureText('KNOW').width, 68);
 
             // Title
             ctx.font = 'bold 104px "Bowlby One SC", cursive';
@@ -1003,14 +1028,9 @@
                 row++;
             });
 
-            // Footer
-            ctx.font = 'bold 20px "Inter", sans-serif';
-            ctx.fillStyle = 'rgba(100,116,139,0.5)';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.fillText('KNOW BRAINER TRIVIA', canvas.width / 2, canvas.height - 28);
+            const smLabel = document.getElementById(\'slideLabel\') ? document.getElementById(\'slideLabel\').value || \'R1Q1\' : \'R1Q1\';
+            drawKBTPill(ctx, canvas.width, canvas.height, \'#ea580c\', \'SOUNDMASH\', smLabel);
         }
-
         function bufferToWavUrl(audioBuffer) {
             const numberOfChannels = audioBuffer.numberOfChannels;
             const sampleRate = audioBuffer.sampleRate;
