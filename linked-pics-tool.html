@@ -261,9 +261,43 @@
             font-family: 'Bowlby One SC', cursive;
             display: flex;
             flex-direction: column;
+            background-image: 
+                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
+                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-image: 
+                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
+                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
+            background-size: 60px 60px;
         }
 
         /* Images grid inside canvas */
+        .kbt-header-bar {
+            position: absolute;
+            top: 24px;
+            left: 32px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .kbt-label-pill {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 1;
+            padding: 10px 18px;
+            border-radius: 100px;
+            color: #ffffff;
+        }
+        .kbt-tool-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
+        }
+
         .canvas-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -392,6 +426,9 @@
             <div class="panel">
                 <h2>⚙️ Setup</h2>
 
+                <label>Slide Label</label>
+                <input type="text" id="slideLabel" value="R1Q1" maxlength="10" oninput="document.getElementById('kbt-label').textContent = this.value || 'R1Q1'" />
+
                 <label>Subject / Round Label</label>
                 <input type="text" id="subject" placeholder="e.g. Honolulu, Aussie Icons..." />
 
@@ -471,6 +508,10 @@
                 <div class="canvas-wrapper" id="canvas-wrapper">
                     <!-- Scaled canvas lives here -->
                     <div id="export-canvas">
+                        <div class="kbt-header-bar">
+                            <div class="kbt-label-pill" id="kbt-label" style="background: #2563eb;">R1Q1</div>
+                            <div class="kbt-tool-title" id="kbt-tool-title" style="color: #2563eb;">LINKED PICS</div>
+                        </div>
                         <div class="canvas-grid" id="canvas-grid">
                             <div class="canvas-grid-cell" id="cell-0">
                                 <span class="cell-letter">A</span>
