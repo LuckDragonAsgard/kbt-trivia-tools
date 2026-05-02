@@ -276,6 +276,9 @@
     <input type="file" id="fileInput" accept="image/*" style="display:none">
   </div>
 
+  <label>Slide Label</label>
+  <input type="text" id="slideLabel" value="R1Q1" maxlength="10" style="width: 100%;padding: 14px 20px;font-family: 'Londrina Solid', sans-serif;font-size: 1.3em;border: 2px solid rgba(71, 181, 208, 0.3);border-radius: 12px;background: rgba(255,255,255,0.08);color: #333;outline: none;margin-bottom: 20px;transition: border-color 0.3s;" />
+
   <input type="text" class="name-input" id="nameInput" placeholder="Celebrity name (e.g. Taylor Swift)" maxlength="100">
 
   <button id="aiHintBtn" onclick="generateCelebHints()" style="margin-top:8px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Generate Hints for Host</button>
@@ -315,6 +318,46 @@
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.14/dist/face-api.js"></script>
 <script type="module">
 import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.7.0/+esm';
+
+// ── KBT Grid & Pill Functions ──
+function drawKBTGrid(ctx, W, H) {
+  ctx.save();
+  ctx.strokeStyle = '#e4e4e4';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 1;
+  for (let x = 0; x <= W; x += 60) {
+    ctx.beginPath(); ctx.moveTo(x+0.5, 0); ctx.lineTo(x+0.5, H); ctx.stroke();
+  }
+  for (let y = 0; y <= H; y += 60) {
+    ctx.beginPath(); ctx.moveTo(0, y+0.5); ctx.lineTo(W, y+0.5); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawKBTPill(ctx, W, H, accent, toolName, slideLabel) {
+  ctx.save();
+  const label = slideLabel || 'R1Q1';
+  ctx.font = 'bold 28px "Inter", sans-serif';
+  const tw = ctx.measureText(label).width;
+  const pw = tw + 36, ph = 44, px = 32, py = 24;
+  // Draw pill
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.arc(px + ph/2, py + ph/2, ph/2, Math.PI/2, 3*Math.PI/2);
+  ctx.arc(px + pw - ph/2, py + ph/2, ph/2, -Math.PI/2, Math.PI/2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, px + pw/2, py + ph/2);
+  // Tool name right
+  ctx.font = 'bold 22px "Inter", sans-serif';
+  ctx.fillStyle = accent;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(toolName, W - 36, py + ph/2);
+  ctx.restore();
+}
 
 // ── State ──
 let uploadedFile = null;
@@ -859,6 +902,9 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
   finalCtx.fillStyle = '#ffffff';
   finalCtx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+  // Grid overlay
+  drawKBTGrid(finalCtx, CANVAS_W, CANVAS_H);
+
   const x = Math.round((CANVAS_W - finalW) / 2);
   const y = Math.round(SAFE_TOP + (SAFE_ZONE_H - finalH) / 2);
 
@@ -867,6 +913,9 @@ function applyEffectsAndFit(srcCanvas, heightPct) {
     x, y, finalW, finalH
   );
 
+  // KBT pill header
+  const slideLabel = document.getElementById(\'slideLabel\')?.value || \'R1Q1\';
+  drawKBTPill(finalCtx, CANVAS_W, CANVAS_H, \'#16a34a\', \'NAME THE BRAIN\', slideLabel);
   return finalCanvas;
 }
 
