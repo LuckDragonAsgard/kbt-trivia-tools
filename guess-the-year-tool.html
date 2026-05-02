@@ -203,11 +203,7 @@
             overflow: hidden;
             transform-origin: top left;
             font-family: 'Bowlby One SC', cursive;
-            background-image: 
-                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
-                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
-            background-size: 60px 60px;
-            background-image: 
+            background-image:
                 linear-gradient(to right, #e4e4e4 1px, transparent 1px),
                 linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
             background-size: 60px 60px;
@@ -218,19 +214,19 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 80px 140px 120px;
+            padding: 110px 140px 100px;
             position: relative;
         }
 
         .question-header {
             font-family: 'Bowlby One SC', cursive;
-            font-size: 52px;
+            font-size: 58px;
             color: #db2777;
-            text-align: center;
-            margin-bottom: 50px;
-            max-width: 90%;
+            text-align: left;
+            margin-bottom: 48px;
+            max-width: 100%;
             text-shadow: none;
             letter-spacing: 1px;
         }
@@ -238,24 +234,19 @@
         .events-list {
             display: flex;
             flex-direction: column;
-            gap: 24px;
-            max-width: 78%;
+            gap: 28px;
+            max-width: 90%;
             text-align: left;
-            background: rgba(219,39,119,0.04);
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 16px;
-            padding: 40px 50px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
 
         .event-item {
             font-family: 'Inter', sans-serif;
-            font-weight: 500;
-            font-size: 30px;
-            color: #111827;
-            padding-left: 52px;
+            font-weight: 600;
+            font-size: 34px;
+            color: #db2777;
+            padding-left: 56px;
             position: relative;
-            line-height: 1.4;
+            line-height: 1.35;
             text-shadow: none;
         }
 
@@ -263,18 +254,22 @@
             content: '•';
             position: absolute;
             left: 0;
-            font-size: 38px;
+            font-size: 42px;
             color: #db2777;
+            line-height: 1.2;
         }
 
         .year-display {
             position: absolute;
             bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
             font-family: 'Bowlby One SC', cursive;
-            font-size: 72px;
+            font-size: 120px;
             color: #db2777;
             text-align: center;
             text-shadow: none;
+            letter-spacing: 4px;
         }
 
         .kbt-header-bar {
@@ -518,3 +513,4 @@
     </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                         
