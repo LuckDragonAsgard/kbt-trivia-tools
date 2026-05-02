@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KBT Face Morph Tool v8.2 — Landmark Blend</title>
+<title>KBT Face Morph Tool v8.3 — Landmark Blend</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="module">
 import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs';
@@ -64,7 +64,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);paddi
 <div class="wrap">
 
 <div class="hdr">
-  <h1>Facemorph. Tool v8.2</h1>
+  <h1>Facemorph. Tool v8.3</h1>
   <p>MediaPipe landmark alignment · selective feature compositing · KBT white slide output</p>
 </div>
 
@@ -297,6 +297,7 @@ function shuffleFeatures() {
   const vals = ['A','A','A','B','B','B'].sort(() => Math.random()-.5);
   keys.forEach((k,i) => { feats[k] = vals[i]; });
   renderFeatPanel();
+  if (_morphCache) rerender();  // instant re-render if already generated
 }
 
 // ── Step helpers ───────────────────────────────────────────────────────────
@@ -325,12 +326,14 @@ function getEyePx(lm, isLeft, w, h) {
 }
 
 function computeTransform(lmSrc, lmDst, imgSrc, imgDst) {
-  // Align imgDst onto imgSrc coordinate space by matching eye positions
+  // Accept HTMLImageElement/canvas OR plain {width,height} dims
   const ws = imgSrc.naturalWidth || imgSrc.width;
   const hs = imgSrc.naturalHeight || imgSrc.height;
   const wd = imgDst.naturalWidth || imgDst.width;
   const hd = imgDst.naturalHeight || imgDst.height;
-
+  return computeTransformDims(lmSrc, lmDst, ws, hs, wd, hd);
+}
+function computeTransformDims(lmSrc, lmDst, ws, hs, wd, hd) {
   const srcL = getEyePx(lmSrc, true,  ws, hs);
   const srcR = getEyePx(lmSrc, false, ws, hs);
   const dstL = getEyePx(lmDst, true,  wd, hd);
@@ -808,27 +811,37 @@ async function generate() {
     document.getElementById('s2hint').textContent = '(this takes 30–90s — tab may freeze briefly)';
     const urlA = await rembg(imgToB64(imgA));
     const urlB = await rembg(imgToB64(imgB));
-    let cutA = await urlToImg(urlA);
-    let cutB = await urlToImg(urlB);
-    // Crop to face — removes clothing/body below chin using landmark bounding box
-    cutA = cropToFace(cutA, lmA, imgA.naturalWidth||imgA.width, imgA.naturalHeight||imgA.height);
-    cutB = cropToFace(cutB, lmB, imgB.naturalWidth||imgB.width, imgB.naturalHeight||imgB.height);
+    const rawA = await urlToImg(urlA);  // full rembg result (uncropped)
+    const rawB = await urlToImg(urlB);
     sOk('s2');
 
-    // S3: composite (Face B aligned + feature erasure → Face A shows through)
+    // S3: Recompute T using the actual rembg image dimensions (not original —
+    //   original dims differ after resize in imgToB64, causing landmark offset mismatch)
     sOn('s3');
-    const morphCanvas = compositeMorph(cutA, cutB, lmB, T);
+    const rawAw = rawA.naturalWidth||rawA.width, rawAh = rawA.naturalHeight||rawA.height;
+    const rawBw = rawB.naturalWidth||rawB.width, rawBh = rawB.naturalHeight||rawB.height;
+    const T_raw = computeTransformDims(lmA, lmB, rawAw, rawAh, rawBw, rawBh);
+
+    // Composite on full rembg images — coordinates are consistent (no crop offset mismatch)
+    const morphFull = compositeMorph(rawA, rawB, lmB, T_raw);
+
+    // Crop the composite to face (clothing-proof) — single crop, no coord mismatch
+    const cutM = cropToFace(morphFull, lmA, rawAw, rawAh);
+
+    // Crop raw images for thumbnails (separate from composite)
+    const cutA = cropToFace(rawA, lmA, rawAw, rawAh);
+    const cutB = cropToFace(rawB, lmB, rawBw, rawBh);
     sOk('s3');
 
     // S4: sticker treatment on all three
     sOn('s4');
-    const morphSt  = stickerFromCanvas(morphCanvas, 24);
+    const morphSt  = stickerFromCanvas(cutM, 24);
     const stA = stickerFromCanvas(cutA, 16);
     const stB = stickerFromCanvas(cutB, 16);
     sOk('s4');
 
     // Cache results so toggles can re-render instantly
-    _morphCache = { cutA, cutB, lmB, T, stA, stB };
+    _morphCache = { rawA, rawB, lmA, lmB, T_raw, stA, stB };
 
     // S5: render slides
     sOn('s5');
@@ -857,9 +870,11 @@ async function generate() {
 // ── Instant re-render using cached rembg + landmarks ─────────────────────
 function rerender() {
   if (!_morphCache) return;
-  const { cutA, cutB, lmB, T, stA, stB, label, answer } = _morphCache;
-  const morphCanvas = compositeMorph(cutA, cutB, lmB, T);
-  const morphSt = stickerFromCanvas(morphCanvas, 24);
+  const { rawA, rawB, lmA, lmB, T_raw, stA, stB, label, answer } = _morphCache;
+  const rawAw = rawA.naturalWidth||rawA.width, rawAh = rawA.naturalHeight||rawA.height;
+  const morphFull = compositeMorph(rawA, rawB, lmB, T_raw);
+  const cutM = cropToFace(morphFull, lmA, rawAw, rawAh);
+  const morphSt = stickerFromCanvas(cutM, 24);
   renderQ(morphSt, label || 'R1Q1');
   renderA(stA, morphSt, stB, answer || '', label || 'R1Q1');
   document.getElementById('outBox').style.display = 'block';
