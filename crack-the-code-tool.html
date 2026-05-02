@@ -283,16 +283,40 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            
+            background-image: 
+                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
+                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-image: 
+                linear-gradient(to right, #e4e4e4 1px, transparent 1px),
+                linear-gradient(to bottom, #e4e4e4 1px, transparent 1px);
+            background-size: 60px 60px;
         }
 
-        #export-canvas::before {
-            content: '';
+        .kbt-header-bar {
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 7px;
-            background: #2563eb;
+            top: 24px;
+            left: 32px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             z-index: 10;
+            pointer-events: none;
+        }
+        .kbt-label-pill {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            line-height: 1;
+            padding: 10px 18px;
+            border-radius: 100px;
+            color: #ffffff;
+        }
+        .kbt-tool-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 22px;
         }
 
         .rebus-container {
@@ -347,6 +371,9 @@
             <div class="panel">
                 <h2>⚙️ Setup</h2>
 
+                <label>Slide Label</label>
+                <input type="text" id="slideLabel" value="R1Q1" maxlength="10" oninput="document.getElementById('kbt-label').textContent = this.value || 'R1Q1'" />
+
                 <label>Answer (What players guess)</label>
                 <input type="text" id="answer" placeholder="e.g. Sandra Bullock" maxlength="50" />
                 <button id="aiRebusBtnEl" onclick="getAIRebus()" style="margin-top:8px;background:linear-gradient(135deg,#6c3fc5,#a855f7);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.5px;">🤖 AI Suggest Rebus Ideas</button>
@@ -389,6 +416,10 @@
 
                 <div class="canvas-wrapper" id="canvas-wrapper">
                     <div id="export-canvas">
+                        <div class="kbt-header-bar">
+                            <div class="kbt-label-pill" id="kbt-label" style="background: #2563eb;">R1Q1</div>
+                            <div class="kbt-tool-title" id="kbt-tool-title" style="color: #2563eb;">CRACK THE CODE</div>
+                        </div>
                         <div class="rebus-container" id="rebus-container">
                             <!-- Images rendered dynamically -->
                         </div>
